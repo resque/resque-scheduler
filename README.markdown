@@ -3,7 +3,7 @@ resque-scheduler
 
 Resque-scheduler is basically the union of rufus-scheduler and resque.  The goal
 is to provide simple job scheduling with centralized configuration and
-decentralized workers.  
+distributed workers.  
 
 The schedule is a list of Resque worker classes with arguments and a
 schedule frequency (in crontab syntax).  The schedule is just a hash, but
