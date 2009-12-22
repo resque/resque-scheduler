@@ -1,7 +1,6 @@
 require 'rufus-scheduler'
 require 'rufus/scheduler'
 require 'thwait'
-require 'resque'
 
 module Resque
 
@@ -15,7 +14,8 @@ module Resque
       def run(wait = true)
         puts "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
 
-        Resque.schedule.values.each do |config|
+        Resque.schedule.each do |name, config|
+          puts "Adding #{name} to the schedule"
           rufus_scheduler.cron config['cron'] do
             enqueue_from_config(config)
           end

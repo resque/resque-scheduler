@@ -1,5 +1,5 @@
-
-
+require 'rubygems'
+require 'resque'
 require 'resque_scheduler/version'
 require 'resque/scheduler'
 

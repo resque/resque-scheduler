@@ -27,8 +27,9 @@ is most likely stored in a YAML:
       args: moderators
       description: "This job resets the weekly leaderboard for moderators"
 
-And then set the schedule like so:
+And then set the schedule where ever you configure Resque like so:
 
+    require 'resque-scheduler'
     ResqueScheduler.schedule = YAML.load_file(File.join(File.dirname(__FILE__), '../resque_schedule.yml'))
 
 The scheduler process is just a rake task which adds things to resque when they fire
@@ -38,6 +39,7 @@ based on the schedule:
 
 You'll need to add this to your rakefile:
 
+    require 'resque_scheduler/tasks'
     task "resque:setup" => :environment
 
 

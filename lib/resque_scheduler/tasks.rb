@@ -7,6 +7,7 @@ namespace :resque do
   desc "Start Resque Scheduler"
   task :scheduler => :setup do
     require 'resque'
+    require 'resque_scheduler'
 
     Resque::Scheduler.run
   end
