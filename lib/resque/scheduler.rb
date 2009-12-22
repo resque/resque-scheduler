@@ -15,8 +15,9 @@ module Resque
         puts "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
 
         Resque.schedule.each do |name, config|
-          puts "Adding #{name} to the schedule"
+          puts "Scheduling #{name}..."
           rufus_scheduler.cron config['cron'] do
+            puts "#{Time.now} queuing #{name}"
             enqueue_from_config(config)
           end
         end
