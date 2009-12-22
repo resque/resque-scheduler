@@ -27,13 +27,13 @@ is most likely stored in a YAML:
       args: moderators
       description: "This job resets the weekly leaderboard for moderators"
 
-And then set the schedule where ever you configure Resque like so:
+And then set the schedule wherever you configure Resque, like so:
 
     require 'resque-scheduler'
     ResqueScheduler.schedule = YAML.load_file(File.join(File.dirname(__FILE__), '../resque_schedule.yml'))
 
 The scheduler process is just a rake task which adds things to resque when they fire
-based on the schedule:
+based on the schedule.  For obvious reasons, this process never exits.
 
     $ rake resque-scheduler 
 
