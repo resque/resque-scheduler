@@ -1,0 +1,24 @@
+<h1>Delayed Jobs</h1>
+
+<p class='intro'>
+  This list below contains the timestamps for scheduled delayed jobs.
+</p>
+
+<p class='sub'>
+  Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%=size = resque.delayed_queue_schedule_size %></b> timestamps
+</p>
+
+<table>
+  <tr>
+    <th>Timestamp</th>
+    <th>Job count</th>
+  </tr>
+  <% resque.delayed_queue_peek(start, start+20).each do |timestamp| %>
+    <tr>
+      <td><a href="<%= url "delayed/#{timestamp}" %>"><%= format_time(Time.at(timestamp)) %></a></td>
+      <td><%= resque.delayed_timestamp_size(timestamp) %></td>
+    </tr>
+  <% end %>
+</table>
+
+<%= partial :next_more, :start => start, :size => size %>

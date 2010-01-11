@@ -15,7 +15,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
 
     Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"}}
-    Resque::Scheduler.run(false)
+    Resque::Scheduler.load_schedule!
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
   end
