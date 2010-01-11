@@ -47,7 +47,7 @@ it will NOT be ran later when the scheduler process is started back up.  In that
 sense, you can sort of think of the scheduler process as crond.  Delayed jobs,
 however, are different.
 
-A big shout out to [rufus-scheduler][http://github.com/jmettraux/rufus-scheduler] for handling the heavy lifting of the
+A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) for handling the heavy lifting of the
 actual scheduling engine.
 
 ### Delayed jobs
