@@ -101,4 +101,17 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert_equal({'args' => [], 'class' => 'SomeIvarJob'}, Resque.delayed_timestamp_peek(t, 0, 1).first)
   end
 
+  def test_handle_delayed_items_with_no_items
+    Resque::Scheduler.expects(:enqueue).never
+    Resque::Scheduler.handle_delayed_items
+  end
+
+  def test_handle_delayed_items_with_items
+    t = Time.now - 60 # in the past
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.expects(:enqueue).twice
+    Resque::Scheduler.handle_delayed_items
+  end
+  
 end

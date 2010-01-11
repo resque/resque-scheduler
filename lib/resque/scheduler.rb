@@ -26,7 +26,10 @@ module Resque
         load_schedule!
 
         # Now start the scheduling part of the loop.
-        handle_delayed_items
+        loop do
+          handle_delayed_items
+          poll_sleep
+        end
 
         # never gets here.
       end
@@ -54,22 +57,20 @@ module Resque
         end
       end
 
-      # Loop that handles queueing delayed items (never exits)
+      # Handles queueing delayed items
       def handle_delayed_items
-        loop do
+        item = nil
+        if timestamp = Resque.next_delayed_timestamp
           item = nil
-          handle_shutdown do
-            if timestamp = Resque.next_delayed_timestamp
-              begin
-                if item = Resque.next_item_for_timestamp(timestamp)
-                  log "queuing #{item['class']} [delayed]"
-                  klass = constantize(item['class'])
-                  Resque.enqueue(klass, *item['args'])
-                end
-              end while !item.nil?
+          begin
+            handle_shutdown do
+              if item = Resque.next_item_for_timestamp(timestamp)
+                log "queuing #{item['class']} [delayed]"
+                klass = constantize(item['class'])
+                Resque.enqueue(klass, *item['args'])
+              end
             end
-          end
-          poll_sleep
+          end while !item.nil?
         end
       end
 

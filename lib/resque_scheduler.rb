@@ -87,7 +87,6 @@ module ResqueScheduler
 
   # Returns the next delayed queue timestamp
   # (don't call directly)
-  # O(log(n))
   def next_delayed_timestamp
     timestamp = redis.zrangebyscore(:delayed_queue_schedule, '-inf', Time.now.to_i, 'limit', 0, 1).first
     timestamp.to_i unless timestamp.nil?
@@ -96,7 +95,6 @@ module ResqueScheduler
   # Returns the next item to be processed for a given timestamp, nil if
   # done. (don't call directly)
   # +timestamp+ can either be in seconds or a datetime
-  # O(1)
   def next_item_for_timestamp(timestamp)
     key = "delayed:#{timestamp.to_i}"
 
