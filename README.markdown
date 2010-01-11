@@ -98,19 +98,23 @@ The Delayed tab:
 ![The Delayed Tab](http://img.skitch.com/20100111-ne4fcqtc5emkcuwc5qtais2kwx.jpg)
 
 
-The Scheduler process
----------------------
+Installation and the Scheduler process
+--------------------------------------
+
+To install:
+
+    gem install resque-scheduler
+
+You'll need to add this to your rakefile:
+
+    require 'resque_scheduler/tasks'
+    task "resque:setup" => :environment
 
 The scheduler process is just a rake task which is responsible for both queueing
 items from the schedule and polling the delayed queue for items ready to be
 pushed on to the work queues.  For obvious reasons, this process never exits.
 
     $ rake resque-scheduler 
-
-You'll need to add this to your rakefile:
-
-    require 'resque_scheduler/tasks'
-    task "resque:setup" => :environment
 
 Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
 any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
