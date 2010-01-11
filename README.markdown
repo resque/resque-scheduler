@@ -1,7 +1,7 @@
 resque-scheduler
 ===============
 
-Resque-scheduler is an extension to Resque that adds support for queueing items
+Resque-scheduler is an extension to [Resque](http://github.com/defunkt/resque) that adds support for queueing items
 in the future.
 
 Requires redis >=1.1.
