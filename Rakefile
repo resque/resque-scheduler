@@ -27,8 +27,10 @@ begin
 
   Jeweler::Tasks.new do |gemspec|
     gemspec.name = "resque-scheduler"
-    gemspec.summary = ""
-    gemspec.description = ""
+    gemspec.summary = "Light weight job scheduling on top of Resque"
+    gemspec.description = %{Light weight job scheduling on top of Resque.
+  Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
+  Also supports queueing jobs on a fixed, cron-like schedule.}
     gemspec.email = "bvandenbos@gmail.com"
     gemspec.homepage = "http://github.com/bvandenbos/resque-scheduler"
     gemspec.authors = ["Ben VandenBos"]
