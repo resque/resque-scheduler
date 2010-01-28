@@ -60,18 +60,22 @@ module Resque
       # Handles queueing delayed items
       def handle_delayed_items
         item = nil
-        if timestamp = Resque.next_delayed_timestamp
-          item = nil
-          begin
-            handle_shutdown do
-              if item = Resque.next_item_for_timestamp(timestamp)
-                log "queuing #{item['class']} [delayed]"
-                klass = constantize(item['class'])
-                Resque.enqueue(klass, *item['args'])
+        begin
+          if timestamp = Resque.next_delayed_timestamp
+            item = nil
+            begin
+              handle_shutdown do
+                if item = Resque.next_item_for_timestamp(timestamp)
+                  log "queuing #{item['class']} [delayed]"
+                  klass = constantize(item['class'])
+                  Resque.enqueue(klass, *item['args'])
+                end
               end
-            end
-          end while !item.nil?
-        end
+            # continue processing until there are no more ready items in this timestamp
+            end while !item.nil?
+          end
+        # continue processing until there are no more ready timestamps
+        end while !timestamp.nil?
       end
 
       def handle_shutdown
