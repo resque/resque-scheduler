@@ -39,7 +39,7 @@ is most likely stored in a YAML like so:
 And then set the schedule wherever you configure Resque, like so:
 
     require 'resque-scheduler'
-    ResqueScheduler.schedule = YAML.load_file(File.join(File.dirname(__FILE__), '../resque_schedule.yml'))
+    Resque.schedule = YAML.load_file(File.join(File.dirname(__FILE__), '../resque_schedule.yml'))
 
 Keep in mind, scheduled jobs behave like crons: if your scheduler process (more
 on that later) is not running when a particular job is supposed to be queued,
