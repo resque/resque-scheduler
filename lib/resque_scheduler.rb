@@ -57,12 +57,12 @@ module ResqueScheduler
     # Now, add this timestamp to the zsets.  The score and the value are
     # the same since we'll be querying by timestamp, and we don't have
     # anything else to store.
-    redis.zset_add :delayed_queue_schedule, timestamp.to_i, timestamp.to_i
+    redis.zadd :delayed_queue_schedule, timestamp.to_i, timestamp.to_i
   end
 
   # Returns an array of timestamps based on start and count
   def delayed_queue_peek(start, count)
-    (redis.zrange :delayed_queue_schedule, start, start+count).collect(&:to_i)
+    redis.zrange(:delayed_queue_schedule, start, start+count).collect(&:to_i)
   end
 
   # Returns the size of the delayed queue schedule
