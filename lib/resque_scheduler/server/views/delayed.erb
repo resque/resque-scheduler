@@ -19,7 +19,7 @@
     <tr>
       <td><a href="<%= url "delayed/#{timestamp}" %>"><%= format_time(Time.at(timestamp)) %></a></td>
       <td><%= delayed_timestamp_size = resque.delayed_timestamp_size(timestamp) %></td>
-      <% job = resque.delayed_timestamp_peek(timestamp, start, 1).first %>
+      <% job = resque.delayed_timestamp_peek(timestamp, 0, 1).first %>
       <td>
         <% if job && delayed_timestamp_size == 1 %>
           <%= h(job['class']) %>
