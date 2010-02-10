@@ -12,11 +12,22 @@
   <tr>
     <th>Timestamp</th>
     <th>Job count</th>
+    <th>Class</th>
+    <th>Args</th>
   </tr>
   <% resque.delayed_queue_peek(start, start+20).each do |timestamp| %>
     <tr>
       <td><a href="<%= url "delayed/#{timestamp}" %>"><%= format_time(Time.at(timestamp)) %></a></td>
-      <td><%= resque.delayed_timestamp_size(timestamp) %></td>
+      <td><%= delayed_timestamp_size = resque.delayed_timestamp_size(timestamp) %></td>
+      <% job = resque.delayed_timestamp_peek(timestamp, start, 1).first %>
+      <td>
+        <% if job && delayed_timestamp_size == 1 %>
+          <%= h(job['class']) %>
+        <% else %>
+          <a href="<%= url "delayed/#{timestamp}" %>">see details</a>
+        <% end %>
+      </td>
+      <td><%= h(job['args'].inspect) if job && delayed_timestamp_size == 1 %></td>
     </tr>
   <% end %>
 </table>

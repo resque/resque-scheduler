@@ -50,6 +50,7 @@ module ResqueScheduler
   # Used internally to stuff the item into the schedule sorted list.
   # +timestamp+ can be either in seconds or a datetime object
   # Insertion if O(log(n)).
+  # Returns true if it's the first job to be scheduled at that time, else false
   def delayed_push(timestamp, item)
     # First add this item to the list for this timestamp
     redis.rpush("delayed:#{timestamp.to_i}", encode(item))
@@ -72,7 +73,7 @@ module ResqueScheduler
 
   # Returns the number of jobs for a given timestamp in the delayed queue schedule
   def delayed_timestamp_size(timestamp)
-    redis.llen "delayed:#{timestamp.to_i}"
+    redis.llen("delayed:#{timestamp.to_i}").to_i
   end
 
   # Returns an array of delayed items for the given timestamp
