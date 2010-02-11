@@ -56,7 +56,7 @@ module Resque
               enqueue_from_config(config)
             end
           else
-            log! "not cron found for #{config['class']} (#{name}) - skipping"
+            log! "no cron found for #{config['class']} (#{name}) - skipping"
           end
         end
       end
