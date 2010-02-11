@@ -50,9 +50,13 @@ module Resque
 
         Resque.schedule.each do |name, config|
           log! "Scheduling #{name} "
-          rufus_scheduler.cron config['cron'] do
-            log! "queuing #{config['class']} (#{name})"
-            enqueue_from_config(config)
+          if !config['cron'].nil? && config['cron'].length > 0
+            rufus_scheduler.cron config['cron'] do
+              log! "queuing #{config['class']} (#{name})"
+              enqueue_from_config(config)
+            end
+          else
+            log! "not cron found for #{config['class']} (#{name}) - skipping"
           end
         end
       end
