@@ -114,7 +114,7 @@ The scheduler process is just a rake task which is responsible for both queueing
 items from the schedule and polling the delayed queue for items ready to be
 pushed on to the work queues.  For obvious reasons, this process never exits.
 
-    $ rake resque-scheduler 
+    $ rake resque:scheduler 
 
 Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
 any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
