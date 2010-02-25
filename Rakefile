@@ -36,7 +36,7 @@ begin
     gemspec.authors = ["Ben VandenBos"]
     gemspec.version = ResqueScheduler::Version
 
-    gemspec.add_dependency "resque", ">= 1.3.0"
+    gemspec.add_dependency "resque", ">= 1.5.0"
     gemspec.add_dependency "rufus-scheduler"
     gemspec.add_development_dependency "jeweler"
     gemspec.add_development_dependency "mocha"

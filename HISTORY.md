@@ -1,3 +1,9 @@
+## 1.0.4 (2010-02-26)
+
+* Added support for specifying the queue to put the job onto. This allows for 
+  you to have one job that can go onto multiple queues and be able to schedule
+  jobs without having to load the job classes.
+
 ## 1.0.3 (2010-02-11)
 
 * Added support for scheduled jobs with empty crons. This is helpful to have

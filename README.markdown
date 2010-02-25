@@ -1,8 +1,8 @@
 resque-scheduler
 ===============
 
-Resque-scheduler is an extension to [Resque](http://github.com/defunkt/resque) that adds support for queueing items
-in the future.
+Resque-scheduler is an extension to [Resque](http://github.com/defunkt/resque)
+that adds support for queueing items in the future.
 
 Requires redis >=1.1.
 
@@ -22,7 +22,7 @@ is most likely stored in a YAML like so:
       cron: "0 0 * * *"
       class: QueueDocuments
       args: 
-      description: "This job queues all content for indexing in solr
+      description: "This job queues all content for indexing in solr"
 
     clear_leaderboards_contributors:
       cron: "30 6 * * 1"
@@ -30,9 +30,14 @@ is most likely stored in a YAML like so:
       args: contributors
       description: "This job resets the weekly leaderboard for contributions"
 
+A queue option can also be specified. When job will go onto the specified queue
+if it is available (Even if @queue is specified in the job class). When the
+queue is given it is not necessary for the scheduler to load the class.
+
     clear_leaderboards_moderator:
       cron: "30 6 * * 1"
       class: ClearLeaderboards
+	  queue: scoring
       args: moderators
       description: "This job resets the weekly leaderboard for moderators"
 
@@ -47,8 +52,8 @@ it will NOT be ran later when the scheduler process is started back up.  In that
 sense, you can sort of think of the scheduler process as crond.  Delayed jobs,
 however, are different.
 
-A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) for handling the heavy lifting of the
-actual scheduling engine.
+A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler)
+for handling the heavy lifting of the actual scheduling engine.
 
 ### Delayed jobs
 

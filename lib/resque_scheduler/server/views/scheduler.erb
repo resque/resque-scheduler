@@ -26,6 +26,7 @@
       <td><%= h config['description'] %></td>
       <td style="white-space:nowrap"><%= h config['cron'] %></td>
       <td><%= h config['class'] %></td>
+	  <td><%= h config['queue'] || Resque.queue_from_class(constantize(config['class'])) %></td>
       <td><%= h config['args'].inspect %></td>
     </tr>
   <% end %>
