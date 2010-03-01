@@ -93,7 +93,7 @@ module Resque
         args = config['args'] || config[:args]
         klass_name = config['class'] || config[:class]
         params = args.nil? ? [] : Array(args)
-        queue = config['queue'] || Resque.queue_from_class(constantize(klass_name))
+        queue = config['queue'] || config[:queue] || Resque.queue_from_class(constantize(klass_name))
         Resque::Job.create(queue, klass_name, *params)
       end
 
