@@ -12,6 +12,10 @@ module ResqueScheduler
           def format_time(t)
             t.strftime("%Y-%m-%d %H:%M:%S")
           end
+
+          def queue_from_class_name(class_name)
+            Resque.queue_from_class(Resque.constantize(class_name))
+          end
         end
 
         get "/schedule" do

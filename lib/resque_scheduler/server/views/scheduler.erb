@@ -12,6 +12,7 @@
     <th>Description</th>
     <th>Cron</th>
     <th>Class</th>
+    <th>Queue</th>
     <th>Arguments</th>
   </tr>
   <% Resque.schedule.each do |name, config| %>
@@ -26,7 +27,7 @@
       <td><%= h config['description'] %></td>
       <td style="white-space:nowrap"><%= h config['cron'] %></td>
       <td><%= h config['class'] %></td>
-	  <td><%= h config['queue'] || Resque.queue_from_class(constantize(config['class'])) %></td>
+      <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
       <td><%= h config['args'].inspect %></td>
     </tr>
   <% end %>
