@@ -1,3 +1,12 @@
+## 1.0.5 (2010-03-01)
+
+* Fixed support for overriding queue from schedule config.
+* Removed resque-web dependency on loading the job classes for "Queue Now",
+  provided "queue" is specified in the schedule.
+* The queue is now stored with the job and arguments in the delayed queue so
+  there is no longer a need for the scheduler to load job classes to introspect
+  the queue.
+
 ## 1.0.4 (2010-02-26)
 
 * Added support for specifying the queue to put the job onto. This allows for 

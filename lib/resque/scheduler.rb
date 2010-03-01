@@ -71,8 +71,8 @@ module Resque
               handle_shutdown do
                 if item = Resque.next_item_for_timestamp(timestamp)
                   log "queuing #{item['class']} [delayed]"
-                  klass = constantize(item['class'])
-                  Resque.enqueue(klass, *item['args'])
+                  queue = item['queue'] || queue_from_class(constantize(item['class']))
+                  Job.create(queue, item['class'], *item['args'])
                 end
               end
             # continue processing until there are no more ready items in this timestamp

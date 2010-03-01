@@ -98,7 +98,7 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert_equal(1, Resque.delayed_timestamp_peek(t, 0, 1).length)
     assert_equal(2, Resque.delayed_timestamp_peek(t, 0, 3).length)
 
-    assert_equal({'args' => [], 'class' => 'SomeIvarJob'}, Resque.delayed_timestamp_peek(t, 0, 1).first)
+    assert_equal({'args' => [], 'class' => 'SomeIvarJob', 'queue' => 'ivar'}, Resque.delayed_timestamp_peek(t, 0, 1).first)
   end
 
   def test_handle_delayed_items_with_no_items
@@ -110,7 +110,10 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     t = Time.now - 60 # in the past
     Resque.enqueue_at(t, SomeIvarJob)
     Resque.enqueue_at(t, SomeIvarJob)
-    Resque.expects(:enqueue).twice
+
+    # 2 SomeIvarJob jobs should be created in the "ivar" queue
+    Resque::Job.expects(:create).twice.with('ivar', 'SomeIvarJob')
+    Resque::Scheduler.expects(:queue_from_class).never # Should NOT need to load the class
     Resque::Scheduler.handle_delayed_items
   end
   

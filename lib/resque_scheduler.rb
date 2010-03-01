@@ -38,7 +38,7 @@ module ResqueScheduler
   # for queueing.  Until timestamp is in the past, the job will
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
-    delayed_push(timestamp, :class => klass.to_s, :args => args)
+    delayed_push(timestamp, :class => klass.to_s, :args => args, :queue => queue_from_class(klass))
   end
 
   # Identical to enqueue_at but takes number_of_seconds_from_now

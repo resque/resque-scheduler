@@ -37,7 +37,7 @@ queue is given it is not necessary for the scheduler to load the class.
     clear_leaderboards_moderator:
       cron: "30 6 * * 1"
       class: ClearLeaderboards
-	  queue: scoring
+      queue: scoring
       args: moderators
       description: "This job resets the weekly leaderboard for moderators"
 
