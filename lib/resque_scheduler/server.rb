@@ -26,7 +26,7 @@ module ResqueScheduler
         post "/schedule/requeue" do
           config = Resque.schedule[params['job_name']]
           Resque::Scheduler.enqueue_from_config(config)
-          redirect url("/queues")
+          redirect url("/overview")
         end
         
         get "/delayed" do
