@@ -1,4 +1,3 @@
-require 'rufus-scheduler'
 require 'rufus/scheduler'
 require 'thwait'
 
@@ -71,7 +70,7 @@ module Resque
               handle_shutdown do
                 if item = Resque.next_item_for_timestamp(timestamp)
                   log "queuing #{item['class']} [delayed]"
-                  queue = item['queue'] || queue_from_class(constantize(item['class']))
+                  queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
                   Job.create(queue, item['class'], *item['args'])
                 end
               end
