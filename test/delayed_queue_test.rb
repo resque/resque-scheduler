@@ -112,8 +112,20 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     Resque.enqueue_at(t, SomeIvarJob)
 
     # 2 SomeIvarJob jobs should be created in the "ivar" queue
-    Resque::Job.expects(:create).twice.with('ivar', 'SomeIvarJob')
-    Resque::Scheduler.expects(:queue_from_class).never # Should NOT need to load the class
+    Resque::Job.expects(:create).twice.with('ivar', 'SomeIvarJob', nil)
+    Resque.expects(:queue_from_class).never # Should NOT need to load the class
+    Resque::Scheduler.handle_delayed_items
+  end
+
+  def test_works_with_out_specifying_queue__upgrade_case
+    t = Time.now - 60
+    Resque.delayed_push(t, :class => 'SomeIvarJob')
+
+    # Since we didn't specify :queue when calling delayed_push, it will be forced
+    # to load the class to figure out the queue.  This is the upgrade case from 1.0.4
+    # to 1.0.5.
+    Resque::Job.expects(:create).once.with(:ivar, 'SomeIvarJob', nil)
+
     Resque::Scheduler.handle_delayed_items
   end
   
