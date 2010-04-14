@@ -48,14 +48,16 @@ module Resque
         log! "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
 
         Resque.schedule.each do |name, config|
-          log! "Scheduling #{name} "
-          if !config['cron'].nil? && config['cron'].length > 0
-            rufus_scheduler.cron config['cron'] do
-              log! "queuing #{config['class']} (#{name})"
-              enqueue_from_config(config)
+          unless config['rails_env'] and config['rails_env'].strip.split(/\s+,+\s+/).include(ENV['RAILS_ENV'])
+            log! "Scheduling #{name} "
+            if !config['cron'].nil? && config['cron'].length > 0
+              rufus_scheduler.cron config['cron'] do
+                log! "queuing #{config['class']} (#{name})"
+                enqueue_from_config(config)
+              end
+            else
+              log! "no cron found for #{config['class']} (#{name}) - skipping"
             end
-          else
-            log! "no cron found for #{config['class']} (#{name}) - skipping"
           end
         end
       end

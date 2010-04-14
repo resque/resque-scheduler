@@ -21,6 +21,7 @@ module ResqueScheduler
   # :class must be a resque worker class
   # :args can be any yaml which will be converted to a ruby literal and passed
   #   in a params. (optional)
+  # :rails_envs is the list of envs where the job gets loaded. Envs are comma separated (optional)
   # :description is just that, a description of the job (optional). If params is
   #   an array, each element in the array is passed as a separate param,
   #   otherwise params is passed in as the only parameter to perform.

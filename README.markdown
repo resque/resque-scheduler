@@ -86,6 +86,38 @@ since the jobs are stored in a redis sorted set (zset).  I can't imagine this
 being an issue for someone since redis is stupidly fast even at log(n), but full
 disclosure is always best.
 
+### Schedule jobs per environment
+
+Resque-Scheduler allows to create schedule jobs for specific envs.
+The arg :rails_env (optional) can be used to determine which envs are concerned by the job:
+
+    create_fake_leaderboards:
+      cron: "30 6 * * 1"
+      class: CreateFakeLeaderboards
+      queue: scoring
+      args: 
+      rails_env: demo
+      description: "This job will auto-create leaderboards for our online demo"
+
+The scheduled job create_fake_leaderboards will be created only if the variable RAILS_ENV is set to demo:
+
+    $ RAILS_ENV=demo rake resque:scheduler 
+
+NOTE: If you have added the 2 lines bellow to your Rails Rakefile 
+(ie: lib/tasks/resque-scheduler.rake), the rails env is loaded automatically
+and you don't have to specify RAILS_ENV if the var is correctly set in environment.rb
+
+Multiple envs are allowed, separated by commas:
+
+    create_fake_leaderboards:
+      cron: "30 6 * * 1"
+      class: CreateFakeLeaderboards
+      queue: scoring
+      args: 
+      rails_env: demo, staging, production
+      description: "This job will auto-create leaderboards"
+
+NOTE2: If you specify the :rails_env arg without setting RAILS_ENV variable, the job won't be loaded.
 
 Resque-web additions
 --------------------

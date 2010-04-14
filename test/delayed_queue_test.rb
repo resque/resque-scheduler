@@ -4,7 +4,7 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
 
   def setup
     Resque::Scheduler.mute = true
-    Resque.redis.flush_all
+    Resque.redis.flushall
   end
 
   def test_enqueue_at_adds_correct_list_and_zset
