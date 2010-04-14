@@ -1,5 +1,9 @@
 ## 1.8.0 (2010-04-14)
 
+* Moving version to match corresponding resque version
+* Sorting schedule on Scheduler tab
+* Adding tests for resque-web (gravis)
+
 ## 1.0.5 (2010-03-01)
 
 * Fixed support for overriding queue from schedule config.
