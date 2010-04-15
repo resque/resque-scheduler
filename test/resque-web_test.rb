@@ -9,6 +9,21 @@ context "on GET to /schedule" do
   should_respond_with_success
 end
 
+context "on GET to /schedule with scheduled jobs" do
+  setup do 
+    ENV['rails_env'] = 'production'
+    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'production'}}
+    Resque::Scheduler.load_schedule!
+    get "/schedule"
+  end
+
+  should_respond_with_success
+
+  test 'see the scheduled job' do
+    assert last_response.body.include?('SomeIvarJob')
+  end
+end
+
 context "on GET to /delayed" do
   setup { get "/delayed" }
 
