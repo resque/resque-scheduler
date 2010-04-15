@@ -38,6 +38,13 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'staging')
   end
 
+  def test_enqueue_from_config_when_rails_env_arg_is_not_set
+    # The job should be loaded, since a missing rails_env means ALL envs.
+    ENV['RAILS_ENV'] = 'production'
+    Resque::Job.stubs(:create).once.returns(true).with(:ivar, 'SomeIvarJob', '/tmp')
+    Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp")
+  end
+
   def test_config_makes_it_into_the_rufus_scheduler
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
 
