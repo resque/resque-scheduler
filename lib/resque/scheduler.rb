@@ -48,7 +48,7 @@ module Resque
         log! "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
 
         Resque.schedule.each do |name, config|
-          unless config['rails_env'] and config['rails_env'].strip.split(/\s+,+\s+/).include(ENV['RAILS_ENV'])
+          if !config['rails_env'] or (config['rails_env'] and ENV['RAILS_ENV'] and config['rails_env'].gsub(/\s/,'').split(',').include?(ENV['RAILS_ENV']))
             log! "Scheduling #{name} "
             if !config['cron'].nil? && config['cron'].length > 0
               rufus_scheduler.cron config['cron'] do
