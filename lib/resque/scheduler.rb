@@ -48,7 +48,11 @@ module Resque
         log! "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
 
         Resque.schedule.each do |name, config|
-          if !config['rails_env'] or (config['rails_env'] and ENV['RAILS_ENV'] and config['rails_env'].gsub(/\s/,'').split(',').include?(ENV['RAILS_ENV']))
+          # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
+          # required for the jobs to be scheduled.  If rails_env is missing, the
+          # job should be scheduled regardless of what ENV['RAILS_ENV'] is set
+          # to.
+          if config['rails_env'].nil? || rails_env_matches?(config)
             log! "Scheduling #{name} "
             if !config['cron'].nil? && config['cron'].length > 0
               rufus_scheduler.cron config['cron'] do
@@ -60,6 +64,12 @@ module Resque
             end
           end
         end
+      end
+
+      # Returns true if the given schedule config hash matches the current
+      # ENV['RAILS_ENV']
+      def rails_env_matches?(config)
+        config['rails_env'] && ENV['RAILS_ENV'] && config['rails_env'].gsub(/\s/,'').split(',').include?(ENV['RAILS_ENV'])
       end
 
       # Handles queueing delayed items

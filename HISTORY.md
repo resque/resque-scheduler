@@ -1,3 +1,8 @@
+## 1.8.1 (TBD)
+
+* Adding rails_env for scheduled jobs to support scoping jobs by
+  RAILS_ENV (gravis).
+
 ## 1.8.0 (2010-04-14)
 
 * Moving version to match corresponding resque version
