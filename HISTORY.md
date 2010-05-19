@@ -2,6 +2,8 @@
 
 * Adding rails_env for scheduled jobs to support scoping jobs by
   RAILS_ENV (gravis).
+* Fixing ruby 1.8.6 compatibility issue.
+* Adding gemspec for bundler support.
 
 ## 1.8.0 (2010-04-14)
 
