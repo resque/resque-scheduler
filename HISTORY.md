@@ -1,4 +1,4 @@
-## 1.8.1 (TBD)
+## 1.8.1 (2010-05-19)
 
 * Adding rails_env for scheduled jobs to support scoping jobs by
   RAILS_ENV (gravis).
