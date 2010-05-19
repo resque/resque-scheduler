@@ -64,7 +64,7 @@ module ResqueScheduler
 
   # Returns an array of timestamps based on start and count
   def delayed_queue_peek(start, count)
-    redis.zrange(:delayed_queue_schedule, start, start+count).collect(&:to_i)
+    redis.zrange(:delayed_queue_schedule, start, start+count).collect{|x| x.to_i}
   end
 
   # Returns the size of the delayed queue schedule
