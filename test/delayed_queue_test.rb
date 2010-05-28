@@ -116,6 +116,22 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     Resque.expects(:queue_from_class).never # Should NOT need to load the class
     Resque::Scheduler.handle_delayed_items
   end
+  
+  def test_enqueue_delayed_items_for_timestamp
+    t = Time.now + 60
+    
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob)
+
+    # 2 SomeIvarJob jobs should be created in the "ivar" queue
+    Resque::Job.expects(:create).twice.with('ivar', 'SomeIvarJob', nil)
+    Resque.expects(:queue_from_class).never # Should NOT need to load the class
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
+    
+    # delayed queue for timestamp should be empty
+    assert_equal(0, Resque.delayed_timestamp_peek(t, 0, 3).length)
+  end
 
   def test_works_with_out_specifying_queue__upgrade_case
     t = Time.now - 60

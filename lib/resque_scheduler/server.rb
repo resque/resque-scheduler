@@ -38,6 +38,12 @@ module ResqueScheduler
           # Is there a better way to specify alternate template locations with sinatra?
           erb File.read(File.join(File.dirname(__FILE__), 'server/views/delayed_timestamp.erb'))
         end
+        
+        post "/delayed/queue_now" do
+          timestamp = params['timestamp']
+          Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp.to_i) if timestamp.present?
+          redirect url("/overview")
+        end
 
       end
 

@@ -77,20 +77,25 @@ module Resque
         item = nil
         begin
           if timestamp = Resque.next_delayed_timestamp
-            item = nil
-            begin
-              handle_shutdown do
-                if item = Resque.next_item_for_timestamp(timestamp)
-                  log "queuing #{item['class']} [delayed]"
-                  queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
-                  Job.create(queue, item['class'], *item['args'])
-                end
-              end
-            # continue processing until there are no more ready items in this timestamp
-            end while !item.nil?
+            enqueue_delayed_items_for_timestamp(timestamp)
           end
         # continue processing until there are no more ready timestamps
         end while !timestamp.nil?
+      end
+      
+      # Enqueues all delayed jobs for a timestamp
+      def enqueue_delayed_items_for_timestamp(timestamp)
+        item = nil
+        begin
+          handle_shutdown do
+            if item = Resque.next_item_for_timestamp(timestamp)
+              log "queuing #{item['class']} [delayed]"
+              queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
+              Job.create(queue, item['class'], *item['args'])
+            end
+          end
+        # continue processing until there are no more ready items in this timestamp
+        end while !item.nil?
       end
 
       def handle_shutdown
