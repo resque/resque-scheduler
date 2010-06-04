@@ -1,3 +1,7 @@
+## 1.8.2 (2010-06-04)
+
+* Adding queue now functionality to delayed timestamps (daviddoan)
+
 ## 1.8.1 (2010-05-19)
 
 * Adding rails_env for scheduled jobs to support scoping jobs by
