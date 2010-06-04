@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{resque-scheduler}
-  s.version = "1.8.1"
+  s.version = "1.8.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben VandenBos"]
-  s.date = %q{2010-05-19}
+  s.date = %q{2010-06-04}
   s.description = %q{Light weight job scheduling on top of Resque.
   Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
   Also supports queueing jobs on a fixed, cron-like schedule.}
