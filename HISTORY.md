@@ -1,3 +1,7 @@
+## 1.9.1 (2010-06-04)
+
+* Fixing issue with redis server 1.2.6 and redis gem 2.0.1
+
 ## 1.9.0 (2010-06-04)
 
 * Adding redis 2.0 support (bpo)
