@@ -1,3 +1,7 @@
+## 1.9.0 (2010-06-04)
+
+* Adding redis 2.0 support (bpo)
+
 ## 1.8.2 (2010-06-04)
 
 * Adding queue now functionality to delayed timestamps (daviddoan)
