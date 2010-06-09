@@ -63,4 +63,10 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
   end
 
+  def test_adheres_to_lint
+    assert_nothing_raised do
+      Resque::Plugin.lint(Resque::Scheduler)
+    end
+  end
+
 end
