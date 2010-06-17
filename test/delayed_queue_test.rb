@@ -60,6 +60,10 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert_equal(2, Resque.redis.llen("delayed:#{timestamp.to_i}"), "should have 2 items in the timestamp queue")
   end
 
+  def test_empty_delayed_queue_peek
+    assert_equal([], Resque.delayed_queue_peek(0,20))
+  end
+
   def test_delayed_queue_peek
     t = Time.now
     expected_timestamps = (1..5).to_a.map do |i|
