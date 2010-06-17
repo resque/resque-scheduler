@@ -1,3 +1,7 @@
+## 1.9.2 (2010-06-16)
+
+* Fixing issue with redis gem 2.0.1 and redis server 1.2.6 (dbackeus)
+
 ## 1.9.1 (2010-06-04)
 
 * Fixing issue with redis server 1.2.6 and redis gem 2.0.1
