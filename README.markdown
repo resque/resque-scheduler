@@ -138,6 +138,28 @@ The Delayed tab:
 
 ![The Delayed Tab](http://img.skitch.com/20100111-ne4fcqtc5emkcuwc5qtais2kwx.jpg)
 
+Get get these to show up you need to pass a file `resque-web` to tell it to
+include the `resque-scheduler` plugin.  You probably already have a file somewhere
+where you configure `resque`.  It probably looks something like this:
+
+    require 'resque' # include resque so we can configure it
+    Resque.redis = "redis_server:6379" # tell Resque where redis lives
+
+Now, you want to add the following:
+
+    require 'resque_scheduler' # include the resque_scheduler (this makes the tabs show up)
+
+And if you have a schedule you want to set, add this:
+
+    Resque.schedule = YAML.load_file(File.join(RAILS_ROOT, 'config/resque_schedule.yml')) # load the schedule
+
+Now make sure you're passing that file to resque-web like so:
+
+    resque-web ~/yourapp/config/resque_config.rb
+
+That should make the scheduler tabs show up in `resque-web`.
+
+
 
 Installation and the Scheduler process
 --------------------------------------
