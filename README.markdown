@@ -138,7 +138,7 @@ The Delayed tab:
 
 ![The Delayed Tab](http://img.skitch.com/20100111-ne4fcqtc5emkcuwc5qtais2kwx.jpg)
 
-Get get these to show up you need to pass a file `resque-web` to tell it to
+Get get these to show up you need to pass a file to `resque-web` to tell it to
 include the `resque-scheduler` plugin.  You probably already have a file somewhere
 where you configure `resque`.  It probably looks something like this:
 
