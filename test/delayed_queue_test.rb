@@ -148,5 +148,52 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
 
     Resque::Scheduler.handle_delayed_items
   end
+
+  def test_clearing_delayed_queue
+    t = Time.now + 120
+    4.times { Resque.enqueue_at(t, SomeIvarJob) }
+    4.times { Resque.enqueue_at(Time.now + rand(100), SomeIvarJob) }
+
+    Resque.reset_delayed_queue
+    assert_equal(0, Resque.delayed_queue_schedule_size)
+  end
+
+  def test_remove_specific_item
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+
+    assert_equal(1, Resque.remove_delayed(SomeIvarJob))
+  end
+
+  def test_remove_bogus_item_leaves_the_rest_alone
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t, SomeIvarJob, "bar")
+    Resque.enqueue_at(t, SomeIvarJob, "bar")
+    Resque.enqueue_at(t, SomeIvarJob, "baz")
+
+    assert_equal(0, Resque.remove_delayed(SomeIvarJob))
+  end
+
+  def test_remove_specific_item_in_group_of_other_items_at_same_timestamp
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t, SomeIvarJob, "bar")
+    Resque.enqueue_at(t, SomeIvarJob, "bar")
+    Resque.enqueue_at(t, SomeIvarJob, "baz")
+
+    assert_equal(1, Resque.remove_delayed(SomeIvarJob, "bar"))
+    assert_equal(1, Resque.delayed_queue_schedule_size)
+  end
   
+  def test_remove_specific_item_in_group_of_other_items_at_different_timestamps
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t + 1, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 2, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 3, SomeIvarJob, "baz")
+
+    assert_equal(2, Resque.remove_delayed(SomeIvarJob, "bar"))
+    assert_equal(2, Resque.delayed_queue_schedule_size)
+  end
 end

@@ -39,7 +39,7 @@ module ResqueScheduler
   # for queueing.  Until timestamp is in the past, the job will
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
-    delayed_push(timestamp, :class => klass.to_s, :args => args, :queue => queue_from_class(klass))
+    delayed_push(timestamp, job_to_hash(klass, args))
   end
 
   # Identical to enqueue_at but takes number_of_seconds_from_now
@@ -104,12 +104,44 @@ module ResqueScheduler
     item = decode redis.lpop(key)
 
     # If the list is empty, remove it.
-    if 0 == redis.llen(key).to_i
-      redis.del key
-      redis.zrem :delayed_queue_schedule, timestamp.to_i
-    end
+    clean_up_timestamp(key, timestamp)
     item
   end
+
+  # Clears all jobs created with enqueue_at or enqueue_in
+  def reset_delayed_queue
+    Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |item|
+      redis.del "delayed:#{item}"
+    end
+
+    redis.del :delayed_queue_schedule
+  end
+
+  # given an encoded item, remove it from the delayed_queue
+  def remove_delayed(klass, *args)
+    destroyed = 0
+    search = encode(job_to_hash(klass, args))
+    Array(redis.keys("delayed:*")).each do |key|
+      newly_destroyed = redis.lrem key, 1, search
+
+      clean_up_timestamp(key, key.split(/:/)[1]) if newly_destroyed > 0
+      destroyed += newly_destroyed
+    end
+    destroyed
+  end
+
+  private
+    def job_to_hash(klass, args)
+      {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
+    end
+
+    def clean_up_timestamp(key, timestamp)
+      # If the list is empty, remove it.
+      if 0 == redis.llen(key).to_i
+        redis.del key
+        redis.zrem :delayed_queue_schedule, timestamp.to_i
+      end
+    end
 
 end
 

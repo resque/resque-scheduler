@@ -86,6 +86,15 @@ since the jobs are stored in a redis sorted set (zset).  I can't imagine this
 being an issue for someone since redis is stupidly fast even at log(n), but full
 disclosure is always best.
 
+*Removing Delayed jobs*
+
+If you have the need to cancel a delayed job, you can do so thusly:
+
+    # after you've enqueued a job like:
+    Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :user_id => current_user.id)
+    # remove the job with exactly the same parameters:
+    Resque.remove_delayed(SendFollowUpEmail, :user_id => current_user.id)
+
 ### Schedule jobs per environment
 
 Resque-Scheduler allows to create schedule jobs for specific envs.  The arg
