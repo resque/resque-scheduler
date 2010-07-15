@@ -182,7 +182,7 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     Resque.enqueue_at(t, SomeIvarJob, "bar")
     Resque.enqueue_at(t, SomeIvarJob, "baz")
 
-    assert_equal(1, Resque.remove_delayed(SomeIvarJob, "bar"))
+    assert_equal(2, Resque.remove_delayed(SomeIvarJob, "bar"))
     assert_equal(1, Resque.delayed_queue_schedule_size)
   end
   
@@ -194,6 +194,6 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     Resque.enqueue_at(t + 3, SomeIvarJob, "baz")
 
     assert_equal(2, Resque.remove_delayed(SomeIvarJob, "bar"))
-    assert_equal(2, Resque.delayed_queue_schedule_size)
+    assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 end

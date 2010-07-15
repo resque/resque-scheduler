@@ -122,13 +122,18 @@ module ResqueScheduler
     destroyed = 0
     search = encode(job_to_hash(klass, args))
     Array(redis.keys("delayed:*")).each do |key|
-      newly_destroyed = redis.lrem key, 1, search
-
-      clean_up_timestamp(key, key.split(/:/)[1]) if newly_destroyed > 0
-      destroyed += newly_destroyed
+      destroyed += redis.lrem key, 0, search
     end
     destroyed
   end
+
+  def count_all_scheduled_jobs
+    total_jobs = 0 
+    Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
+      total_jobs += redis.llen("delayed:#{timestamp}").to_i
+    end 
+    total_jobs
+  end 
 
   private
     def job_to_hash(klass, args)
