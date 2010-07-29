@@ -1,6 +1,7 @@
-## 1.9.4 (??)
+## 1.9.4 (2010-07-29)
 
 * Adding ability to remove jobs from delayed queue (joshsz)
+* Fixing issue #23 (removing .present? reference)
 
 ## 1.9.3 (2010-07-07)
 
