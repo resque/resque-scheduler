@@ -1,3 +1,7 @@
+## 1.9.4 (??)
+
+* Adding ability to remove jobs from delayed queue (joshsz)
+
 ## 1.9.3 (2010-07-07)
 
 * Bug fix (#19)
