@@ -119,6 +119,12 @@ NOTE: If you have added the 2 lines bellow to your Rails Rakefile
 and you don't have to specify RAILS_ENV if the var is correctly set in
 environment.rb
 
+Alternatively, you can use your resque initializer to avoid loading the entire
+rails stack.
+
+    $ rake resque:scheduler INITIALIZER_PATH=config/initializers/resque.rb
+
+
 Multiple envs are allowed, separated by commas:
 
     create_fake_leaderboards:

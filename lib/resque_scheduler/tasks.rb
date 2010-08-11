@@ -5,7 +5,7 @@ namespace :resque do
   task :setup
 
   desc "Start Resque Scheduler"
-  task :scheduler => :scheduler_setup do |t,args|
+  task :scheduler => :scheduler_setup do
     require 'resque'
     require 'resque_scheduler'
 
@@ -13,10 +13,12 @@ namespace :resque do
     Resque::Scheduler.run
   end
 
-  # task :scheduler_setup => :setup
   task :scheduler_setup do
-    path = ENV['load_path']
-    load path.to_s.strip if path
+    if ENV['INITIALIZER_PATH']
+      load ENV['INITIALIZER_PATH'].to_s.strip
+    else
+      Rake::Task['resque:setup'].invoke
+    end
   end
 
 end
