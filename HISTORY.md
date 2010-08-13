@@ -1,3 +1,8 @@
+## 1.9.5 (???)
+
+* Updated scheduler rake task to allow for an alternate setup task
+  to avoid loading the entire stack. (chewbranca)
+
 ## 1.9.4 (2010-07-29)
 
 * Adding ability to remove jobs from delayed queue (joshsz)
