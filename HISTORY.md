@@ -2,6 +2,7 @@
 
 * Updated scheduler rake task to allow for an alternate setup task
   to avoid loading the entire stack. (chewbranca)
+* Fixed sig issue on win32 (#25)
 
 ## 1.9.4 (2010-07-29)
 
