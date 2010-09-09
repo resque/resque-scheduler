@@ -39,7 +39,13 @@ module Resque
       def register_signal_handlers
         trap("TERM") { shutdown }
         trap("INT") { shutdown }
-        trap('QUIT') { shutdown } unless defined? JRUBY_VERSION
+        
+        begin
+          trap('QUIT') { shutdown   }
+          trap('USR1') { kill_child }
+        rescue ArgumentError
+          warn "Signals QUIT and USR1 not supported."
+        end
       end
 
       # Pulls the schedule from Resque.schedule and loads it into the
