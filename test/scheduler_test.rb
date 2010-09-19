@@ -2,6 +2,10 @@ require File.dirname(__FILE__) + '/test_helper'
 
 class Resque::SchedulerTest < Test::Unit::TestCase
 
+  class FakeJob; 
+    def self.scheduled(queue, klass, *args); end
+  end
+
   def setup
     Resque::Scheduler.clear_schedule!
   end
@@ -14,6 +18,11 @@ class Resque::SchedulerTest < Test::Unit::TestCase
   def test_enqueue_from_config_puts_stuff_in_the_resque_queue
     Resque::Job.stubs(:create).once.returns(true).with(:ivar, 'SomeIvarJob', '/tmp')
     Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp")
+  end
+  
+  def test_enqueue_from_config_with_custom_class_job_in_the_resque_queue
+    FakeJob.stubs(:scheduled).once.returns(true).with(:ivar, 'SomeIvarJob', '/tmp')
+    Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'job_class' => 'Resque::SchedulerTest::FakeJob', 'args' => "/tmp")
   end
 
   def test_enqueue_from_config_puts_stuff_in_the_resque_queue_when_env_match

@@ -138,6 +138,33 @@ Multiple envs are allowed, separated by commas:
 NOTE: If you specify the `rails_env` arg without setting RAILS_ENV as an 
 environment variable, the job won't be loaded.
 
+### Support for customized Job classes
+
+Some Resque extensions like http://github.com/quirkey/resque-status have custom job classes with slightly different API signatures.
+Resque-scheduler isn't trying to support all existing and future custom job classes, instead it supports a schedule flag so you can extend your custom class
+and make it support scheduled job.
+
+    create_fake_leaderboards:
+      cron: "30 6 * * 1"
+      class: CreateFakeLeaderboards
+      queue: scoring
+      job_class: Resque::JobWithStatus
+      args: 
+      rails_env: demo
+      description: "This job will auto-create leaderboards for our online demo and the status will update as the worker makes progress"
+
+You would then need to extend the job class to support the #scheduled method:
+
+    module Resque
+      class JobWithStatus
+        # Wrapper API to forward a Resque::Job creation API call into a JobWithStatus call.
+        def self.scheduled(queue, klass, *args)
+          create(args)
+        end
+      end
+    end
+
+
 Resque-web additions
 --------------------
 
