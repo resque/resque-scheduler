@@ -226,6 +226,10 @@ any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
 to stdout.  `MUTE` does the opposite and silences all output. `MUTE` supercedes
 `VERBOSE`.
 
+NOTE: You DO NOT want to run >1 instance of the scheduler.  Doing so will result
+in the same job being queued more than once.  You only need one instnace of the
+scheduler running per resque instance (regardless of number of machines).
+
 
 Plagurism alert
 ---------------

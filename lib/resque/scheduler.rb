@@ -96,7 +96,7 @@ module Resque
           handle_shutdown do
             if item = Resque.next_item_for_timestamp(timestamp)
               log "queuing #{item['class']} [delayed]"
-              queue     = item['queue']     || Resque.queue_from_class(constantize(item['class']))
+              queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
               # Support custom job classes like job with status
               if (job_klass = item['job_class']) && (job_klass != 'Resque::Job')
                 # custom job classes not supporting the same API calls must implement the #schedule method
