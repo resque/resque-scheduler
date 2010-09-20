@@ -140,20 +140,27 @@ environment variable, the job won't be loaded.
 
 ### Support for customized Job classes
 
-Some Resque extensions like http://github.com/quirkey/resque-status have custom job classes with slightly different API signatures.
+Some Resque extensions like [resque-status](http://github.com/quirkey/resque-status) use custom job classes with a slightly different API signature.
 Resque-scheduler isn't trying to support all existing and future custom job classes, instead it supports a schedule flag so you can extend your custom class
 and make it support scheduled job.
 
+Let's pretend we have a JobWithStatus class called FakeLeaderboard
+
+		class FakeLeaderboard < Resque::JobWithStatus
+			def perfom
+				# do something and keep track of the status
+			end
+		end
+
     create_fake_leaderboards:
       cron: "30 6 * * 1"
-      class: CreateFakeLeaderboards
       queue: scoring
-      job_class: Resque::JobWithStatus
+      custom_job_class: FakeLeaderboard
       args: 
       rails_env: demo
       description: "This job will auto-create leaderboards for our online demo and the status will update as the worker makes progress"
 
-You would then need to extend the job class to support the #scheduled method:
+If your extension doesn't support scheduled job, you would need to extend the custom job class to support the #scheduled method:
 
     module Resque
       class JobWithStatus
