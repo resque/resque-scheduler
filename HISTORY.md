@@ -1,4 +1,8 @@
-## 1.9.5 (???)
+## 1.9.6 (2010-10-08)
+
+* Support for custom job classes (like resque-status) (mattetti)
+
+## 1.9.5 (2010-09-09)
 
 * Updated scheduler rake task to allow for an alternate setup task
   to avoid loading the entire stack. (chewbranca)
