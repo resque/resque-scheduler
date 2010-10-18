@@ -1,5 +1,11 @@
 require File.dirname(__FILE__) + '/test_helper'
 
+module ::Resque
+  def self.reload_schedule!
+    self.schedule = {:some_ivar_job2 => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}}
+  end
+end
+
 class Resque::SchedulerTest < Test::Unit::TestCase
 
   class FakeJob
@@ -70,6 +76,19 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque::Scheduler.load_schedule!
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+  end
+  
+  def test_can_reload_schedule
+    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"}}
+    Resque::Scheduler.load_schedule!
+
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    
+    Resque::Scheduler.reload_schedule!
+    
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    
+    assert_equal '/tmp/2', Resque.schedule[:some_ivar_job2]["args"]
   end
 
   def test_adheres_to_lint
