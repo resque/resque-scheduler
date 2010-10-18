@@ -16,10 +16,12 @@ module Resque
       attr_accessor :mute
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
-      def run
+      def run(da)
 
         # trap signals
         register_signal_handlers
+        
+        daemonize
 
         # Load the schedule into rufus
         load_schedule!
@@ -43,8 +45,22 @@ module Resque
         begin
           trap('QUIT') { shutdown   }
           trap('USR1') { kill_child }
+          trap('USR2') { reload_schedule! }
         rescue ArgumentError
-          warn "Signals QUIT and USR1 not supported."
+          warn "Signals QUIT and USR1 and USR2 not supported."
+        end
+      end
+      
+      def daemonize
+        Process.daemon(true)
+        if File.directory?('tmp/pids')
+          pid_file = File.expand_path('tmp/pids')
+          File.open(pid_file, 'w'){ |f| f.write(Process.pid) }
+          at_exit { File.delete(pid_file) if File.exist?(pid_file) }
+        elsif File.directory?('/usr/local/var/run')
+          pid_file = '/usr/local/var/run'
+          File.open(pid_file, 'w'){ |f| f.write(Process.pid) }
+          at_exit { File.delete(pid_file) if File.exist?(pid_file) }
         end
       end
 
@@ -141,6 +157,12 @@ module Resque
         rufus_scheduler.stop
         @rufus_scheduler = nil
         rufus_scheduler
+      end
+      
+      def reload_schedule!
+        clear_schedule!
+        Resque.reload_schedule!
+        load_schedule!
       end
 
       # Sleeps and returns true

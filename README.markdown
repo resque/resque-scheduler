@@ -138,6 +138,23 @@ Multiple envs are allowed, separated by commas:
 NOTE: If you specify the `rails_env` arg without setting RAILS_ENV as an 
 environment variable, the job won't be loaded.
 
+### Dynamic Schedules
+
+If you need schedules that are defined based on user interactions inside of your application, this can be completed by loading it initially wherever you configure Resque and defining `Resque.reload_schedule!`:
+
+    module Resque
+      def self.reload_schedule!
+        self.schedule = MyScheduleModel.all.inject({}) {|schedule_hash, record| 
+          schedule_hash[record.name.to_sym] = record.attributes.select{|key, value| key != 'name' }
+          schedule_hash
+        }
+      end
+    end
+    
+    Resque.reload_schedule!
+
+To have the scheduler reload the schedule you just send it the `USR2` signal.
+
 ### Support for customized Job classes
 
 Some Resque extensions like [resque-status](http://github.com/quirkey/resque-status) use custom job classes with a slightly different API signature.
