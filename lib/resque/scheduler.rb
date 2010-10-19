@@ -145,6 +145,7 @@ module Resque
       end
       
       def reload_schedule!
+        log! "Reloading Schedule..."
         clear_schedule!
         Resque.reload_schedule!
         load_schedule!
