@@ -40,7 +40,7 @@ module ResqueScheduler
   end
   
   def get_schedule
-    redis.hgetall(:schedule).tap do |h|
+    redis.hgetall(:schedules).tap do |h|
       h.each do |name, config|
         h[name] = decode(config)
       end

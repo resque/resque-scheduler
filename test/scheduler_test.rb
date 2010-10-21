@@ -7,7 +7,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
   end
 
   def setup
-    Resque.redis.del(:schedule)
+    Resque.redis.del(:schedules)
     Resque::Scheduler.mute = true
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
@@ -78,7 +78,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
   
   def test_can_reload_schedule
     Resque.schedule = {"some_ivar_job" => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"}}
-    Resque.redis.hset(:schedule, "some_ivar_job", Resque.encode(
+    Resque.redis.hset(:schedules, "some_ivar_job", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"}
     ))
   
@@ -87,8 +87,8 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
     assert Resque::Scheduler.scheduled_jobs.include?("some_ivar_job")
     
-    Resque.redis.del(:schedule)
-    Resque.redis.hset(:schedule, "some_ivar_job2", Resque.encode(
+    Resque.redis.del(:schedules)
+    Resque.redis.hset(:schedules, "some_ivar_job2", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}
     ))
     
@@ -133,13 +133,13 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     
     Resque::Scheduler.load_schedule!
     
-    Resque.redis.hset(:schedule, "some_ivar_job", Resque.encode(
+    Resque.redis.hset(:schedules, "some_ivar_job", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}
     ))
-    Resque.redis.hset(:schedule, "new_ivar_job", Resque.encode(
+    Resque.redis.hset(:schedules, "new_ivar_job", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp/3"}
     ))
-    Resque.redis.hset(:schedule, "stay_put_job", Resque.encode(
+    Resque.redis.hset(:schedules, "stay_put_job", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp"}
     ))
     
@@ -167,13 +167,13 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque::Scheduler.rufus_scheduler.expects(:unschedule).with(Resque::Scheduler.scheduled_jobs["some_ivar_job"].job_id)
     Resque::Scheduler.rufus_scheduler.expects(:unschedule).with(Resque::Scheduler.scheduled_jobs["another_ivar_job"].job_id)
     
-    Resque.redis.hset(:schedule, "some_ivar_job", Resque.encode(
+    Resque.redis.hset(:schedules, "some_ivar_job", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}
     ))
-    Resque.redis.hset(:schedule, "new_ivar_job", Resque.encode(
+    Resque.redis.hset(:schedules, "new_ivar_job", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp/3"}
     ))
-    Resque.redis.hset(:schedule, "stay_put_job", Resque.encode(
+    Resque.redis.hset(:schedules, "stay_put_job", Resque.encode(
       {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp"}
     ))
     
