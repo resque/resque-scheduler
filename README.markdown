@@ -140,20 +140,11 @@ environment variable, the job won't be loaded.
 
 ### Dynamic Schedules
 
-If you need schedules that are defined based on user interactions inside of your application, this can be completed by loading it initially wherever you configure Resque and defining `Resque.reload_schedule!`:
+If needed you can also have schedules that are dynamically defined and updated inside of your application. This can be completed by loading the schedule initially wherever you configure Resque and setting `Resque::Scheduler.dynamic` to `true`. Then subsequently updating the "`schedule`" key in redis (namespaced to the Resque namespace) with a JSON encoded version of the schedule hash will cause the schedule to be updated.
 
-    module Resque
-      def self.reload_schedule!
-        self.schedule = MyScheduleModel.all.inject({}) {|schedule_hash, record| 
-          schedule_hash[record.name.to_sym] = record.attributes.select{|key, value| key != 'name' }
-          schedule_hash
-        }
-      end
-    end
-    
-    Resque.reload_schedule!
+When the scheduler loops it will look for differences between the existing schedule and the current schedule in redis. If there are differences it will make the necessary changes to the running schedule.
 
-To have the scheduler reload the schedule you just send it the `USR2` signal.
+To force the scheduler to reload the schedule you just send it the `USR2` signal.
 
 ### Support for customized Job classes
 
