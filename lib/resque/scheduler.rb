@@ -14,6 +14,14 @@ module Resque
       
       # If set, produces no output
       attr_accessor :mute
+      
+      # If set, will try to update the schulde in the loop
+      attr_accessor :dynamic
+      
+      # the Rufus::Scheduler jobs that are scheduled
+      def scheduled_jobs
+        @@scheduled_jobs
+      end
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
@@ -27,6 +35,7 @@ module Resque
         # Now start the scheduling part of the loop.
         loop do
           handle_delayed_items
+          update_schedule if dynamic
           poll_sleep
         end
 
@@ -53,22 +62,29 @@ module Resque
       # rufus scheduler instance
       def load_schedule!
         log! "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
-
+        
+        @@scheduled_jobs = {}
+        
         Resque.schedule.each do |name, config|
-          # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
-          # required for the jobs to be scheduled.  If rails_env is missing, the
-          # job should be scheduled regardless of what ENV['RAILS_ENV'] is set
-          # to.
-          if config['rails_env'].nil? || rails_env_matches?(config)
-            log! "Scheduling #{name} "
-            if !config['cron'].nil? && config['cron'].length > 0
-              rufus_scheduler.cron config['cron'] do
-                log! "queuing #{config['class']} (#{name})"
-                enqueue_from_config(config)
-              end
-            else
-              log! "no cron found for #{config['class']} (#{name}) - skipping"
+          load_schedule_job(name, config)
+        end
+      end
+      
+      # Loads a job schedule into the Rufus::Scheduler and stores it in @@scheduled_jobs
+      def load_schedule_job(name, config)
+        # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
+        # required for the jobs to be scheduled.  If rails_env is missing, the
+        # job should be scheduled regardless of what ENV['RAILS_ENV'] is set
+        # to.
+        if config['rails_env'].nil? || rails_env_matches?(config)
+          log! "Scheduling #{name} "
+          if !config['cron'].nil? && config['cron'].length > 0
+            @@scheduled_jobs[name] = rufus_scheduler.cron config['cron'] do
+              log! "queuing #{config['class']} (#{name})"
+              enqueue_from_config(config)
             end
+          else
+            log! "no cron found for #{config['class']} (#{name}) - skipping"
           end
         end
       end
@@ -149,6 +165,34 @@ module Resque
         clear_schedule!
         Resque.reload_schedule!
         load_schedule!
+      end
+      
+      def update_schedule
+        schedule_from_redis = Resque.decode(Resque.redis.get(:schedule))
+        if !schedule_from_redis.nil? && !schedule_from_redis.empty? && schedule_from_redis != Resque.schedule
+          # unload schedules that no longer exist
+          (Resque.schedule.keys - schedule_from_redis.keys).each do |name|
+            unschedule_job(name)
+          end
+          
+          # find changes and stop and reload or add new
+          schedule_from_redis.each do |name, config|
+            if (Resque.schedule[name].nil? || Resque.schedule[name].empty?) || (config != Resque.schedule[name])
+              unschedule_job(name)
+              load_schedule_job(name, config)
+            end
+          end
+          
+          # load new schedule into Resque.schedule
+          Resque.schedule = schedule_from_redis
+        end
+      end
+      
+      def unschedule_job(name)
+        if scheduled_jobs[name]
+          scheduled_jobs[name].unschedule
+          @@scheduled_jobs.delete(name)
+        end
       end
 
       # Sleeps and returns true

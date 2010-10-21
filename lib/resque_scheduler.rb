@@ -33,6 +33,11 @@ module ResqueScheduler
   def schedule
     @schedule ||= {}
   end
+  
+  # reloads the schedule from redis
+  def reload_schedule!
+    @schedule = decode(redis.get(:schedule))
+  end
 
   # This method is nearly identical to +enqueue+ only it also
   # takes a timestamp which will be used to schedule the job
