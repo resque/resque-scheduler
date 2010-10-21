@@ -146,6 +146,20 @@ When the scheduler loops it will look for differences between the existing sched
 
 To force the scheduler to reload the schedule you just send it the `USR2` signal.
 
+Convenience methods are provided to add/update, delete, and retrieve individual schedule items from the `schedules` in redis:
+
+* `Resque.set_schedule(name, config)`
+* `Resque.get_schedule(name)`
+* `Resque.remove_schedule(name)`
+
+For example:
+
+    Resque.set_schedule("create_fake_leaderboards", {
+      :cron => "30 6 * * 1",
+      :class => "CreateFakeLeaderboards",
+      :queue => scoring
+    })
+
 ### Support for customized Job classes
 
 Some Resque extensions like [resque-status](http://github.com/quirkey/resque-status) use custom job classes with a slightly different API signature.

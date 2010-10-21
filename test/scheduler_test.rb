@@ -187,6 +187,30 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     assert !Resque::Scheduler.scheduled_jobs.keys.include?("another_ivar_job")
     assert !Resque.schedule.keys.include?("another_ivar_job")
   end
+  
+  def test_set_schedule
+    Resque.set_schedule("some_ivar_job", {
+      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/22"
+    })
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/22"}, 
+      Resque.decode(Resque.redis.hget(:schedules, "some_ivar_job")))
+  end
+  
+  def test_get_schedule
+    Resque.redis.hset(:schedules, "some_ivar_job2", Resque.encode(
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/33"}
+    ))
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/33"}, 
+      Resque.get_schedule("some_ivar_job2"))
+  end
+  
+  def test_remove_schedule
+    Resque.redis.hset(:schedules, "some_ivar_job3", Resque.encode(
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44"}
+    ))
+    Resque.remove_schedule("some_ivar_job3")
+    assert_equal nil, Resque.redis.hget(:schedules, "some_ivar_job3")
+  end
 
   def test_adheres_to_lint
     assert_nothing_raised do
