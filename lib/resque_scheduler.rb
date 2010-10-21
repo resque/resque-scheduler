@@ -36,7 +36,15 @@ module ResqueScheduler
   
   # reloads the schedule from redis
   def reload_schedule!
-    @schedule = decode(redis.get(:schedule))
+    @schedule = get_schedule
+  end
+  
+  def get_schedule
+    redis.hgetall(:schedule).tap do |h|
+      h.each do |name, config|
+        h[name] = decode(config)
+      end
+    end
   end
 
   # This method is nearly identical to +enqueue+ only it also
