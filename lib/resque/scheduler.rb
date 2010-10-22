@@ -157,6 +157,7 @@ module Resque
       def clear_schedule!
         rufus_scheduler.stop
         @rufus_scheduler = nil
+        @@scheduled_jobs = {}
         rufus_scheduler
       end
       
