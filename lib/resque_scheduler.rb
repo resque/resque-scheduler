@@ -41,10 +41,14 @@ module ResqueScheduler
   
   # gets the schedule as it exists in redis
   def get_schedules
-    redis.hgetall(:schedules).tap do |h|
-      h.each do |name, config|
-        h[name] = decode(config)
+    if redis.exists(:schedules)
+      redis.hgetall(:schedules).tap do |h|
+        h.each do |name, config|
+          h[name] = decode(config)
+        end
       end
+    else
+      nil
     end
   end
   

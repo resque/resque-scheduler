@@ -169,7 +169,7 @@ module Resque
       
       def update_schedule
         schedule_from_redis = Resque.get_schedules
-        if !schedule_from_redis.nil? && !schedule_from_redis.empty? && schedule_from_redis != Resque.schedule
+        if !schedule_from_redis.nil? && schedule_from_redis != Resque.schedule
           log "Updating schedule..."
           # unload schedules that no longer exist
           (Resque.schedule.keys - schedule_from_redis.keys).each do |name|
