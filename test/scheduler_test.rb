@@ -13,13 +13,8 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
   end
 
-  def test_enqueue_from_config_puts_stuff_in_the_resque_queue_without_class_loaded
-    Resque::Job.stubs(:create).once.returns(true).with('joes_queue', 'BigJoesJob', '/tmp')
-    Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'BigJoesJob', 'args' => "/tmp", 'queue' => 'joes_queue')
-  end
-  
   def test_enqueue_from_config_puts_stuff_in_the_resque_queue
-    Resque::Job.stubs(:create).once.returns(true).with(:ivar, 'SomeIvarJob', '/tmp')
+    Resque::Job.stubs(:create).once.returns(true).with(:ivar, SomeIvarJob, '/tmp')
     Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp")
   end
   

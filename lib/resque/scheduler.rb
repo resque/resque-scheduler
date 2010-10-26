@@ -116,13 +116,14 @@ module Resque
           handle_shutdown do
             if item = Resque.next_item_for_timestamp(timestamp)
               log "queuing #{item['class']} [delayed]"
-              queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
+              klass = constantize(item['class'])
+              queue = item['queue'] || Resque.queue_from_class(klass)
               # Support custom job classes like job with status
               if (job_klass = item['custom_job_class']) && (job_klass != 'Resque::Job')
                 # custom job classes not supporting the same API calls must implement the #schedule method
                 constantize(job_klass).scheduled(queue, item['class'], *item['args'])
               else
-                Resque::Job.create(queue, item['class'], *item['args'])
+                Resque::Job.create(queue, klass, *item['args'])
               end
             end
           end
@@ -140,14 +141,15 @@ module Resque
       def enqueue_from_config(config)
         args = config['args'] || config[:args]
         klass_name = config['class'] || config[:class]
+        klass = constantize(klass_name)
         params = args.nil? ? [] : Array(args)
-        queue = config['queue'] || config[:queue] || Resque.queue_from_class(constantize(klass_name))
+        queue = config['queue'] || config[:queue] || Resque.queue_from_class(klass)
         # Support custom job classes like job with status
         if (job_klass = config['custom_job_class']) && (job_klass != 'Resque::Job')
           # custom job classes not supporting the same API calls must implement the #schedule method
           constantize(job_klass).scheduled(queue, klass_name, *params)
         else
-          Resque::Job.create(queue, klass_name, *params)
+          Resque::Job.create(queue, klass, *params)
         end        
       end
 
