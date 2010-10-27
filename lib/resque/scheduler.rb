@@ -25,11 +25,12 @@ module Resque
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
-
+        $0 = "resque-scheduler: Starting"
         # trap signals
         register_signal_handlers
 
         # Load the schedule into rufus
+        procline "Loading Schedule"
         load_schedule!
 
         # Now start the scheduling part of the loop.
@@ -68,6 +69,7 @@ module Resque
         Resque.schedule.each do |name, config|
           load_schedule_job(name, config)
         end
+        procline "Schedules Loaded"
       end
       
       # Loads a job schedule into the Rufus::Scheduler and stores it in @@scheduled_jobs
@@ -102,12 +104,13 @@ module Resque
       # Handles queueing delayed items
       def handle_delayed_items
         item = nil
-        begin
-          if timestamp = Resque.next_delayed_timestamp
+        if timestamp = Resque.next_delayed_timestamp
+          procline "Processing Delayed Items"
+          while !timestamp.nil?
             enqueue_delayed_items_for_timestamp(timestamp)
+            timestamp = Resque.next_delayed_timestamp
           end
-        # continue processing until there are no more ready timestamps
-        end while !timestamp.nil?
+        end
       end
       
       # Enqueues all delayed jobs for a timestamp
@@ -166,7 +169,7 @@ module Resque
       end
       
       def reload_schedule!
-        log! "Reloading Schedule..."
+        procline "Reloading Schedule"
         clear_schedule!
         Resque.reload_schedule!
         load_schedule!
@@ -175,7 +178,7 @@ module Resque
       def update_schedule
         schedule_from_redis = Resque.get_schedules
         if !schedule_from_redis.nil? && schedule_from_redis != Resque.schedule
-          log "Updating schedule..."
+          procline "Updating schedule"
           # unload schedules that no longer exist
           (Resque.schedule.keys - schedule_from_redis.keys).each do |name|
             unschedule_job(name)
@@ -192,6 +195,7 @@ module Resque
           # load new schedule into Resque.schedule
           Resque.schedule = schedule_from_redis
         end
+        procline "Schedules Loaded"
       end
       
       def unschedule_job(name)
@@ -223,6 +227,11 @@ module Resque
       def log(msg)
         # add "verbose" logic later
         log!(msg) if verbose
+      end
+      
+      def procline(string)
+        $0 = "resque-scheduler-#{ResqueScheduler::Version}: #{string}"
+        log! $0
       end
 
     end
