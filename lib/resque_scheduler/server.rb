@@ -24,12 +24,12 @@ module ResqueScheduler
           erb File.read(File.join(File.dirname(__FILE__), 'server/views/scheduler.erb'))
         end
 
-        post "/schedule/requeue" do
+        post "/schedule/delete" do
           Resque.remove_schedule(params['job_name'])
           redirect url("/schedule")
         end
 
-        post "/schedule/delete" do
+        post "/schedule/requeue" do
           config = Resque.schedule[params['job_name']]
           Resque::Scheduler.enqueue_from_config(config)
           redirect url("/overview")

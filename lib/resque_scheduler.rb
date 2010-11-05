@@ -39,7 +39,7 @@ module ResqueScheduler
 
   # Returns the schedule hash
   def schedule
-    get_schedules
+    get_schedules || {}
   end
   
   # reloads the schedule from redis
