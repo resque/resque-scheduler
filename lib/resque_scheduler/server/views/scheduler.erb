@@ -23,6 +23,10 @@
           <input type="hidden" name="job_name" value="<%= h name %>">
           <input type="submit" value="Queue now">
         </form>
+        <form action="<%= url "/schedule/delete" %>" method="post">
+          <input type="hidden" name="job_name" value="<%= h name %>">
+          <input type="submit" value="Delete">
+        </form>
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
