@@ -140,9 +140,9 @@ environment variable, the job won't be loaded.
 
 ### Dynamic Schedules
 
-If needed you can also have schedules that are dynamically defined and updated inside of your application. This can be completed by loading the schedule initially wherever you configure Resque and setting `Resque::Scheduler.dynamic` to `true`. Then subsequently updating the "`schedules`" key in redis, namespaced to the Resque namespace. The "`schedules`" key is expected to be a redis hash data type, where the key is the name of the schedule and the value is a JSON encoded hash of the schedule configuration.
+Schedules can also be dynamically defined and updated inside of your application. This works by storing the configuration of schedules in the "`schedules`" key in redis, namespaced to the Resque namespace. The "`schedules`" key is expected to be a redis hash data type, where the key is the name of the schedule and the value is a JSON encoded hash of the schedule configuration.  Schedules are now persisted in Redis and deletable from the resque-web app.  However, if you specify a schedules.yml file then any time that file is loaded it will reinstantiate the schedules in Redis as well.
 
-When the scheduler loops it will look for differences between the existing schedule and the current schedule in redis. If there are differences it will make the necessary changes to the running schedule.
+When the scheduler loops it will look for differences between the existing schedule (loaded into the rufus runtime) and the current schedule in redis. If there are differences it will make the necessary changes to the running schedule.
 
 To force the scheduler to reload the schedule you just send it the `USR2` signal.
 
