@@ -19,7 +19,7 @@ module ResqueScheduler
         end
 
         get "/schedule" do
-          Resque.reload_schedule! if Resque::Scheduler.dynamic
+          Resque.reload_schedule! 
           # Is there a better way to specify alternate template locations with sinatra?
           erb File.read(File.join(File.dirname(__FILE__), 'server/views/scheduler.erb'))
         end

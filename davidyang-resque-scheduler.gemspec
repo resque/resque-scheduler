@@ -4,16 +4,16 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{brianjlandau-resque-scheduler}
+  s.name = %q{davidyang-resque-scheduler}
   s.version = "1.10.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Ben VandenBos", "Brian Landau"]
+  s.authors = ["Ben VandenBos", "Brian Landau", "David Yang"]
   s.date = %q{2010-10-27}
   s.description = %q{Light weight job scheduling on top of Resque.
   Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
   Also supports queueing jobs on a fixed, cron-like schedule.}
-  s.email = %q{brianjlandau@gmail.com}
+  s.email = %q{davidyang@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
      "README.markdown"
@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
      "LICENSE",
      "README.markdown",
      "Rakefile",
-     "brianjlandau-resque-scheduler.gemspec",
+     "davidyang-resque-scheduler.gemspec",
      "lib/resque/scheduler.rb",
      "lib/resque_scheduler.rb",
      "lib/resque_scheduler/server.rb",
@@ -40,7 +40,7 @@ Gem::Specification.new do |s|
      "test/scheduler_test.rb",
      "test/test_helper.rb"
   ]
-  s.homepage = %q{http://github.com/brianjlandau/resque-scheduler}
+  s.homepage = %q{http://github.com/davidyang/resque-scheduler}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}

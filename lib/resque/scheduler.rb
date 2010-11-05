@@ -16,7 +16,9 @@ module Resque
       attr_accessor :mute
       
       # If set, will try to update the schulde in the loop
-      attr_accessor :dynamic
+      #attr_accessor :dynamic
+      # TODO: clean up (Removing this check as we want to use both dynamic and 
+      # fixed jobs - davidyang
       
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
@@ -36,7 +38,7 @@ module Resque
         # Now start the scheduling part of the loop.
         loop do
           handle_delayed_items
-          update_schedule if dynamic
+          update_schedule 
           poll_sleep
         end
 

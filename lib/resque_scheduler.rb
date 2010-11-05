@@ -8,6 +8,9 @@ require 'resque_scheduler/server'
 module ResqueScheduler
 
   #
+  # Convenience method for placing a schedule configuration into the redis
+  # server
+  #
   # Accepts a new schedule configuration of the form:
   #
   #   {some_name => {"cron" => "5/* * * *",
@@ -26,12 +29,17 @@ module ResqueScheduler
   #   an array, each element in the array is passed as a separate param,
   #   otherwise params is passed in as the only parameter to perform.
   def schedule=(schedule_hash)
-    @schedule = schedule_hash
+    #@schedule = schedule_hash
+
+    # put all the jobs from a YAML file into the schedules hash
+    schedule_hash.each do |name, job_spec|
+      set_schedule(name, encode(job_spec))
+    end
   end
 
   # Returns the schedule hash
   def schedule
-    @schedule ||= {}
+    get_schedules
   end
   
   # reloads the schedule from redis
