@@ -15,10 +15,8 @@ module Resque
       # If set, produces no output
       attr_accessor :mute
       
-      # If set, will try to update the schulde in the loop
-      #attr_accessor :dynamic
-      # TODO: clean up (Removing this check as we want to use both dynamic and 
-      # fixed jobs - davidyang
+      # If set, will try to update the schedule in the loop
+      attr_accessor :dynamic
       
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
@@ -27,7 +25,7 @@ module Resque
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
-        $0 = "resque-scheduler: Starting"
+        procline "resque-scheduler: Starting"
         # trap signals
         register_signal_handlers
 
@@ -188,7 +186,7 @@ module Resque
             load_schedule_job(name, config)
           end
         
-          Resque.mark_schedules_as_updated
+          Resque.mark_schedules_as_updated!
           procline "Schedules Loaded"
         end
       end

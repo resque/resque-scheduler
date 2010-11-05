@@ -26,14 +26,14 @@ begin
   require 'resque_scheduler/version'
 
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "brianjlandau-resque-scheduler"
+    gemspec.name = "resque-scheduler"
     gemspec.summary = "Light weight job scheduling on top of Resque"
     gemspec.description = %{Light weight job scheduling on top of Resque.
   Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
   Also supports queueing jobs on a fixed, cron-like schedule.}
-    gemspec.email = "brianjlandau@gmail.com"
-    gemspec.homepage = "http://github.com/brianjlandau/resque-scheduler"
-    gemspec.authors = ["Ben VandenBos", "Brian Landau"]
+    gemspec.email = "bvandenbos@gmail.com"
+    gemspec.homepage = "http://github.com/bvandenbos/resque-scheduler"
+    gemspec.authors = ["Ben VandenBos"]
     gemspec.version = ResqueScheduler::Version
 
     gemspec.add_dependency "redis", ">= 2.0.1"
@@ -43,6 +43,14 @@ begin
     gemspec.add_development_dependency "mocha"
     gemspec.add_development_dependency "rack-test"
   end
-  
-  Jeweler::GemcutterTasks.new
+end
+
+
+desc "Push a new version to Gemcutter"
+task :publish => [ :test, :gemspec, :build ] do
+  system "git tag v#{ResqueScheduler::Version}"
+  system "git push origin v#{ResqueScheduler::Version}"
+  system "git push origin master"
+  system "gem push pkg/resque-scheduler-#{ResqueScheduler::Version}.gem"
+  system "git clean -fd"
 end
