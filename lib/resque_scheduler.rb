@@ -33,7 +33,7 @@ module ResqueScheduler
 
     # put all the jobs from a YAML file into the schedules hash
     schedule_hash.each do |name, job_spec|
-      set_schedule(name, encode(job_spec))
+      set_schedule(name, job_spec)
     end
   end
 

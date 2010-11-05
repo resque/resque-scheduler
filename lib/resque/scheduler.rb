@@ -176,25 +176,17 @@ module Resque
       end
       
       def update_schedule
-        schedule_from_redis = Resque.get_schedules
-        if !schedule_from_redis.nil? && schedule_from_redis != Resque.schedule
-          procline "Updating schedule"
-          # unload schedules that no longer exist
-          (Resque.schedule.keys - schedule_from_redis.keys).each do |name|
-            unschedule_job(name)
-          end
-          
-          # find changes and stop and reload or add new
-          schedule_from_redis.each do |name, config|
-            if (Resque.schedule[name].nil? || Resque.schedule[name].empty?) || (config != Resque.schedule[name])
-              unschedule_job(name)
-              load_schedule_job(name, config)
-            end
-          end
-          
-          # load new schedule into Resque.schedule
-          Resque.schedule = schedule_from_redis
+        procline "Updating schedule"
+        # A bit heavy handed here, but unload everything from Rufus and load in the new schedule
+        # since the Resque.schedule (from redis) will always have the true schedule as setup by the user
+        scheduled_jobs.each do |name, config|
+          unschedule_job(name)
         end
+        
+        Resque.schedule.each do |name, config|
+          load_schedule_job(name, config)
+        end
+     
         procline "Schedules Loaded"
       end
       
