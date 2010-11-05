@@ -176,18 +176,20 @@ module Resque
       end
       
       def update_schedule
-        procline "Updating schedule"
-        # A bit heavy handed here, but unload everything from Rufus and load in the new schedule
-        # since the Resque.schedule (from redis) will always have the true schedule as setup by the user
-        scheduled_jobs.each do |name, config|
-          unschedule_job(name)
+        if Resque.needs_updating?
+          procline "Updating schedule"
+          # A bit heavy handed here, but unload everything from Rufus and load in the new schedule
+          # since the Resque.schedule (from redis) will always have the true schedule as setup by the user
+          scheduled_jobs.each do |name, config|
+            unschedule_job(name)
+          end
+          
+          Resque.schedule.each do |name, config|
+            load_schedule_job(name, config)
+          end
+       
+          procline "Schedules Loaded"
         end
-        
-        Resque.schedule.each do |name, config|
-          load_schedule_job(name, config)
-        end
-     
-        procline "Schedules Loaded"
       end
       
       def unschedule_job(name)
