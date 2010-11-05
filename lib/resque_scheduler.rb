@@ -69,6 +69,10 @@ module ResqueScheduler
   def needs_updating?
     redis.get(:schedules_updated) ? true : false
   end
+
+  def mark_schedules_as_updated
+    redis.del(:schedules_updated)
+  end
   
   # retrive the schedule configuration for the given name
   def get_schedule(name)

@@ -187,7 +187,8 @@ module Resque
           Resque.schedule.each do |name, config|
             load_schedule_job(name, config)
           end
-       
+        
+          Resque.mark_schedules_as_updated
           procline "Schedules Loaded"
         end
       end
