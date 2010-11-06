@@ -55,6 +55,7 @@ module ResqueScheduler
   # create or update a schedule with the provided name and configuration
   def set_schedule(name, config)
     redis.hset(:schedules, name, encode(config))
+    config
   end
   
   # retrive the schedule configuration for the given name
