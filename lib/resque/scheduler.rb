@@ -79,9 +79,13 @@ module Resque
         if config['rails_env'].nil? || rails_env_matches?(config)
           log! "Scheduling #{name} "
           if !config['cron'].nil? && config['cron'].length > 0
-            @@scheduled_jobs[name] = rufus_scheduler.cron config['cron'] do
-              log! "queuing #{config['class']} (#{name})"
-              enqueue_from_config(config)
+            begin
+              @@scheduled_jobs[name] = rufus_scheduler.cron config['cron'] do
+                log! "queuing #{config['class']} (#{name})"
+                enqueue_from_config(config)
+              end
+            rescue Exception => e
+              log! "#{e.class.name}: #{e.message}"
             end
           else
             log! "no cron found for #{config['class']} (#{name}) - skipping"
