@@ -10,7 +10,7 @@
     <th></th>
     <th>Name</th>
     <th>Description</th>
-    <th>Cron</th>
+    <th>Interval</th>
     <th>Class</th>
     <th>Queue</th>
     <th>Arguments</th>
@@ -26,7 +26,9 @@
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= h config['cron'] %></td>
+      <td style="white-space:nowrap"><%= (config['cron'].nil? && !config['every'].nil?) ?
+                                         h('every: ' + config['every']) : 
+                                         h('cron: ' + config['cron']) %></td>
       <td><%= h config['class'] %></td>
       <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
       <td><%= h config['args'].inspect %></td>
