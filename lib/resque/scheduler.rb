@@ -79,10 +79,11 @@ module Resque
       end
 
       # Handles queueing delayed items
-      def handle_delayed_items
-        item = nil
+      # at_time - Time to start scheduling items (default: now).
+      def handle_delayed_items(at_time=nil)
+        timestamp = nil
         begin
-          if timestamp = Resque.next_delayed_timestamp
+          if timestamp = Resque.next_delayed_timestamp(at_time)
             enqueue_delayed_items_for_timestamp(timestamp)
           end
         # continue processing until there are no more ready timestamps
