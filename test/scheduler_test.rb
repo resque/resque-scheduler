@@ -7,6 +7,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
   end
 
   def setup
+    Resque::Scheduler.dynamic = false
     Resque.redis.del(:schedules)
     Resque::Scheduler.mute = true
     Resque::Scheduler.clear_schedule!
@@ -186,6 +187,15 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     end
     assert !Resque::Scheduler.scheduled_jobs.keys.include?("another_ivar_job")
     assert !Resque.schedule.keys.include?("another_ivar_job")
+  end
+  
+  def test_set_schedules
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {"my_ivar_job" => {
+      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/75"
+    }}
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/75"}, 
+      Resque.decode(Resque.redis.hget(:schedules, "my_ivar_job")))
   end
   
   def test_set_schedule

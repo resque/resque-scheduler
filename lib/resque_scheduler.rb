@@ -26,6 +26,11 @@ module ResqueScheduler
   #   an array, each element in the array is passed as a separate param,
   #   otherwise params is passed in as the only parameter to perform.
   def schedule=(schedule_hash)
+    if Resque::Scheduler.dynamic
+      schedule_hash.each do |name, job_spec|
+        set_schedule(name, job_spec)
+      end
+    end
     @schedule = schedule_hash
   end
 
