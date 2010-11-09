@@ -1,3 +1,3 @@
 module ResqueScheduler
-  Version = '1.9.6'
+  Version = '2.0.0'
 end
