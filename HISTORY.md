@@ -1,6 +1,7 @@
-## 1.9.7 (2010-11-08)
+## 1.9.7 (2010-11-09)
 
 * Support for rufus-scheduler "every" syntax (fallwith)
+* Ability to pass a Time to handle_delayed_items for testing/staging (rcarver)
 
 ## 1.9.6 (2010-10-08)
 
