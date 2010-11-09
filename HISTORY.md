@@ -1,3 +1,7 @@
+## 1.9.7 (2010-11-08)
+
+* Support for rufus-scheduler "every" syntax (fallwith)
+
 ## 1.9.6 (2010-10-08)
 
 * Support for custom job classes (like resque-status) (mattetti)
