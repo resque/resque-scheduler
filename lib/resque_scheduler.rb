@@ -59,7 +59,11 @@ module ResqueScheduler
   
   # create or update a schedule with the provided name and configuration
   def set_schedule(name, config)
-    redis.hset(:schedules, name, encode(config))
+    existing_config = get_schedule(name)
+    unless existing_config && existing_config == config
+      redis.hset(:schedules, name, encode(config))
+      redis.sadd(:schedules_changed, name)
+    end
     config
   end
   
@@ -71,6 +75,7 @@ module ResqueScheduler
   # remove a given schedule by name
   def remove_schedule(name)
     redis.hdel(:schedules, name)
+    redis.sadd(:schedules_changed, name)
   end
 
   # This method is nearly identical to +enqueue+ only it also

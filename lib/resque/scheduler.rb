@@ -69,6 +69,7 @@ module Resque
         Resque.schedule.each do |name, config|
           load_schedule_job(name, config)
         end
+        Resque.redis.del(:schedules_changed)
         procline "Schedules Loaded"
       end
       
@@ -176,24 +177,17 @@ module Resque
       end
       
       def update_schedule
-        schedule_from_redis = Resque.get_schedules
-        if !schedule_from_redis.nil? && schedule_from_redis != Resque.schedule
+        if Resque.redis.scard(:schedules_changed) > 0
           procline "Updating schedule"
-          # unload schedules that no longer exist
-          (Resque.schedule.keys - schedule_from_redis.keys).each do |name|
-            unschedule_job(name)
-          end
-          
-          # find changes and stop and reload or add new
-          schedule_from_redis.each do |name, config|
-            if (Resque.schedule[name].nil? || Resque.schedule[name].empty?) || (config != Resque.schedule[name])
-              unschedule_job(name)
-              load_schedule_job(name, config)
+          Resque.reload_schedule!
+          while schedule_name = Resque.redis.spop(:schedules_changed)
+            if Resque.schedule.keys.include?(schedule_name)
+              unschedule_job(schedule_name)
+              load_schedule_job(schedule_name, Resque.schedule[schedule_name])
+            else
+              unschedule_job(schedule_name)
             end
           end
-          
-          # load new schedule into Resque.schedule
-          Resque.schedule = schedule_from_redis
         end
         procline "Schedules Loaded"
       end
