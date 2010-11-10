@@ -225,6 +225,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
   def test_adheres_to_lint
     assert_nothing_raised do
       Resque::Plugin.lint(Resque::Scheduler)
+      Resque::Plugin.lint(ResqueScheduler)
     end
   end
 
