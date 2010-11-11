@@ -18,6 +18,8 @@ module ResqueScheduler
   #
   # :name can be anything and is used only to describe the scheduled job
   # :cron can be any cron scheduling string :job can be any resque job class
+  # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage for 
+  #   valid syntax. If :cron is present it will take precedence over :every.
   # :class must be a resque worker class
   # :args can be any yaml which will be converted to a ruby literal and passed
   #   in a params. (optional)

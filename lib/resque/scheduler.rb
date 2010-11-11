@@ -81,17 +81,24 @@ module Resque
         # to.
         if config['rails_env'].nil? || rails_env_matches?(config)
           log! "Scheduling #{name} "
-          if !config['cron'].nil? && config['cron'].length > 0
-            begin
-              @@scheduled_jobs[name] = rufus_scheduler.cron config['cron'] do
-                log! "queuing #{config['class']} (#{name})"
-                enqueue_from_config(config)
+          interval_defined = false
+          interval_types = %w{cron every}
+          interval_types.each do |interval_type|
+            if !config[interval_type].nil? && config[interval_type].length > 0
+              begin
+                @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, config[interval_type]) do
+                  log! "queueing #{config['class']} (#{name})"
+                  enqueue_from_config(config)
+                end
+              rescue Exception => e
+                log! "#{e.class.name}: #{e.message}"
               end
-            rescue Exception => e
-              log! "#{e.class.name}: #{e.message}"
+              interval_defined = true
+              break
             end
-          else
-            log! "no cron found for #{config['class']} (#{name}) - skipping"
+          end
+          unless interval_defined
+            log! "no #{interval_types.join(' / ')} found for #{config['class']} (#{name}) - skipping"
           end
         end
       end
