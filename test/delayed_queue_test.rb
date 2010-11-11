@@ -50,6 +50,16 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert_nil(read_timestamp, "No timestamps should be ready for queueing")
   end
 
+  def test_something_in_the_future_comes_out_if_you_want_it_to
+    timestamp = Time.now + 600 # 10 minutes from now
+
+    Resque.enqueue_at(timestamp, SomeIvarJob, "path")
+
+    read_timestamp = Resque.next_delayed_timestamp(timestamp)
+
+    assert_equal(timestamp.to_i, read_timestamp, "The timestamp we pull out of redis should match the one we put in")
+  end
+
   def test_enqueue_at_and_enqueue_in_are_equivelent
     timestamp = Time.now + 60
 
@@ -119,6 +129,17 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     Resque::Job.expects(:create).twice.with('ivar', 'SomeIvarJob', nil)
     Resque.expects(:queue_from_class).never # Should NOT need to load the class
     Resque::Scheduler.handle_delayed_items
+  end
+
+  def test_handle_delayed_items_with_items_in_the_future
+    t = Time.now + 60 # in the future
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob)
+
+    # 2 SomeIvarJob jobs should be created in the "ivar" queue
+    Resque::Job.expects(:create).twice.with('ivar', 'SomeIvarJob', nil)
+    Resque.expects(:queue_from_class).never # Should NOT need to load the class
+    Resque::Scheduler.handle_delayed_items(t)
   end
   
   def test_enqueue_delayed_items_for_timestamp
