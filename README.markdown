@@ -152,14 +152,15 @@ schedule configuration.
 
 When the scheduler loops it will look for differences between the existing
 schedule and the current schedule in redis. If there are differences it will
-make the necessary changes to the running schedule.
+make the necessary changes to the running schedule. The schedule names that
+need to be changed are stored in the `schedules_changed` set in redis.
 
 To force the scheduler to reload the schedule you just send it the `USR2`
 signal.  This will force a complete schedule reload (unscheduling and
 rescheduling everything).
 
-Convenience methods are provided to add/update, delete, and retrieve
-individual schedule items from the `schedules` in redis:
+To add/update, delete, and retrieve individual schedule items you should
+use the provided API methods:
 
 * `Resque.set_schedule(name, config)`
 * `Resque.get_schedule(name)`
