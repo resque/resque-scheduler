@@ -160,6 +160,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     end
     assert !Resque::Scheduler.scheduled_jobs.keys.include?("another_ivar_job")
     assert !Resque.schedule.keys.include?("another_ivar_job")
+    assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
   
   def test_update_schedule_with_mocks
@@ -195,6 +196,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     end
     assert !Resque::Scheduler.scheduled_jobs.keys.include?("another_ivar_job")
     assert !Resque.schedule.keys.include?("another_ivar_job")
+    assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
   
   def test_set_schedules
