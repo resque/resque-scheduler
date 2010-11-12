@@ -60,24 +60,24 @@ context "scheduling jobs with arguments" do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with an array when the config lists a hash" do
+  test "calls the worker with a hash when the config lists a hash" do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
         key: value
     YAML
-    SomeIvarJob.expects(:perform).once.with(['key', 'value'])
+    SomeIvarJob.expects(:perform).once.with('key' => 'value')
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with a hash inside an array when the config lists a nested hash" do
+  test "calls the worker with a nested hash when the config lists a nested hash" do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
         first_key:
           second_key: value
     YAML
-    SomeIvarJob.expects(:perform).once.with(['first_key', {'second_key' => 'value'}])
+    SomeIvarJob.expects(:perform).once.with('first_key' => {'second_key' => 'value'})
     Resque.reserve('ivar').perform
   end
 end

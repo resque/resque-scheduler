@@ -128,7 +128,7 @@ module Resque
       def enqueue_from_config(config)
         args = config['args'] || config[:args]
         klass_name = config['class'] || config[:class]
-        params = args.nil? ? [] : Array(args)
+        params = args.is_a?(Hash) ? [args] : Array(args)
         queue = config['queue'] || config[:queue] || Resque.queue_from_class(constantize(klass_name))
         # Support custom job classes like job with status
         if (job_klass = config['custom_job_class']) && (job_klass != 'Resque::Job')
