@@ -29,7 +29,9 @@
       <td style="white-space:nowrap"><%= (config['cron'].nil? && !config['every'].nil?) ?
                                          h('every: ' + config['every']) : 
                                          h('cron: ' + config['cron']) %></td>
-      <td><%= h config['class'] %></td>
+      <td><%= (config['class'].nil? && !config['custom_job_class'].nil?) ?
+              h(config['custom_job_class']) :
+              h(config['class']) %></td>
       <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
       <td><%= h config['args'].inspect %></td>
     </tr>
