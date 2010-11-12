@@ -138,6 +138,28 @@ Multiple envs are allowed, separated by commas:
 NOTE: If you specify the `rails_env` arg without setting RAILS_ENV as an 
 environment variable, the job won't be loaded.
 
+### Dynamic Schedules
+
+If needed you can also have schedules that are dynamically defined and updated inside of your application. This can be completed by loading the schedule initially wherever you configure Resque and setting `Resque::Scheduler.dynamic` to `true`. Then subsequently updating the "`schedules`" key in redis, namespaced to the Resque namespace. The "`schedules`" key is expected to be a redis hash data type, where the key is the name of the schedule and the value is a JSON encoded hash of the schedule configuration.
+
+When the scheduler loops it will look for differences between the existing schedule and the current schedule in redis. If there are differences it will make the necessary changes to the running schedule.
+
+To force the scheduler to reload the schedule you just send it the `USR2` signal.
+
+Convenience methods are provided to add/update, delete, and retrieve individual schedule items from the `schedules` in redis:
+
+* `Resque.set_schedule(name, config)`
+* `Resque.get_schedule(name)`
+* `Resque.remove_schedule(name)`
+
+For example:
+
+    Resque.set_schedule("create_fake_leaderboards", {
+      :cron => "30 6 * * 1",
+      :class => "CreateFakeLeaderboards",
+      :queue => scoring
+    })
+
 ### Support for customized Job classes
 
 Some Resque extensions like [resque-status](http://github.com/quirkey/resque-status) use custom job classes with a slightly different API signature.
