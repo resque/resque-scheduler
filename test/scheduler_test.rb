@@ -7,7 +7,12 @@ class Resque::SchedulerTest < Test::Unit::TestCase
   end
 
   def setup
+    Resque::Scheduler.dynamic = false
+    Resque.redis.del(:schedules)
+    Resque.redis.del(:schedules_changed)
+    Resque::Scheduler.mute = true
     Resque::Scheduler.clear_schedule!
+    Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
   end
 
   def test_enqueue_from_config_puts_stuff_in_the_resque_queue_without_class_loaded
@@ -75,11 +80,162 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque::Scheduler.load_schedule!
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert Resque::Scheduler.scheduled_jobs.include?(:some_ivar_job)
+  end
+  
+  def test_can_reload_schedule
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {"some_ivar_job" => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"}}
+  
+    Resque::Scheduler.load_schedule!
+
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert Resque::Scheduler.scheduled_jobs.include?("some_ivar_job")
+    
+    Resque.redis.del(:schedules)
+    Resque.redis.hset(:schedules, "some_ivar_job2", Resque.encode(
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}
+    ))
+    
+    Resque::Scheduler.reload_schedule!
+    
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    
+    assert_equal '/tmp/2', Resque.schedule["some_ivar_job2"]["args"]
+    assert Resque::Scheduler.scheduled_jobs.include?("some_ivar_job2")
+  end
+  
+  def test_load_schedule_job
+    Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+    
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
+    assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+  end
+  
+  def test_load_schedule_job_with_no_cron
+    Resque::Scheduler.load_schedule_job("some_ivar_job", {'class' => 'SomeIvarJob', 'args' => "/tmp"})
+    
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
+    assert !Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+  end
+  
+  def test_load_schedule_job_with_blank_cron
+    Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => '', 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+    
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
+    assert !Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+  end
+  
+  def test_update_schedule
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {
+      "some_ivar_job"    => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"},
+      "another_ivar_job" => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/5"},
+      "stay_put_job"     => {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp"}
+    }
+    
+    Resque::Scheduler.load_schedule!
+    
+    Resque.set_schedule("some_ivar_job",
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}
+    )
+    Resque.set_schedule("new_ivar_job",
+      {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp/3"}
+    )
+    Resque.set_schedule("stay_put_job",
+      {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp"}
+    )
+    Resque.remove_schedule("another_ivar_job")
+    
+    Resque::Scheduler.update_schedule
+    
+    assert_equal(3, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(3, Resque::Scheduler.scheduled_jobs.size)
+    %w(some_ivar_job new_ivar_job stay_put_job).each do |job_name|
+      assert Resque::Scheduler.scheduled_jobs.keys.include?(job_name)
+      assert Resque.schedule.keys.include?(job_name)
+    end
+    assert !Resque::Scheduler.scheduled_jobs.keys.include?("another_ivar_job")
+    assert !Resque.schedule.keys.include?("another_ivar_job")
+  end
+  
+  def test_update_schedule_with_mocks
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {
+      "some_ivar_job" => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"},
+      "another_ivar_job"  => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/5"},
+      "stay_put_job"  => {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp"}
+    }
+    
+    Resque::Scheduler.load_schedule!
+    
+    Resque::Scheduler.rufus_scheduler.expects(:unschedule).with(Resque::Scheduler.scheduled_jobs["some_ivar_job"].job_id)
+    Resque::Scheduler.rufus_scheduler.expects(:unschedule).with(Resque::Scheduler.scheduled_jobs["another_ivar_job"].job_id)
+    
+    Resque.set_schedule("some_ivar_job",
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}
+    )
+    Resque.set_schedule("new_ivar_job",
+      {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp/3"}
+    )
+    Resque.set_schedule("stay_put_job",
+      {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp"}
+    )
+    Resque.remove_schedule("another_ivar_job")
+    
+    Resque::Scheduler.update_schedule
+    
+    assert_equal(3, Resque::Scheduler.scheduled_jobs.size)
+    %w(some_ivar_job new_ivar_job stay_put_job).each do |job_name|
+      assert Resque::Scheduler.scheduled_jobs.keys.include?(job_name)
+      assert Resque.schedule.keys.include?(job_name)
+    end
+    assert !Resque::Scheduler.scheduled_jobs.keys.include?("another_ivar_job")
+    assert !Resque.schedule.keys.include?("another_ivar_job")
+  end
+  
+  def test_set_schedules
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {"my_ivar_job" => {
+      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/75"
+    }}
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/75"}, 
+      Resque.decode(Resque.redis.hget(:schedules, "my_ivar_job")))
+  end
+  
+  def test_set_schedule
+    Resque.set_schedule("some_ivar_job", {
+      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/22"
+    })
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/22"}, 
+      Resque.decode(Resque.redis.hget(:schedules, "some_ivar_job")))
+    assert Resque.redis.sismember(:schedules_changed, "some_ivar_job")
+  end
+  
+  def test_get_schedule
+    Resque.redis.hset(:schedules, "some_ivar_job2", Resque.encode(
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/33"}
+    ))
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/33"}, 
+      Resque.get_schedule("some_ivar_job2"))
+  end
+  
+  def test_remove_schedule
+    Resque.redis.hset(:schedules, "some_ivar_job3", Resque.encode(
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44"}
+    ))
+    Resque.remove_schedule("some_ivar_job3")
+    assert_equal nil, Resque.redis.hget(:schedules, "some_ivar_job3")
+    assert Resque.redis.sismember(:schedules_changed, "some_ivar_job3")
   end
 
   def test_adheres_to_lint
     assert_nothing_raised do
       Resque::Plugin.lint(Resque::Scheduler)
+      Resque::Plugin.lint(ResqueScheduler)
     end
   end
 
