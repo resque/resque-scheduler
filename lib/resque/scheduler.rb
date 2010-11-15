@@ -196,8 +196,8 @@ module Resque
               unschedule_job(schedule_name)
             end
           end
+          procline "Schedules Loaded"
         end
-        procline "Schedules Loaded"
       end
       
       def unschedule_job(name)
