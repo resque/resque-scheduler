@@ -30,6 +30,26 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'custom_job_class' => 'Resque::SchedulerTest::FakeJob', 'args' => "/tmp")
   end
 
+  def test_enqueue_from_config_doesnt_requeue_unique_jobs
+    # First queue "test" is empty.
+    assert_equal(0, Resque.redis.lrange("queue:test", 0, -1).size)
+
+    # Then, we add an unique job with argument /tmp/
+    Resque::Scheduler.enqueue_from_config('class' => 'SomeIvarJob', 'queue' => 'test',
+      'args' => '/tmp/', 'unique_job' => 'true')
+    assert_equal(1, Resque.redis.lrange("queue:test", 0, -1).size)
+
+    # Then, we try to add it again - but it won't be added.
+    Resque::Scheduler.enqueue_from_config('class' => 'SomeIvarJob', 'queue' => 'test',
+      'args' => '/tmp/', 'unique_job' => 'true')
+    assert_equal(1, Resque.redis.lrange("queue:test", 0, -1).size)
+
+    # Finally, we add a job with different arguments, and it will be added.
+    Resque::Scheduler.enqueue_from_config('class' => 'SomeIvarJob', 'queue' => 'test',
+      'args' => '/home/', 'unique_job' => 'true')
+    assert_equal(2, Resque.redis.lrange("queue:test", 0, -1).size)
+  end
+
   def test_enqueue_from_config_puts_stuff_in_the_resque_queue_when_env_match
     # The job should be loaded : its rails_env config matches the RAILS_ENV variable:
     ENV['RAILS_ENV'] = 'production'

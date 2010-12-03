@@ -171,6 +171,16 @@ If your extension doesn't support scheduled job, you would need to extend the cu
       end
     end
 
+### Support for unique jobs
+
+Sometimes it doesn't make sense to queue a job if it's already there (with identical arguments). It would just lead to queue pollution. Unique jobs to the rescue:
+
+    create_fake_leaderboards:
+      cron: "30 6 * * 1"
+      args: 
+      unique_job: true
+      description: "This job will be queued only if the previous job is not in the queue anymore."
+
 
 Resque-web additions
 --------------------

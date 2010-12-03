@@ -130,13 +130,28 @@ module Resque
         klass_name = config['class'] || config[:class]
         params = args.is_a?(Hash) ? [args] : Array(args)
         queue = config['queue'] || config[:queue] || Resque.queue_from_class(constantize(klass_name))
-        # Support custom job classes like job with status
-        if (job_klass = config['custom_job_class']) && (job_klass != 'Resque::Job')
-          # custom job classes not supporting the same API calls must implement the #schedule method
-          constantize(job_klass).scheduled(queue, klass_name, *params)
+        unique_job = config['unique_job'] || config[:unique_job]
+
+        if (unique_job.to_s == 'true' || unique_job.to_s == 'yes') && job_exists_in_queue?(queue, klass_name, params)
+          log "Not adding unique job to queue #{queue} with #{params.inspect}"
         else
-          Resque::Job.create(queue, klass_name, *params)
-        end        
+          # Support custom job classes like job with status
+          if (job_klass = config['custom_job_class']) && (job_klass != 'Resque::Job')
+            # custom job classes not supporting the same API calls must implement the #schedule method
+            constantize(job_klass).scheduled(queue, klass_name, *params)
+          else
+            Resque::Job.create(queue, klass_name, *params)
+          end
+        end
+      end
+
+      # Test if a job exists for the given queue with the same arugments.
+      def job_exists_in_queue?(queue, klass_name, args)
+        queue_redis_name = "queue:#{queue}"
+        Resque.redis.lrange(queue_redis_name, 0, -1).any? do |queue_item|
+          parsed = Resque.decode(queue_item)
+          parsed["args"] == args
+        end
       end
 
       def rufus_scheduler
