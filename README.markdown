@@ -186,7 +186,7 @@ support scheduled job.
 Let's pretend we have a JobWithStatus class called FakeLeaderboard
 
 		class FakeLeaderboard < Resque::JobWithStatus
-			def perfom
+			def perform
 				# do something and keep track of the status
 			end
 		end

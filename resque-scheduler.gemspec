@@ -37,6 +37,7 @@ Gem::Specification.new do |s|
      "test/delayed_queue_test.rb",
      "test/redis-test.conf",
      "test/resque-web_test.rb",
+     "test/scheduler_args_test.rb",
      "test/scheduler_test.rb",
      "test/test_helper.rb"
   ]
@@ -48,6 +49,7 @@ Gem::Specification.new do |s|
   s.test_files = [
     "test/delayed_queue_test.rb",
      "test/resque-web_test.rb",
+     "test/scheduler_args_test.rb",
      "test/scheduler_test.rb",
      "test/test_helper.rb"
   ]
