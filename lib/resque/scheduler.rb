@@ -232,8 +232,8 @@ module Resque
       end
       
       def procline(string)
+        log! string
         $0 = "resque-scheduler-#{ResqueScheduler::Version}: #{string}"
-        log! $0
       end
 
     end
