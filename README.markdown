@@ -95,6 +95,86 @@ If you have the need to cancel a delayed job, you can do so thusly:
     # remove the job with exactly the same parameters:
     Resque.remove_delayed(SendFollowUpEmail, :user_id => current_user.id)
 
+
+### Dynamic Schedules
+
+If needed you can also have recurring jobs (scheduled) that are dynamically
+defined and updated inside of your application.  A good example is if you want
+to allow users to configured when a report is automatically generated.  This
+can be completed by loading the schedule initially wherever you configure
+Resque and setting `Resque::Scheduler.dynamic` to `true`. Then subsequently
+updating the "`schedules`" key in redis, namespaced to the Resque namespace.
+The "`schedules`" key is expected to be a redis hash data type, where the key
+is the name of the schedule and the value is a JSON encoded hash of the
+schedule configuration.  There are methods on Resque to make this easy (see
+below).
+
+When the scheduler loops it will look for differences between the existing
+schedule and the current schedule in redis. If there are differences it will
+make the necessary changes to the running schedule. The schedule names that
+need to be changed are stored in the `schedules_changed` set in redis.
+
+To force the scheduler to reload the schedule you just send it the `USR2`
+signal.  This will force a complete schedule reload (unscheduling and
+rescheduling everything).
+
+To add/update, delete, and retrieve individual schedule items you should
+use the provided API methods:
+
+* `Resque.set_schedule(name, config)`
+* `Resque.get_schedule(name)`
+* `Resque.remove_schedule(name)`
+
+For example:
+
+    Resque.set_schedule("create_fake_leaderboards", {
+      :cron => "30 6 * * 1",
+      :class => "CreateFakeLeaderboards",
+      :queue => scoring
+    })
+
+In this way, it's possible to completely configure your scheduled jobs from
+inside your app if you so desire.
+
+### Support for customized Job classes
+
+Some Resque extensions like
+[resque-status](http://github.com/quirkey/resque-status) use custom job
+classes with a slightly different API signature.  Resque-scheduler isn't
+trying to support all existing and future custom job classes, instead it
+supports a schedule flag so you can extend your custom class and make it
+support scheduled job.
+
+Let's pretend we have a JobWithStatus class called FakeLeaderboard
+
+		class FakeLeaderboard < Resque::JobWithStatus
+			def perform
+				# do something and keep track of the status
+			end
+		end
+
+    create_fake_leaderboards:
+      cron: "30 6 * * 1"
+      queue: scoring
+      custom_job_class: FakeLeaderboard
+      args: 
+      rails_env: demo
+      description: "This job will auto-create leaderboards for our online demo and the status will update as the worker makes progress"
+
+If your extension doesn't support scheduled job, you would need to extend the
+custom job class to support the #scheduled method:
+
+    module Resque
+      class JobWithStatus
+        # Wrapper API to forward a Resque::Job creation API call into
+        # a JobWithStatus call.
+        def self.scheduled(queue, klass, *args)
+          create(args)
+        end
+      end
+    end
+
+
 ### Schedule jobs per environment
 
 Resque-Scheduler allows to create schedule jobs for specific envs.  The arg
@@ -137,80 +217,6 @@ Multiple envs are allowed, separated by commas:
 
 NOTE: If you specify the `rails_env` arg without setting RAILS_ENV as an 
 environment variable, the job won't be loaded.
-
-### Dynamic Schedules
-
-If needed you can also have recurring jobs (scheduled) that are dynamically
-defined and updated inside of your application.  A good example is if you want
-to allow users to configured when a report is automatically generated.  This
-can be completed by loading the schedule initially wherever you configure
-Resque and setting `Resque::Scheduler.dynamic` to `true`. Then subsequently
-updating the "`schedules`" key in redis, namespaced to the Resque namespace.
-The "`schedules`" key is expected to be a redis hash data type, where the key
-is the name of the schedule and the value is a JSON encoded hash of the
-schedule configuration.
-
-When the scheduler loops it will look for differences between the existing
-schedule and the current schedule in redis. If there are differences it will
-make the necessary changes to the running schedule. The schedule names that
-need to be changed are stored in the `schedules_changed` set in redis.
-
-To force the scheduler to reload the schedule you just send it the `USR2`
-signal.  This will force a complete schedule reload (unscheduling and
-rescheduling everything).
-
-To add/update, delete, and retrieve individual schedule items you should
-use the provided API methods:
-
-* `Resque.set_schedule(name, config)`
-* `Resque.get_schedule(name)`
-* `Resque.remove_schedule(name)`
-
-For example:
-
-    Resque.set_schedule("create_fake_leaderboards", {
-      :cron => "30 6 * * 1",
-      :class => "CreateFakeLeaderboards",
-      :queue => scoring
-    })
-
-### Support for customized Job classes
-
-Some Resque extensions like
-[resque-status](http://github.com/quirkey/resque-status) use custom job
-classes with a slightly different API signature.  Resque-scheduler isn't
-trying to support all existing and future custom job classes, instead it
-supports a schedule flag so you can extend your custom class and make it
-support scheduled job.
-
-Let's pretend we have a JobWithStatus class called FakeLeaderboard
-
-		class FakeLeaderboard < Resque::JobWithStatus
-			def perform
-				# do something and keep track of the status
-			end
-		end
-
-    create_fake_leaderboards:
-      cron: "30 6 * * 1"
-      queue: scoring
-      custom_job_class: FakeLeaderboard
-      args: 
-      rails_env: demo
-      description: "This job will auto-create leaderboards for our online demo and the status will update as the worker makes progress"
-
-If your extension doesn't support scheduled job, you would need to extend the
-custom job class to support the #scheduled method:
-
-    module Resque
-      class JobWithStatus
-        # Wrapper API to forward a Resque::Job creation API call into
-        # a JobWithStatus call.
-        def self.scheduled(queue, klass, *args)
-          create(args)
-        end
-      end
-    end
 
 
 Resque-web additions
