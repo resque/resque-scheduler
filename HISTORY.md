@@ -1,3 +1,8 @@
+## 2.0.0 (???)
+
+* Dynamic schedule support (brianjlandau, davidyang)
+* Now depends on redis >=1.3
+
 ## 1.9.7 (2010-11-09)
 
 * Support for rufus-scheduler "every" syntax (fallwith)

@@ -14,19 +14,29 @@ module Resque
       
       # If set, produces no output
       attr_accessor :mute
+      
+      # If set, will try to update the schulde in the loop
+      attr_accessor :dynamic
+      
+      # the Rufus::Scheduler jobs that are scheduled
+      def scheduled_jobs
+        @@scheduled_jobs
+      end
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
-
+        $0 = "resque-scheduler: Starting"
         # trap signals
         register_signal_handlers
 
         # Load the schedule into rufus
+        procline "Loading Schedule"
         load_schedule!
 
         # Now start the scheduling part of the loop.
         loop do
           handle_delayed_items
+          update_schedule if dynamic
           poll_sleep
         end
 
@@ -43,8 +53,9 @@ module Resque
         begin
           trap('QUIT') { shutdown   }
           trap('USR1') { kill_child }
+          trap('USR2') { reload_schedule! }
         rescue ArgumentError
-          warn "Signals QUIT and USR1 not supported."
+          warn "Signals QUIT and USR1 and USR2 not supported."
         end
       end
 
@@ -52,29 +63,42 @@ module Resque
       # rufus scheduler instance
       def load_schedule!
         log! "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
-
+        
+        @@scheduled_jobs = {}
+        
         Resque.schedule.each do |name, config|
-          # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
-          # required for the jobs to be scheduled.  If rails_env is missing, the
-          # job should be scheduled regardless of what ENV['RAILS_ENV'] is set
-          # to.
-          if config['rails_env'].nil? || rails_env_matches?(config)
-            log! "Scheduling #{name} "
-            interval_defined = false
-            interval_types = %w{cron every}
-            interval_types.each do |interval_type|
-              if !config[interval_type].nil? && config[interval_type].length > 0
-                rufus_scheduler.send(interval_type, config[interval_type]) do
+          load_schedule_job(name, config)
+        end
+        Resque.redis.del(:schedules_changed)
+        procline "Schedules Loaded"
+      end
+      
+      # Loads a job schedule into the Rufus::Scheduler and stores it in @@scheduled_jobs
+      def load_schedule_job(name, config)
+        # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
+        # required for the jobs to be scheduled.  If rails_env is missing, the
+        # job should be scheduled regardless of what ENV['RAILS_ENV'] is set
+        # to.
+        if config['rails_env'].nil? || rails_env_matches?(config)
+          log! "Scheduling #{name} "
+          interval_defined = false
+          interval_types = %w{cron every}
+          interval_types.each do |interval_type|
+            if !config[interval_type].nil? && config[interval_type].length > 0
+              begin
+                @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, config[interval_type]) do
                   log! "queueing #{config['class']} (#{name})"
                   enqueue_from_config(config)
                 end
-                interval_defined = true
-                break
+              rescue Exception => e
+                log! "#{e.class.name}: #{e.message}"
               end
+              interval_defined = true
+              break
             end
-            unless interval_defined
-              log! "no #{interval_types.join(' / ')} found for #{config['class']} (#{name}) - skipping"
-            end
+          end
+          unless interval_defined
+            log! "no #{interval_types.join(' / ')} found for #{config['class']} (#{name}) - skipping"
           end
         end
       end
@@ -88,13 +112,14 @@ module Resque
       # Handles queueing delayed items
       # at_time - Time to start scheduling items (default: now).
       def handle_delayed_items(at_time=nil)
-        timestamp = nil
-        begin
-          if timestamp = Resque.next_delayed_timestamp(at_time)
+        item = nil
+        if timestamp = Resque.next_delayed_timestamp(at_time)
+          procline "Processing Delayed Items"
+          while !timestamp.nil?
             enqueue_delayed_items_for_timestamp(timestamp)
+            timestamp = Resque.next_delayed_timestamp(at_time)
           end
-        # continue processing until there are no more ready timestamps
-        end while !timestamp.nil?
+        end
       end
       
       # Enqueues all delayed jobs for a timestamp
@@ -128,7 +153,7 @@ module Resque
       def enqueue_from_config(config)
         args = config['args'] || config[:args]
         klass_name = config['class'] || config[:class]
-        params = args.nil? ? [] : Array(args)
+        params = args.is_a?(Hash) ? [args] : Array(args)
         queue = config['queue'] || config[:queue] || Resque.queue_from_class(constantize(klass_name))
         # Support custom job classes like those that inherit from Resque::JobWithStatus (resque-status)
         if (job_klass = config['custom_job_class']) && (job_klass != 'Resque::Job')
@@ -155,7 +180,39 @@ module Resque
       def clear_schedule!
         rufus_scheduler.stop
         @rufus_scheduler = nil
+        @@scheduled_jobs = {}
         rufus_scheduler
+      end
+      
+      def reload_schedule!
+        procline "Reloading Schedule"
+        clear_schedule!
+        Resque.reload_schedule!
+        load_schedule!
+      end
+      
+      def update_schedule
+        if Resque.redis.scard(:schedules_changed) > 0
+          procline "Updating schedule"
+          Resque.reload_schedule!
+          while schedule_name = Resque.redis.spop(:schedules_changed)
+            if Resque.schedule.keys.include?(schedule_name)
+              unschedule_job(schedule_name)
+              load_schedule_job(schedule_name, Resque.schedule[schedule_name])
+            else
+              unschedule_job(schedule_name)
+            end
+          end
+          procline "Schedules Loaded"
+        end
+      end
+      
+      def unschedule_job(name)
+        if scheduled_jobs[name]
+          log "Removing schedule #{name}"
+          scheduled_jobs[name].unschedule
+          @@scheduled_jobs.delete(name)
+        end
       end
 
       # Sleeps and returns true
@@ -179,6 +236,11 @@ module Resque
       def log(msg)
         # add "verbose" logic later
         log!(msg) if verbose
+      end
+      
+      def procline(string)
+        $0 = "resque-scheduler-#{ResqueScheduler::Version}: #{string}"
+        log! $0
       end
 
     end
