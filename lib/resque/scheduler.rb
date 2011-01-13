@@ -102,16 +102,20 @@ module Resque
         item = nil
         begin
           handle_shutdown do
-            if item = Resque.next_item_for_timestamp(timestamp)
-              log "queuing #{item['class']} [delayed]"
-              queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
-              # Support custom job classes like job with status
-              if (job_klass = item['custom_job_class']) && (job_klass != 'Resque::Job')
-                # custom job classes not supporting the same API calls must implement the #schedule method
-                constantize(job_klass).scheduled(queue, item['class'], *item['args'])
-              else
-                Resque::Job.create(queue, item['class'], *item['args'])
+            begin
+              if item = Resque.next_item_for_timestamp(timestamp)
+                log "queuing #{item['class']} [delayed]"
+                queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
+                # Support custom job classes like job with status
+                if (job_klass = item['custom_job_class']) && (job_klass != 'Resque::Job')
+                  # custom job classes not supporting the same API calls must implement the #schedule method
+                  constantize(job_klass).scheduled(queue, item['class'], *item['args'])
+                else
+                  Resque::Job.create(queue, item['class'], *item['args'])
+                end
               end
+            rescue
+              log! "Failed to enqueue #{klass_name}:\n #{$!}"
             end
           end
         # continue processing until there are no more ready items in this timestamp
@@ -137,6 +141,8 @@ module Resque
         else
           Resque::Job.create(queue, klass_name, *params)
         end        
+      rescue
+        log! "Failed to enqueue #{klass_name}:\n #{$!}"
       end
 
       def rufus_scheduler
