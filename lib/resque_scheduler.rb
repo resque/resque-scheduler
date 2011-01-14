@@ -41,6 +41,7 @@ module ResqueScheduler
   # for queueing.  Until timestamp is in the past, the job will
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
+    validate_job!(klass)
     delayed_push(timestamp, job_to_hash(klass, args))
   end
 
@@ -147,6 +148,16 @@ module ResqueScheduler
       if 0 == redis.llen(key).to_i
         redis.del key
         redis.zrem :delayed_queue_schedule, timestamp.to_i
+      end
+    end
+
+    def validate_job!(klass)
+      if klass.to_s.empty?
+        raise Resque::NoClassError.new("Jobs must be given a class.")
+      end
+
+      unless queue_from_class(klass)
+        raise Resque::NoQueueError.new("Jobs must be placed onto a queue.")
       end
     end
 
