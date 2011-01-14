@@ -25,6 +25,11 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque::Scheduler.enqueue_from_config('every' => '1m', 'class' => 'JamesJob', 'args' => '/tmp', 'queue' => 'james_queue')
   end
 
+  def test_enqueue_from_config_doesnt_crash_on_exception_when_enqueueing
+    Resque::Job.stubs(:create).raises(Resque::NoQueueError, 'test exception').with(:ivar, 'SomeIvarJob', '/tmp')
+    Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp")
+  end
+
   def test_enqueue_from_config_puts_stuff_in_the_resque_queue
     Resque::Job.stubs(:create).once.returns(true).with(:ivar, 'SomeIvarJob', '/tmp')
     Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp")
