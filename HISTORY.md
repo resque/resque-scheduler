@@ -6,6 +6,7 @@
 ## 1.9.8 (???)
 
 * Validates delayed jobs prior to insertion into the delayed queue (bogdan)
+* Rescue exceptions that occur during queuing and log them (dgrijalva)
 
 ## 1.9.7 (2010-11-09)
 
