@@ -217,4 +217,13 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert_equal(2, Resque.remove_delayed(SomeIvarJob, "bar"))
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
+
+  def test_invalid_job_class
+    assert_raise Resque::NoClassError do
+      Resque.enqueue_in(10, nil)
+    end
+    assert_raise Resque::NoQueueError do
+      Resque.enqueue_in(10, String) # string serves as invalid Job class
+    end
+  end
 end
