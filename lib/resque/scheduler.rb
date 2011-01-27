@@ -11,7 +11,7 @@ module Resque
 
       # If true, logs more stuff...
       attr_accessor :verbose
-      
+
       # If set, produces no output
       attr_accessor :mute
 
@@ -82,7 +82,7 @@ module Resque
         # continue processing until there are no more ready timestamps
         end while !timestamp.nil?
       end
-      
+
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
         item = nil
@@ -109,8 +109,23 @@ module Resque
         args = config['args'] || config[:args]
         klass_name = config['class'] || config[:class]
         params = args.nil? ? [] : Array(args)
+        unique_job = config['unique_job'] || config[:unique_job]
         queue = config['queue'] || config[:queue] || Resque.queue_from_class(constantize(klass_name))
-        Resque::Job.create(queue, klass_name, *params)
+
+        if (unique_job.to_s == 'true' || unique_job.to_s == 'yes') && job_exists_in_queue?(queue, klass_name, params)
+          log "Not adding unique job to queue #{queue} with #{params.inspect}"
+        else
+          Resque::Job.create(queue, klass_name, *params)
+        end
+      end
+
+      # Test if a job exists for the given queue with the same arugments.
+      def job_exists_in_queue?(queue, klass_name, args)
+        queue_redis_name = "queue:#{queue}"
+        Resque.redis.lrange(queue_redis_name, 0, -1).any? do |queue_item|
+          parsed = Resque.decode(queue_item)
+          parsed["args"] == args
+        end
       end
 
       def rufus_scheduler
