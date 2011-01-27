@@ -51,17 +51,17 @@ class Resque::SchedulerTest < Test::Unit::TestCase
 
     # Then, we add an unique job with argument /tmp/
     Resque::Scheduler.enqueue_from_config('class' => 'SomeIvarJob', 'queue' => 'test',
-      'args' => '/tmp/', 'unique_job' => 'true')
+      'args' => '/tmp/', 'discard_duplicates' => 'true')
     assert_equal(1, Resque.redis.lrange("queue:test", 0, -1).size)
 
     # Then, we try to add it again - but it won't be added.
     Resque::Scheduler.enqueue_from_config('class' => 'SomeIvarJob', 'queue' => 'test',
-      'args' => '/tmp/', 'unique_job' => 'true')
+      'args' => '/tmp/', 'discard_duplicates' => 'true')
     assert_equal(1, Resque.redis.lrange("queue:test", 0, -1).size)
 
     # Finally, we add a job with different arguments, and it will be added.
     Resque::Scheduler.enqueue_from_config('class' => 'SomeIvarJob', 'queue' => 'test',
-      'args' => '/home/', 'unique_job' => 'true')
+      'args' => '/home/', 'discard_duplicates' => 'true')
     assert_equal(2, Resque.redis.lrange("queue:test", 0, -1).size)
   end
 
