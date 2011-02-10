@@ -26,9 +26,13 @@
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= (config['cron'].nil? && !config['every'].nil?) ?
-                                         h('every: ' + config['every']) : 
-                                         h('cron: ' + config['cron']) %></td>
+      <td style="white-space:nowrap"><%= if !config['every'].nil? 
+                                           h('every: ' + config['every'])
+                                         elsif !config['cron'].nil?
+                                           h('cron: ' + config['cron']) 
+                                         else
+                                           'Not currently scheduled'
+                                         end %></td>
       <td><%= (config['class'].nil? && !config['custom_job_class'].nil?) ?
               h(config['custom_job_class']) :
               h(config['class']) %></td>
