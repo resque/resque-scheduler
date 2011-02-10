@@ -128,19 +128,8 @@ module Resque
         begin
           handle_shutdown do
             if item = Resque.next_item_for_timestamp(timestamp)
-              begin
-                log "queuing #{item['class']} [delayed]"
-                queue = item['queue'] || Resque.queue_from_class(constantize(item['class']))
-                # Support custom job classes like job with status
-                if (job_klass = item['custom_job_class']) && (job_klass != 'Resque::Job')
-                  # custom job classes not supporting the same API calls must implement the #schedule method
-                  constantize(job_klass).scheduled(queue, item['class'], *item['args'])
-                else
-                  Resque::Job.create(queue, item['class'], *item['args'])
-                end
-              rescue
-                log! "Failed to enqueue #{klass_name}:\n #{$!}"
-              end
+              log "queuing #{item['class']} [delayed]"
+              enqueue_from_config(item)
             end
           end
         # continue processing until there are no more ready items in this timestamp
@@ -154,20 +143,20 @@ module Resque
       end
 
       # Enqueues a job based on a config hash
-      def enqueue_from_config(config)
-        args = config['args'] || config[:args]
-        klass_name = config['class'] || config[:class]
+      def enqueue_from_config(job_config)
+        args = job_config['args'] || job_config[:args]
+        klass_name = job_config['class'] || job_config[:class]
         params = args.is_a?(Hash) ? [args] : Array(args)
-        queue = config['queue'] || config[:queue] || Resque.queue_from_class(constantize(klass_name))
+        queue = job_config['queue'] || job_config[:queue] || Resque.queue_from_class(constantize(klass_name))
         # Support custom job classes like those that inherit from Resque::JobWithStatus (resque-status)
-        if (job_klass = config['custom_job_class']) && (job_klass != 'Resque::Job')
+        if (job_klass = job_config['custom_job_class']) && (job_klass != 'Resque::Job')
           # The custom job class API must offer a static "scheduled" method. If the custom
           # job class can not be constantized (via a requeue call from the web perhaps), fall
           # back to enqueing normally via Resque::Job.create.
           begin
             constantize(job_klass).scheduled(queue, klass_name, *params)
           rescue NameError
-            # Note that the custom job class (config['custom_job_class']) is the one enqueued
+            # Note that the custom job class (job_config['custom_job_class']) is the one enqueued
             Resque::Job.create(queue, job_klass, *params)
           end
         else
