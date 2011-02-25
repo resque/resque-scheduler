@@ -62,6 +62,9 @@ module Resque
       # Pulls the schedule from Resque.schedule and loads it into the
       # rufus scheduler instance
       def load_schedule!
+        # Need to load the schedule from redis for the first time if dynamic
+        Resque.reload_schedule! if dynamic 
+        
         log! "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
         
         @@scheduled_jobs = {}
@@ -182,7 +185,6 @@ module Resque
       def reload_schedule!
         procline "Reloading Schedule"
         clear_schedule!
-        Resque.reload_schedule!
         load_schedule!
       end
       
