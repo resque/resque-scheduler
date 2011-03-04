@@ -10,7 +10,7 @@ module ResqueScheduler
 
         helpers do
           def format_time(t)
-            t.strftime("%Y-%m-%d %H:%M:%S")
+            t.strftime("%Y-%m-%d %H:%M:%S %z")
           end
 
           def queue_from_class_name(class_name)
