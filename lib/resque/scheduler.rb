@@ -35,8 +35,12 @@ module Resque
 
         # Now start the scheduling part of the loop.
         loop do
-          handle_delayed_items
-          update_schedule if dynamic
+          begin
+            handle_delayed_items
+            update_schedule if dynamic
+          rescue Errno::EAGAIN, Errno::ECONNRESET => e
+            warn e.message
+          end
           poll_sleep
         end
 
