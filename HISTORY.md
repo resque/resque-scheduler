@@ -2,6 +2,7 @@
 
 * Dynamic schedule support (brianjlandau, davidyang)
 * Now depends on redis >=1.3
+* Rake task drop a pid file (sreeix)
 
 ## 1.9.8 (???)
 
