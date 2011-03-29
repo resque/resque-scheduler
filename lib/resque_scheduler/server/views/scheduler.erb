@@ -19,7 +19,7 @@
     <% config = Resque.schedule[name] %>
     <tr>
       <td>
-        <form action="<%= url "/schedule/requeue" %>" method="post">
+        <form action="<%= u "/schedule/requeue" %>" method="post">
           <input type="hidden" name="job_name" value="<%= h name %>">
           <input type="submit" value="Queue now">
         </form>
@@ -27,8 +27,8 @@
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
       <td style="white-space:nowrap"><%= (config['cron'].nil? && !config['every'].nil?) ?
-                                         h('every: ' + config['every']) : 
-                                         h('cron: ' + config['cron']) %></td>
+                                         h("every: #{config['every']}") : 
+                                         h("cron: #{config['cron']}") %></td>
       <td><%= (config['class'].nil? && !config['custom_job_class'].nil?) ?
               h(config['custom_job_class']) :
               h(config['class']) %></td>
