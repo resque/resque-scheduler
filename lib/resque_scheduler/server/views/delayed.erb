@@ -19,19 +19,19 @@
   <% resque.delayed_queue_peek(start, start+20).each do |timestamp| %>
     <tr>
       <td>
-        <form action="<%= url "/delayed/queue_now" %>" method="post">
+        <form action="<%= u "/delayed/queue_now" %>" method="post">
           <input type="hidden" name="timestamp" value="<%= timestamp.to_i %>">
           <input type="submit" value="Queue now">
         </form>
       </td>
-      <td><a href="<%= url "delayed/#{timestamp}" %>"><%= format_time(Time.at(timestamp)) %></a></td>
+      <td><a href="<%= u "delayed/#{timestamp}" %>"><%= format_time(Time.at(timestamp)) %></a></td>
       <td><%= delayed_timestamp_size = resque.delayed_timestamp_size(timestamp) %></td>
       <% job = resque.delayed_timestamp_peek(timestamp, 0, 1).first %>
       <td>
         <% if job && delayed_timestamp_size == 1 %>
           <%= h(job['class']) %>
         <% else %>
-          <a href="<%= url "delayed/#{timestamp}" %>">see details</a>
+          <a href="<%= u "delayed/#{timestamp}" %>">see details</a>
         <% end %>
       </td>
       <td><%= h(job['args'].inspect) if job && delayed_timestamp_size == 1 %></td>

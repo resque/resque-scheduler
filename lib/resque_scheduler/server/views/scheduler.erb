@@ -19,7 +19,7 @@
     <% config = Resque.schedule[name] %>
     <tr>
       <td>
-        <form action="<%= url "/schedule/requeue" %>" method="post">
+        <form action="<%= u "/schedule/requeue" %>" method="post">
           <input type="hidden" name="job_name" value="<%= h name %>">
           <input type="submit" value="Queue now">
         </form>

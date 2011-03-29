@@ -1,8 +1,22 @@
 ## 2.0.0 (???)
 
+
+## 2.0.0.c
+
+* Rake task drop a pid file (sreeix)
+
+## 2.0.0.b
+
+* Bug fixes
+
+## 2.0.0.a
+
 * Dynamic schedule support (brianjlandau, davidyang)
 * Now depends on redis >=1.3
-* Rake task drop a pid file (sreeix)
+
+## 1.9.9 (2011-03-29)
+
+* Compatibility with resque 1.15.0
 
 ## 1.9.8 (???)
 
