@@ -31,7 +31,7 @@ class Resque::SchedulerTest < Test::Unit::TestCase
   end
 
   def test_enqueue_from_config_puts_stuff_in_the_resque_queue
-    Resque::Job.stubs(:create).once.returns(true).with(:ivar, 'SomeIvarJob', '/tmp')
+    Resque::Job.stubs(:create).once.returns(true).with(:ivar, SomeIvarJob, '/tmp')
     Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp")
   end
 
@@ -76,6 +76,25 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"}}
     Resque::Scheduler.load_schedule!
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+  end
+
+  def test_enqueue_constantizes
+    # The job should be loaded, since a missing rails_env means ALL envs.
+    ENV['RAILS_ENV'] = 'production'
+    config = {'cron' => "* * * * *", 'class' => 'SomeRealClass', 'args' => "/tmp"}
+    Resque::Job.expects(:create).with(SomeRealClass.queue, SomeRealClass, '/tmp')
+    Resque::Scheduler.enqueue_from_config(config)
+  end
+
+  def test_enqueue_runs_hooks
+    # The job should be loaded, since a missing rails_env means ALL envs.
+    ENV['RAILS_ENV'] = 'production'
+    config = {'cron' => "* * * * *", 'class' => 'SomeRealClass', 'args' => "/tmp"}
+
+    Resque::Job.expects(:create).with(SomeRealClass.queue, SomeRealClass, '/tmp')
+    SomeRealClass.expects(:after_enqueue_example)
+
+    Resque::Scheduler.enqueue_from_config(config)
   end
 
   def test_config_makes_it_into_the_rufus_scheduler

@@ -152,9 +152,12 @@ module Resque
       # Enqueues a job based on a config hash
       def enqueue_from_config(job_config)
         args = job_config['args'] || job_config[:args]
+
         klass_name = job_config['class'] || job_config[:class]
+        klass = constantize(klass_name) rescue klass_name
+
         params = args.is_a?(Hash) ? [args] : Array(args)
-        queue = job_config['queue'] || job_config[:queue] || Resque.queue_from_class(constantize(klass_name))
+        queue = job_config['queue'] || job_config[:queue] || Resque.queue_from_class(klass)
         # Support custom job classes like those that inherit from Resque::JobWithStatus (resque-status)
         if (job_klass = job_config['custom_job_class']) && (job_klass != 'Resque::Job')
           # The custom job class API must offer a static "scheduled" method. If the custom
@@ -167,7 +170,14 @@ module Resque
             Resque::Job.create(queue, job_klass, *params)
           end
         else
-          Resque::Job.create(queue, klass_name, *params)
+          # hack to avoid havoc for people shoving stuff into queues
+          # for non-existent classes (for example: running scheduler in
+          # one app that schedules for another
+          if Class === klass
+            Resque.enqueue(klass, *params)
+          else
+            Resque::Job.create(queue, klass, *params)
+          end
         end
       rescue
         log! "Failed to enqueue #{klass_name}:\n #{$!}"

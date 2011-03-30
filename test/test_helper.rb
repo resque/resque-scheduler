@@ -76,3 +76,9 @@ end
 class SomeIvarJob < SomeJob
   @queue = :ivar
 end
+
+class SomeRealClass
+  def self.queue
+    :some_real_queue
+  end
+end
