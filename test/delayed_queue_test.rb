@@ -28,7 +28,7 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     # Confirm the item came out correctly
     assert_equal('SomeIvarJob', item['class'], "Should be the same class that we queued")
     assert_equal(["path"], item['args'], "Should have the same arguments that we queued")
-    
+
     # And now confirm the keys are gone
     assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
@@ -141,10 +141,10 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     Resque.expects(:queue_from_class).never # Should NOT need to load the class
     Resque::Scheduler.handle_delayed_items(t)
   end
-  
+
   def test_enqueue_delayed_items_for_timestamp
     t = Time.now + 60
-    
+
     Resque.enqueue_at(t, SomeIvarJob)
     Resque.enqueue_at(t, SomeIvarJob)
 
@@ -153,7 +153,7 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     Resque.expects(:queue_from_class).never # Should NOT need to load the class
 
     Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
-    
+
     # delayed queue for timestamp should be empty
     assert_equal(0, Resque.delayed_timestamp_peek(t, 0, 3).length)
   end
@@ -206,7 +206,7 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert_equal(2, Resque.remove_delayed(SomeIvarJob, "bar"))
     assert_equal(1, Resque.delayed_queue_schedule_size)
   end
-  
+
   def test_remove_specific_item_in_group_of_other_items_at_different_timestamps
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")

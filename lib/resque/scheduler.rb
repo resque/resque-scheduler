@@ -11,13 +11,13 @@ module Resque
 
       # If true, logs more stuff...
       attr_accessor :verbose
-      
+
       # If set, produces no output
       attr_accessor :mute
-      
+
       # If set, will try to update the schulde in the loop
       attr_accessor :dynamic
-      
+
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
         @@scheduled_jobs
@@ -53,7 +53,7 @@ module Resque
       def register_signal_handlers
         trap("TERM") { shutdown }
         trap("INT") { shutdown }
-        
+
         begin
           trap('QUIT') { shutdown   }
           trap('USR1') { kill_child }
@@ -67,19 +67,19 @@ module Resque
       # rufus scheduler instance
       def load_schedule!
         # Need to load the schedule from redis for the first time if dynamic
-        Resque.reload_schedule! if dynamic 
-        
+        Resque.reload_schedule! if dynamic
+
         log! "Schedule empty! Set Resque.schedule" if Resque.schedule.empty?
-        
+
         @@scheduled_jobs = {}
-        
+
         Resque.schedule.each do |name, config|
           load_schedule_job(name, config)
         end
         Resque.redis.del(:schedules_changed)
         procline "Schedules Loaded"
       end
-      
+
       # Loads a job schedule into the Rufus::Scheduler and stores it in @@scheduled_jobs
       def load_schedule_job(name, config)
         # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
@@ -128,7 +128,7 @@ module Resque
           end
         end
       end
-      
+
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
         item = nil
@@ -185,13 +185,13 @@ module Resque
         @@scheduled_jobs = {}
         rufus_scheduler
       end
-      
+
       def reload_schedule!
         procline "Reloading Schedule"
         clear_schedule!
         load_schedule!
       end
-      
+
       def update_schedule
         if Resque.redis.scard(:schedules_changed) > 0
           procline "Updating schedule"
@@ -207,7 +207,7 @@ module Resque
           procline "Schedules Loaded"
         end
       end
-      
+
       def unschedule_job(name)
         if scheduled_jobs[name]
           log "Removing schedule #{name}"
@@ -238,7 +238,7 @@ module Resque
         # add "verbose" logic later
         log!(msg) if verbose
       end
-      
+
       def procline(string)
         log! string
         $0 = "resque-scheduler-#{ResqueScheduler::Version}: #{string}"
