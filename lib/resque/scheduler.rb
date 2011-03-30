@@ -168,7 +168,7 @@ module Resque
           end
         else
           Resque::Job.create(queue, klass_name, *params)
-        end        
+        end
       rescue
         log! "Failed to enqueue #{klass_name}:\n #{$!}"
       end

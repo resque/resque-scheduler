@@ -169,7 +169,7 @@ custom job class to support the #scheduled method:
         # Wrapper API to forward a Resque::Job creation API call into
         # a JobWithStatus call.
         def self.scheduled(queue, klass, *args)
-          create(args)
+          create(*args)
         end
       end
     end
