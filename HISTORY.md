@@ -1,5 +1,10 @@
 ## 2.0.0 (???)
 
+* TODO: address race condition with delayed jobs (using redis transactions)
+
+## 2.0.0.d (2011-04-04)
+
+* porting bug fixes from v1.9-stable
 
 ## 2.0.0.c
 
