@@ -30,6 +30,11 @@ is most likely stored in a YAML like so:
       args: contributors
       description: "This job resets the weekly leaderboard for contributions"
 
+NOTE: Six parameter cron's are also supported (as they supported by
+rufus-scheduler which powers the resque-scheduler process).  This allows you
+to schedule jobs per second (ie: "30 * * * * *" would fire a job every 30
+seconds past the minute).
+
 A queue option can also be specified. Then the job will go onto the specified
 queue if it is available (Even if @queue is specified in the job class). When
 the queue is given it is not necessary for the scheduler to load the class.
@@ -266,12 +271,15 @@ To install:
 
     gem install resque-scheduler
 
-The unless you specify the `queue` for each scheduled job, the scheduler 
+Adding the resque:scheduler rake task:
+
+    require 'resque_scheduler/tasks'    
+
+Unless you specify the `queue` for each scheduled job, the scheduler 
 needs to know about your job classes (so it can put them into the appropriate
 queue).  To do so, extend the "resque:scheduler_setup" to load your app's code.
 In rails, it would look something like this:
 
-    require 'resque_scheduler/tasks'
     task "resque:scheduler_setup" => :environment # load the env so we know about the job classes
 
 By default, "resque:scheduler_setup" invokes "resque:setup".
