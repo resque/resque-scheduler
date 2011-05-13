@@ -1,83 +1,119 @@
 resque-scheduler
 ===============
 
+### Description
+
 Resque-scheduler is an extension to [Resque](http://github.com/defunkt/resque)
 that adds support for queueing items in the future.
 
 Requires redis >=1.3.
 
+Job scheduling is supported in two different way: Recurring (scheduled) and
+Delayed.
 
-Job scheduling is supported in two different way:
+Scheduled jobs are like cron jobs, recurring on a regular basis.  Delayed
+jobs are resque jobs that you want to run at some point in the future.
+The syntax is pretty explanatory:
 
-### Recurring (scheduled)
+    Resque.enqueue_in(5.days, SendFollowupEmail) # run a job in 5 days
+    # or
+    Resque.enqueue_at(5.days.from_now, SomeJob) # run SomeJob at a specific time
 
-Recurring (or scheduled) jobs are logically no different than a standard cron
-job.  They are jobs that run based on a fixed schedule which is set at startup.
 
-The schedule is a list of Resque worker classes with arguments and a
-schedule frequency (in crontab syntax).  The schedule is just a hash, but
-is most likely stored in a YAML like so:
+### Installation
 
-    queue_documents_for_indexing:
-      cron: "0 0 * * *"
-      class: QueueDocuments
-      args: 
-      description: "This job queues all content for indexing in solr"
+To install:
 
-    clear_leaderboards_contributors:
-      cron: "30 6 * * 1"
-      class: ClearLeaderboards
-      args: contributors
-      description: "This job resets the weekly leaderboard for contributions"
+    gem install resque-scheduler
 
-NOTE: Six parameter cron's are also supported (as they supported by
-rufus-scheduler which powers the resque-scheduler process).  This allows you
-to schedule jobs per second (ie: "30 * * * * *" would fire a job every 30
-seconds past the minute).
+Adding the resque:scheduler rake task:
 
-A queue option can also be specified. Then the job will go onto the specified
-queue if it is available (Even if @queue is specified in the job class). When
-the queue is given it is not necessary for the scheduler to load the class.
+    require 'resque_scheduler/tasks'    
 
-    clear_leaderboards_moderator:
-      cron: "30 6 * * 1"
-      class: ClearLeaderboards
-      queue: scoring
-      args: moderators
-      description: "This job resets the weekly leaderboard for moderators"
+There are three things `resque-scheduler` needs to know about in order to do
+it's jobs: the schedule, where redis lives, and which queues to use.  The
+easiest way to configure these things is via the rake task.  By default,
+`resque-scheduler` depends on the "resque:setup" rake task.  Since you
+probably already have this task, lets just p
+`resque-scheduler` pretty much needs to know everything `resque` needs
+to know, let's just put our configuration there.
 
-And then set the schedule wherever you configure Resque, like so:
 
-    require 'resque_scheduler'
-    Resque.schedule = YAML.load_file(File.join(File.dirname(__FILE__), '../resque_schedule.yml'))
+    # Resque tasks
+    require 'resque/tasks'
+    require 'resque_scheduler/tasks'    
+  
+    namespace :resque do
+      task :setup do
+        require 'resque'
+        require 'resque_scheduler'
+        require 'resque/scheduler'      
+      
+        # you probably already have this somewhere
+        Resque.redis = 'localhost:6379'
+        
+        # The schedule doesn't need to be stored in a YAML, it just needs to
+        # be a hash.  YAML is usually the easiest.
+        Resque::Scheduler.schedule = YAML.load_file('your_resque_schedule.yml')
+        
+        # If your schedule already has +queue+ set for each job, you don't
+        # need to require your jobs.  This can be an advantage since it's
+        # less code that resque-scheduler needs to know about. But in a small
+        # project, it's usually easier to just include you job classes here.
+        # So, someting like this:
+        require 'jobs'
+        
+        # If you want to be able to dynamically change the schedule,
+        # uncomment this line.  A dynamic schedule can be updated via the
+        # Resque::Scheduler.set_schedule (and remove_schedule) methods.
+        # When dynamic is set to true, the scheduler process looks for 
+        # schedule changes and applies them on the fly.
+        #Resque::Scheduler.dynamic = true
+      end
+    end
 
-Keep in mind, scheduled jobs behave like crons: if your scheduler process (more
-on that later) is not running when a particular job is supposed to be queued,
-it will NOT be ran later when the scheduler process is started back up.  In that
-sense, you can sort of think of the scheduler process as crond.  Delayed jobs,
-however, are different.
+The scheduler process is just a rake task which is responsible for both
+queueing items from the schedule and polling the delayed queue for items
+ready to be pushed on to the work queues.  For obvious reasons, this process
+never exits.
 
-A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler)
-for handling the heavy lifting of the actual scheduling engine.
+    $ rake resque:scheduler 
+
+Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
+any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
+to stdout.  `MUTE` does the opposite and silences all output. `MUTE`
+supersedes `VERBOSE`.
+
+NOTE: You DO NOT want to run >1 instance of the scheduler.  Doing so will
+result in the same job being queued more than once.  You only need one
+instnace of the scheduler running per resque instance (regardless of number
+of machines).
+
+If the scheduler process goes down for whatever reason, the delayed items
+that should have fired during the outage will fire once the scheduler process
+is started back up again (regardless of it being on a new machine).  Missed
+scheduled jobs, however, will not fire upon recovery of the scheduler process.
+
+
 
 ### Delayed jobs
 
 Delayed jobs are one-off jobs that you want to be put into a queue at some point
 in the future.  The classic example is sending email:
 
-    Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :user_id => current_user.id)
+    Resque.enqueue_in(5.days, SendFollowUpEmail, :user_id => current_user.id)
 
-This will store the job for 5 days in the resque delayed queue at which time the
-scheduler process will pull it from the delayed queue and put it in the
+This will store the job for 5 days in the resque delayed queue at which time
+the scheduler process will pull it from the delayed queue and put it in the
 appropriate work queue for the given job and it will be processed as soon as
-a worker is available.
+a worker is available (just like any other resque job).
 
 NOTE: The job does not fire **exactly** at the time supplied.  Rather, once that
 time is in the past, the job moves from the delayed queue to the actual resque
 work queue and will be completed as workers as free to process it.
 
-Also supported is `Resque.enqueue_in` which takes an amount of time in seconds
-in which to queue the job.
+Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
+job.
 
 The delayed queue is stored in redis and is persisted in the same way the
 standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
@@ -91,57 +127,55 @@ since the jobs are stored in a redis sorted set (zset).  I can't imagine this
 being an issue for someone since redis is stupidly fast even at log(n), but full
 disclosure is always best.
 
-*Removing Delayed jobs*
+##### Removing Delayed jobs
 
-If you have the need to cancel a delayed job, you can do so thusly:
+If you have the need to cancel a delayed job, you can do like so:
 
     # after you've enqueued a job like:
     Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :user_id => current_user.id)
     # remove the job with exactly the same parameters:
     Resque.remove_delayed(SendFollowUpEmail, :user_id => current_user.id)
 
+### Scheduled Jobs (Recurring Jobs)
 
-### Dynamic Schedules
+Scheduled (or recurring) jobs are logically no different than a standard cron
+job.  They are jobs that run based on a fixed schedule which is set at
+startup.
 
-If needed you can also have recurring jobs (scheduled) that are dynamically
-defined and updated inside of your application.  A good example is if you want
-to allow users to configured when a report is automatically generated.  This
-can be completed by loading the schedule initially wherever you configure
-Resque and setting `Resque::Scheduler.dynamic` to `true`. Then subsequently
-updating the "`schedules`" key in redis, namespaced to the Resque namespace.
-The "`schedules`" key is expected to be a redis hash data type, where the key
-is the name of the schedule and the value is a JSON encoded hash of the
-schedule configuration.  There are methods on Resque to make this easy (see
-below).
+The schedule is a list of Resque worker classes with arguments and a
+schedule frequency (in crontab syntax).  The schedule is just a hash, but
+is most likely stored in a YAML like so:
 
-When the scheduler loops it will look for differences between the existing
-schedule and the current schedule in redis. If there are differences it will
-make the necessary changes to the running schedule. The schedule names that
-need to be changed are stored in the `schedules_changed` set in redis.
+    queue_documents_for_indexing:
+      cron: "0 0 * * *"
+      class: QueueDocuments
+      queue: high
+      args: 
+      description: "This job queues all content for indexing in solr"
 
-To force the scheduler to reload the schedule you just send it the `USR2`
-signal.  This will force a complete schedule reload (unscheduling and
-rescheduling everything).
+    clear_leaderboards_contributors:
+      cron: "30 6 * * 1"
+      class: ClearLeaderboards
+      queue: low
+      args: contributors
+      description: "This job resets the weekly leaderboard for contributions"
 
-To add/update, delete, and retrieve individual schedule items you should
-use the provided API methods:
+The queue value is optional, but if left unspecified resque-scheduler will
+attempt to get the queue from the job class, which means it needs to be 
+defined.  If you're getting "uninitialized constant" errors, you probably
+need to either set the queue in the schedule or require your jobs in your
+"resque:setup" rake task.
 
-* `Resque.set_schedule(name, config)`
-* `Resque.get_schedule(name)`
-* `Resque.remove_schedule(name)`
+NOTE: Six parameter cron's are also supported (as they supported by
+rufus-scheduler which powers the resque-scheduler process).  This allows you
+to schedule jobs per second (ie: "30 * * * * *" would fire a job every 30
+seconds past the minute).
 
-For example:
+A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler)
+for handling the heavy lifting of the actual scheduling engine.
 
-    Resque.set_schedule("create_fake_leaderboards", {
-      :cron => "30 6 * * 1",
-      :class => "CreateFakeLeaderboards",
-      :queue => scoring
-    })
 
-In this way, it's possible to completely configure your scheduled jobs from
-inside your app if you so desire.
-
-### Support for customized Job classes
+##### Support for resque-status (and other custom jobs)
 
 Some Resque extensions like
 [resque-status](http://github.com/quirkey/resque-status) use custom job
@@ -157,6 +191,8 @@ Let's pretend we have a JobWithStatus class called FakeLeaderboard
 				# do something and keep track of the status
 			end
 		end
+
+And then a schedule:
 
     create_fake_leaderboards:
       cron: "30 6 * * 1"
@@ -180,52 +216,8 @@ custom job class to support the #scheduled method:
     end
 
 
-### Schedule jobs per environment
 
-Resque-Scheduler allows to create schedule jobs for specific envs.  The arg
-`rails_env` (optional) can be used to determine which envs are concerned by the
-job:
-
-    create_fake_leaderboards:
-      cron: "30 6 * * 1"
-      class: CreateFakeLeaderboards
-      queue: scoring
-      args: 
-      rails_env: demo
-      description: "This job will auto-create leaderboards for our online demo"
-
-The scheduled job create_fake_leaderboards will be created only if the
-environment variable `RAILS_ENV` is set to demo:
-
-    $ RAILS_ENV=demo rake resque:scheduler 
-
-NOTE: If you have added the 2 lines bellow to your Rails Rakefile 
-(ie: lib/tasks/resque-scheduler.rake), the rails env is loaded automatically
-and you don't have to specify RAILS_ENV if the var is correctly set in
-environment.rb
-
-Alternatively, you can use your resque initializer to avoid loading the entire
-rails stack.
-
-    $ rake resque:scheduler INITIALIZER_PATH=config/initializers/resque.rb
-
-
-Multiple envs are allowed, separated by commas:
-
-    create_fake_leaderboards:
-      cron: "30 6 * * 1"
-      class: CreateFakeLeaderboards
-      queue: scoring
-      args: 
-      rails_env: demo, staging, production
-      description: "This job will auto-create leaderboards"
-
-NOTE: If you specify the `rails_env` arg without setting RAILS_ENV as an 
-environment variable, the job won't be loaded.
-
-
-Resque-web additions
---------------------
+### resque-web Additions
 
 Resque-scheduler also adds to tabs to the resque-web UI.  One is for viewing
 (and manually queueing) the schedule and one is for viewing pending jobs in
@@ -239,16 +231,18 @@ The Delayed tab:
 
 ![The Delayed Tab](http://img.skitch.com/20100111-ne4fcqtc5emkcuwc5qtais2kwx.jpg)
 
-Get get these to show up you need to pass a file to `resque-web` to tell it to
-include the `resque-scheduler` plugin.  You probably already have a file
-somewhere where you configure `resque`.  It probably looks something like this:
+To get these to show up you need to pass a file to `resque-web` to tell it to
+include the `resque-scheduler` plugin.  Unless you're running redis on
+localhost, you probably already have this file.  It probably looks something
+like this:
 
     require 'resque' # include resque so we can configure it
     Resque.redis = "redis_server:6379" # tell Resque where redis lives
 
 Now, you want to add the following:
 
-    require 'resque_scheduler' # include the resque_scheduler (this makes the tabs show up)
+    # This will make the tabs show up.
+    require 'resque_scheduler'
 
 As of resque-scheduler 2.0, it's no longer necessary to have the resque-web
 process aware of the schedule because it reads it from redis.  But prior to
@@ -263,45 +257,7 @@ Now make sure you're passing that file to resque-web like so:
 
 That should make the scheduler tabs show up in `resque-web`.
 
-
-Installation and the Scheduler process
---------------------------------------
-
-To install:
-
-    gem install resque-scheduler
-
-Adding the resque:scheduler rake task:
-
-    require 'resque_scheduler/tasks'    
-
-Unless you specify the `queue` for each scheduled job, the scheduler 
-needs to know about your job classes (so it can put them into the appropriate
-queue).  To do so, extend the "resque:scheduler_setup" to load your app's code.
-In rails, it would look something like this:
-
-    task "resque:scheduler_setup" => :environment # load the env so we know about the job classes
-
-By default, "resque:scheduler_setup" invokes "resque:setup".
-
-The scheduler process is just a rake task which is responsible for both queueing
-items from the schedule and polling the delayed queue for items ready to be
-pushed on to the work queues.  For obvious reasons, this process never exits.
-
-    $ rake resque:scheduler 
-
-Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
-any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
-to stdout.  `MUTE` does the opposite and silences all output. `MUTE` supersedes
-`VERBOSE`.
-
-NOTE: You DO NOT want to run >1 instance of the scheduler.  Doing so will result
-in the same job being queued more than once.  You only need one instnace of the
-scheduler running per resque instance (regardless of number of machines).
-
-
-Plagurism alert
----------------
+### Plagurism alert
 
 This was intended to be an extension to resque and so resulted in a lot of the
 code looking very similar to resque, particularly in resque-web and the views. I
@@ -309,7 +265,11 @@ wanted it to be similar enough that someone familiar with resque could easily
 work on resque-scheduler.
 
 
-Contributing
-------------
+### Contributing
 
 For bugs or suggestions, please just open an issue in github.
+
+Patches are always welcome.
+
+
+
