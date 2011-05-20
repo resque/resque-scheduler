@@ -92,8 +92,8 @@ module ResqueScheduler
   # Identical to +enqueue_at+, except you can also specify
   # a queue in which the job will be placed after the 
   # timestamp has passed.
-  def enqueue_at_with_queue(queue,timestamp, klass, *args)
-    delayed_push(timestamp, job_to_hash_with_queue(queue,klass, args))
+  def enqueue_at_with_queue(queue, timestamp, klass, *args)
+    delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
   end
 
   # Identical to enqueue_at but takes number_of_seconds_from_now
