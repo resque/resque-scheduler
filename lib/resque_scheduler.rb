@@ -89,10 +89,24 @@ module ResqueScheduler
     delayed_push(timestamp, job_to_hash(klass, args))
   end
 
+  # Identical to +enqueue_at+, except you can also specify
+  # a queue in which the job will be placed after the 
+  # timestamp has passed.
+  def enqueue_at_with_queue(queue,timestamp, klass, *args)
+    delayed_push(timestamp, job_to_hash_with_queue(queue,klass, args))
+  end
+
   # Identical to enqueue_at but takes number_of_seconds_from_now
   # instead of a timestamp.
   def enqueue_in(number_of_seconds_from_now, klass, *args)
     enqueue_at(Time.now + number_of_seconds_from_now, klass, *args)
+  end
+
+  # Identical to +enqueue_in+, except you can also specify
+  # a queue in which the job will be placed after the 
+  # number of seconds has passed.
+  def enqueue_in_with_queue(queue, number_of_seconds_from_now, klass, *args)
+    enqueue_at_with_queue(queue, Time.now + number_of_seconds_from_now, klass, *args)
   end
 
   # Used internally to stuff the item into the schedule sorted list.
