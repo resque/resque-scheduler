@@ -200,6 +200,11 @@ module ResqueScheduler
     def job_to_hash(klass, args)
       {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
     end
+    
+    def job_to_hash_with_queue(queue, klass, args)
+      {:class => klass.to_s, :args => args, :queue => queue}
+    end
+
 
     def clean_up_timestamp(key, timestamp)
       # If the list is empty, remove it.
