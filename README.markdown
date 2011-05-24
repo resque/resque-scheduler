@@ -1,5 +1,5 @@
 resque-scheduler
-===============
+================
 
 ### Description
 

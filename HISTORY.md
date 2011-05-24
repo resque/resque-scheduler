@@ -2,6 +2,10 @@
 
 * TODO: address race condition with delayed jobs (using redis transactions)
 
+## 2.0.0.e (2011-??-??)
+
+* Adding enqueue_at_with_queue/enqueue_in_with_queue support (niralisse)
+
 ## 2.0.0.d (2011-04-04)
 
 * porting bug fixes from v1.9-stable
