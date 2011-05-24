@@ -113,7 +113,8 @@ time is in the past, the job moves from the delayed queue to the actual resque
 work queue and will be completed as workers as free to process it.
 
 Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
-job.
+job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a 
+queue name.
 
 The delayed queue is stored in redis and is persisted in the same way the
 standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
@@ -257,7 +258,7 @@ Now make sure you're passing that file to resque-web like so:
 
 That should make the scheduler tabs show up in `resque-web`.
 
-### Plagurism alert
+### Plagiarism alert
 
 This was intended to be an extension to resque and so resulted in a lot of the
 code looking very similar to resque, particularly in resque-web and the views. I
