@@ -68,6 +68,7 @@ to know, let's just put our configuration there.
         # Resque::Scheduler.set_schedule (and remove_schedule) methods.
         # When dynamic is set to true, the scheduler process looks for 
         # schedule changes and applies them on the fly.
+        # Note: This feature is only available in >=2.0.0.
         #Resque::Scheduler.dynamic = true
       end
     end
