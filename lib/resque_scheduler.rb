@@ -16,18 +16,25 @@ module ResqueScheduler
   #                  "description" => "this thing works it"s butter off"},
   #    ...}
   #
-  # 'some_name' can be anything and is used only to describe and reference
-  #   the scheduled job
+  # 'some_name' can be anything and is used only to describe and reference 
+  # the scheduled job
+  #
   # :cron can be any cron scheduling string :job can be any resque job class
-  # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage for 
-  #   valid syntax. If :cron is present it will take precedence over :every.
+  #
+  # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage
+  # for valid syntax. If :cron is present it will take precedence over :every.
+  #
   # :class must be a resque worker class
-  # :args can be any yaml which will be converted to a ruby literal and passed
-  #   in a params. (optional)
-  # :rails_envs is the list of envs where the job gets loaded. Envs are comma separated (optional)
-  # :description is just that, a description of the job (optional). If params is
-  #   an array, each element in the array is passed as a separate param,
-  #   otherwise params is passed in as the only parameter to perform.
+  #
+  # :args can be any yaml which will be converted to a ruby literal and
+  # passed in a params. (optional)
+  #
+  # :rails_envs is the list of envs where the job gets loaded. Envs are
+  # comma separated (optional)
+  #
+  # :description is just that, a description of the job (optional). If
+  # params is an array, each element in the array is passed as a separate
+  # param, otherwise params is passed in as the only parameter to perform.
   def schedule=(schedule_hash)
     if Resque::Scheduler.dynamic
       schedule_hash.each do |name, job_spec|
