@@ -19,6 +19,10 @@ The syntax is pretty explanatory:
     # or
     Resque.enqueue_at(5.days.from_now, SomeJob) # run SomeJob at a specific time
 
+### Documentation
+
+This README covers what most people need to know.  If you're looking for 
+details on individual methods, you might want to try the [rdoc](http://rdoc.info/github/bvandenbos/resque-scheduler/master/frames).
 
 ### Installation
 
