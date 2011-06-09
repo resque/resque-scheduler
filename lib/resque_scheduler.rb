@@ -11,7 +11,7 @@ module ResqueScheduler
   # Accepts a new schedule configuration of the form:
   #
   #   {'some_name' => {"cron" => "5/* * * *",
-  #                  "class" => DoSomeWork,
+  #                  "class" => "DoSomeWork",
   #                  "args" => "work on this string",
   #                  "description" => "this thing works it"s butter off"},
   #    ...}
