@@ -1,4 +1,5 @@
 require 'bundler'
+require 'rake/rdoctask'
 Bundler::GemHelper.install_tasks
 
 $LOAD_PATH.unshift 'lib'
@@ -11,3 +12,10 @@ task :test do
     require File.expand_path(f)
   end
 end
+
+Rake::RDocTask.new do |rd|
+  rd.main = "README.markdown"
+  rd.rdoc_files.include("README.markdown", "lib/**/*.rb")
+  rd.rdoc_dir = 'doc'
+end
+
