@@ -11,6 +11,7 @@ namespace :resque do
 
     File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid.to_s } if ENV['PIDFILE']
 
+    Resque::Scheduler.dynamic = true if ENV['DYNAMIC_SCHEDULE']
     Resque::Scheduler.verbose = true if ENV['VERBOSE']
     Resque::Scheduler.run
   end
