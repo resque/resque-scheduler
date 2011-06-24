@@ -33,8 +33,7 @@ module Resque
         # If dynamic is set, load that schedule otherwise use normal load
         if dynamic
           reload_schedule!
-        else 
-          procline "Loading Schedule"
+        else
           load_schedule!
         end
 
@@ -81,6 +80,8 @@ module Resque
       # Pulls the schedule from Resque.schedule and loads it into the
       # rufus scheduler instance
       def load_schedule!
+        procline "Loading Schedule"
+         
         # Need to load the schedule from redis for the first time if dynamic
         Resque.reload_schedule! if dynamic
 
