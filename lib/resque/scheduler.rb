@@ -30,8 +30,13 @@ module Resque
         register_signal_handlers
 
         # Load the schedule into rufus
-        procline "Loading Schedule"
-        load_schedule!
+        # If dynamic is set, load that schedule otherwise use normal load
+        if dynamic
+          reload_schedule!
+        else 
+          procline "Loading Schedule"
+          load_schedule!
+        end
 
         # Now start the scheduling part of the loop.
         loop do
@@ -56,10 +61,20 @@ module Resque
 
         begin
           trap('QUIT') { shutdown   }
-          trap('USR1') { kill_child }
+          trap('USR1') { print_schedule }
           trap('USR2') { reload_schedule! }
         rescue ArgumentError
           warn "Signals QUIT and USR1 and USR2 not supported."
+        end
+      end
+
+      def print_schedule 
+        if rufus_scheduler
+          log! "Scheduling Info\tLast Run"
+          scheduler_jobs = rufus_scheduler.all_jobs
+          scheduler_jobs.each do |k, v|
+            log! "#{v.t}\t#{v.last}\t"
+          end
         end
       end
 
