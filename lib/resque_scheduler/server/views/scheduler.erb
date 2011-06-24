@@ -15,8 +15,9 @@
     <th>Queue</th>
     <th>Arguments</th>
   </tr>
-  <% Resque.schedule.keys.sort.each do |name| %>
-    <% config = Resque.schedule[name] %>
+  <% @schedule = Resque.get_schedules %>
+  <% @schedule.keys.sort.each do |name| %>
+    <% config = @schedule[name] %>
     <tr>
       <td>
         <form action="<%= u "/schedule/requeue" %>" method="post">
