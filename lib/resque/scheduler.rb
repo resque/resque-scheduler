@@ -59,7 +59,7 @@ module Resque
         trap("INT") { shutdown }
 
         begin
-          trap('QUIT') { shutdown   }
+          trap('QUIT') { shutdown }
           trap('USR1') { print_schedule }
           trap('USR2') { reload_schedule! }
         rescue ArgumentError
