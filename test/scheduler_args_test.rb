@@ -80,4 +80,14 @@ context "scheduling jobs with arguments" do
     SomeIvarJob.expects(:perform).once.with('first_key' => {'second_key' => 'value'})
     Resque.reserve('ivar').perform
   end
+  
+  test "poll_sleep_amount defaults to 5" do
+    assert_equal 5, Resque::Scheduler.poll_sleep_amount
+  end
+  
+  test "poll_sleep_amount is settable" do
+    Resque::Scheduler.poll_sleep_amount = 1
+    assert_equal 1, Resque::Scheduler.poll_sleep_amount    
+  end
+  
 end

@@ -17,10 +17,18 @@ module Resque
 
       # If set, will try to update the schulde in the loop
       attr_accessor :dynamic
+      
+      # Amount of time in seconds to sleep between polls of the delayed
+      # queue.  Defaults to 5
+      attr_writer :poll_sleep_amount
 
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
         @@scheduled_jobs
+      end
+      
+      def poll_sleep_amount
+        @poll_sleep_amount ||= 5 # seconds
       end
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
@@ -245,7 +253,7 @@ module Resque
       # Sleeps and returns true
       def poll_sleep
         @sleeping = true
-        handle_shutdown { sleep 5 }
+        handle_shutdown { sleep poll_sleep_amount }
         @sleeping = false
         true
       end
