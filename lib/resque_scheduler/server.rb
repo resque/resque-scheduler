@@ -45,6 +45,11 @@ module ResqueScheduler
           Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp.to_i) if timestamp.to_i > 0
           redirect u("/overview")
         end
+        
+        post "/delayed/clear" do
+          Resque.reset_delayed_queue
+          redirect u('delayed')
+        end
 
       end
 
