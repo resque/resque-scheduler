@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'bundler/setup'
+require 'resque'
+require 'resque_scheduler'
+
+# Daemons sets pwd to /, so we have to explicitly set RAILS_ROOT
+RAILS_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+rails_env = ENV['RAILS_ENV'] || 'development'
+
+resque_config = if File.exist?("#{RAILS_ROOT}/config/resque.yml")
+    YAML.load_file("#{RAILS_ROOT}/config/resque.yml")[rails_env]
+  else
+    "127.0.0.1:6379"
+  end
+
+Resque.redis = resque_config
+Resque.redis.namespace = "resque:#{rails_env}"
+
+Resque::SchedulerDaemon.new(ARGV).daemonize
