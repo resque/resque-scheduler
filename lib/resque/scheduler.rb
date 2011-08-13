@@ -12,23 +12,21 @@ module Resque
       # If true, logs more stuff...
       attr_accessor :verbose
 
-      # If set, produces no output
-      attr_accessor :mute
+      # Delay between rounds of work (seconds)
+      attr_accessor :delay
 
-      # If set, will try to update the schulde in the loop
+      # If set, produces no output
+      attr_accessor :quiet
+
+      # If set, will use it to log, otherwise stdout
+      attr_accessor :logger
+
+      # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
-      
-      # Amount of time in seconds to sleep between polls of the delayed
-      # queue.  Defaults to 5
-      attr_writer :poll_sleep_amount
 
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
         @@scheduled_jobs
-      end
-      
-      def poll_sleep_amount
-        @poll_sleep_amount ||= 5 # seconds
       end
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
@@ -75,7 +73,7 @@ module Resque
         end
       end
 
-      def print_schedule 
+      def print_schedule
         if rufus_scheduler
           log! "Scheduling Info\tLast Run"
           scheduler_jobs = rufus_scheduler.all_jobs
@@ -89,7 +87,7 @@ module Resque
       # rufus scheduler instance
       def load_schedule!
         procline "Loading Schedule"
-         
+
         # Need to load the schedule from redis for the first time if dynamic
         Resque.reload_schedule! if dynamic
 
@@ -253,7 +251,7 @@ module Resque
       # Sleeps and returns true
       def poll_sleep
         @sleeping = true
-        handle_shutdown { sleep poll_sleep_amount }
+        handle_shutdown { sleep @delay || 5 }
         @sleeping = false
         true
       end
@@ -265,12 +263,21 @@ module Resque
       end
 
       def log!(msg)
-        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}" unless mute
+        return if quiet
+        if @logger
+          @logger.info "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}"
+        else
+          puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}"
+        end
       end
 
       def log(msg)
-        # add "verbose" logic later
-        log!(msg) if verbose
+        return unless @verbose
+        if @logger
+          @logger.debug "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}"
+        else
+          log!(msg)
+        end
       end
 
       def procline(string)
