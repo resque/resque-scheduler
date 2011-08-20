@@ -154,6 +154,8 @@ is most likely stored in a YAML like so:
 
     queue_documents_for_indexing:
       cron: "0 0 * * *"
+      # you can use rufus-scheduler "every" syntax in place of cron if you prefer
+      # every: 1hr
       class: QueueDocuments
       queue: high
       args: 
