@@ -38,9 +38,9 @@ There are three things `resque-scheduler` needs to know about in order to do
 it's jobs: the schedule, where redis lives, and which queues to use.  The
 easiest way to configure these things is via the rake task.  By default,
 `resque-scheduler` depends on the "resque:setup" rake task.  Since you
-probably already have this task, lets just p
+probably already have this task, lets just put our configuration there.
 `resque-scheduler` pretty much needs to know everything `resque` needs
-to know, let's just put our configuration there.
+to know.
 
 
     # Resque tasks
