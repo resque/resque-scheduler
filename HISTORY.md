@@ -7,6 +7,7 @@
 * Adding enqueue_at_with_queue/enqueue_in_with_queue support (niralisse)
 * Adding `Resque::Scheduler.poll_sleep_amount` to allow for configuring
   the sleep time b/w delayed queue polls.
+* Add a "Clear Delayed Jobs" button to the Delayed Jobs page (john-griffin)
 * Fixed pagination issue on the Delayed tab
 
 ## 2.0.0.d (2011-04-04)

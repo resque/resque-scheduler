@@ -1,11 +1,17 @@
 <h1>Delayed Jobs</h1>
+<%- size = resque.delayed_queue_schedule_size %>
+<% if size > 0 %>
+  <form method="POST" action="<%=u 'delayed/clear'%>" class='clear-delayed'>
+    <input type='submit' name='' value='Clear Delayed Jobs' />
+  </form>
+<% end %>
 
 <p class='intro'>
   This list below contains the timestamps for scheduled delayed jobs.
 </p>
 
 <p class='sub'>
-  Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%=size = resque.delayed_queue_schedule_size %></b> timestamps
+  Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%= size %></b> timestamps
 </p>
 
 <table>
