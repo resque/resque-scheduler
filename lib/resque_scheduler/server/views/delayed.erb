@@ -16,7 +16,7 @@
     <th>Class</th>
     <th>Args</th>
   </tr>
-  <% resque.delayed_queue_peek(start, start+20).each do |timestamp| %>
+  <% resque.delayed_queue_peek(start, 20).each do |timestamp| %>
     <tr>
       <td>
         <form action="<%= u "/delayed/queue_now" %>" method="post">

@@ -41,7 +41,4 @@ DEPENDENCIES
   bundler (>= 1.0.0)
   mocha
   rack-test
-  redis (>= 2.0.1)
-  resque (>= 1.15.0)
   resque-scheduler!
-  rufus-scheduler
