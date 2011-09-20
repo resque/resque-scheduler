@@ -91,7 +91,7 @@ supersedes `VERBOSE`.
 
 NOTE: You DO NOT want to run >1 instance of the scheduler.  Doing so will
 result in the same job being queued more than once.  You only need one
-instnace of the scheduler running per resque instance (regardless of number
+instance of the scheduler running per resque instance (regardless of number
 of machines).
 
 If the scheduler process goes down for whatever reason, the delayed items
