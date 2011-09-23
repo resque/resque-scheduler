@@ -198,7 +198,7 @@ module Resque
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another
           if Class === klass
-            Resque.enqueue_with_queue(queue, klass, *params)
+            Resque.enqueue_to(queue, klass, *params)
           else
             Resque::Job.create(queue, klass, *params)
           end
