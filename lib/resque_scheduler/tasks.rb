@@ -9,6 +9,13 @@ namespace :resque do
     require 'resque'
     require 'resque_scheduler'
 
+    if ENV['BACKGROUND']
+      unless Process.respond_to?('daemon')
+        abort "env var BACKGROUND is set, which requires ruby >= 1.9"
+      end
+      Process.daemon(true)
+    end
+
     File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid.to_s } if ENV['PIDFILE']
 
     Resque::Scheduler.dynamic = true if ENV['DYNAMIC_SCHEDULE']
