@@ -91,7 +91,7 @@ supersedes `VERBOSE`.
 
 NOTE: You DO NOT want to run >1 instance of the scheduler.  Doing so will
 result in the same job being queued more than once.  You only need one
-instnace of the scheduler running per resque instance (regardless of number
+instance of the scheduler running per resque instance (regardless of number
 of machines).
 
 If the scheduler process goes down for whatever reason, the delayed items
@@ -264,6 +264,16 @@ Now make sure you're passing that file to resque-web like so:
     resque-web ~/yourapp/config/resque_config.rb
 
 That should make the scheduler tabs show up in `resque-web`.
+
+### Running in the background
+
+(Only supported with ruby >= 1.9). There are scenarios where it's helpful for
+the resque worker to run itself in the background (usually in combination with
+PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
+worker is started.
+
+    $ PIDFILE=./resque-scheduler.pid BACKGROUND=yes \
+        rake resque:scheduler
 
 ### Plagiarism alert
 
