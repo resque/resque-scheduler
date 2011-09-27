@@ -1,6 +1,7 @@
 ## 2.0.0 (???)
 
 * TODO: address race condition with delayed jobs (using redis transactions)
+* Support ENV['BACKGROUND'] flag for daemonizing (bernerdschaefer)
 
 ## 2.0.0.e (2011-09-16)
 
