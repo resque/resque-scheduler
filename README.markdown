@@ -265,6 +265,16 @@ Now make sure you're passing that file to resque-web like so:
 
 That should make the scheduler tabs show up in `resque-web`.
 
+### Running in the background
+
+(Only supported with ruby >= 1.9). There are scenarios where it's helpful for
+the resque worker to run itself in the background (usually in combination with
+PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
+worker is started.
+
+    $ PIDFILE=./resque-scheduler.pid BACKGROUND=yes \
+        rake resque:scheduler
+
 ### Plagiarism alert
 
 This was intended to be an extension to resque and so resulted in a lot of the
