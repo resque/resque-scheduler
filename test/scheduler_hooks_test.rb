@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-class Resque::ScheduleHooksTest < Test::Unit::TestCase
+context "scheduling jobs with hooks" do
   class JobThatCannotBeScheduledWithoutArguments < Resque::Job
     @queue = :job_that_cannot_be_scheduled_without_arguments
     def self.perform(*x);end
@@ -24,7 +24,7 @@ class Resque::ScheduleHooksTest < Test::Unit::TestCase
     end
   end
   
-  def setup
+  setup do
     Resque::Scheduler.dynamic = false
     Resque.redis.del(:schedules)
     Resque.redis.del(:schedules_changed)
@@ -33,21 +33,19 @@ class Resque::ScheduleHooksTest < Test::Unit::TestCase
     Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
   end
 
-  def test_schedule_job_that_can_reject_being_scheduled_but_doesnt
+  test "before_schedule hook that does not return false should not block" do
     enqueue_time = Time.now + 12
     Resque.enqueue_at(enqueue_time, JobThatCannotBeScheduledWithoutArguments.clean, :foo)
     assert_equal(1, Resque.delayed_timestamp_size(enqueue_time.to_i), "delayed queue should have one entry now")
-    assert_equal(1, Resque.delayed_queue_schedule_size, "The delayed_queue_schedule should have 1 entry now")
     assert_equal(1, JobThatCannotBeScheduledWithoutArguments.counters[:before_schedule], 'before_schedule was not run')
     assert_equal(1, JobThatCannotBeScheduledWithoutArguments.counters[:after_schedule], 'after_schedule was not run')
   end
 
-  def test_schedule_job_that_can_reject_being_scheduled_and_does
+  test "before_schedule hook that returns false should block" do
     enqueue_time = Time.now + 60
-    assert_equal(0, JobThatCannotBeScheduledWithoutArguments.counters[:before_schedule], 'before_schedule should be zero')
+    assert_equal(0, JobThatCannotBeScheduledWithoutArguments.clean.counters[:before_schedule], 'before_schedule should be zero')
     Resque.enqueue_at(enqueue_time, JobThatCannotBeScheduledWithoutArguments.clean)
     assert_equal(0, Resque.delayed_timestamp_size(enqueue_time.to_i), "job should not have been put in queue")
-    assert_equal(0, Resque.delayed_queue_schedule_size, "schedule should be empty")
     assert_equal(1, JobThatCannotBeScheduledWithoutArguments.counters[:before_schedule], 'before_schedule was not run')
     assert_equal(0, JobThatCannotBeScheduledWithoutArguments.counters[:after_schedule], 'after_schedule was run')
   end
