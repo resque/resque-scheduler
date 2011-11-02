@@ -68,6 +68,10 @@ def context(*args, &block)
   klass.class_eval &block
 end
 
+class FakeCustomJobClass
+  def self.scheduled(queue, klass, *args); end
+end
+
 class SomeJob
   def self.perform(repo_id, path)
   end

@@ -55,6 +55,14 @@ to know.
       
         # you probably already have this somewhere
         Resque.redis = 'localhost:6379'
+
+        # If you want to be able to dynamically change the schedule,
+        # uncomment this line.  A dynamic schedule can be updated via the
+        # Resque::Scheduler.set_schedule (and remove_schedule) methods.
+        # When dynamic is set to true, the scheduler process looks for 
+        # schedule changes and applies them on the fly.
+        # Note: This feature is only available in >=2.0.0.
+        #Resque::Scheduler.dynamic = true
         
         # The schedule doesn't need to be stored in a YAML, it just needs to
         # be a hash.  YAML is usually the easiest.
@@ -65,15 +73,7 @@ to know.
         # less code that resque-scheduler needs to know about. But in a small
         # project, it's usually easier to just include you job classes here.
         # So, someting like this:
-        require 'jobs'
-        
-        # If you want to be able to dynamically change the schedule,
-        # uncomment this line.  A dynamic schedule can be updated via the
-        # Resque::Scheduler.set_schedule (and remove_schedule) methods.
-        # When dynamic is set to true, the scheduler process looks for 
-        # schedule changes and applies them on the fly.
-        # Note: This feature is only available in >=2.0.0.
-        #Resque::Scheduler.dynamic = true
+        require 'jobs'        
       end
     end
 
@@ -139,7 +139,7 @@ since the jobs are stored in a redis sorted set (zset).  I can't imagine this
 being an issue for someone since redis is stupidly fast even at log(n), but full
 disclosure is always best.
 
-##### Removing Delayed jobs
+#### Removing Delayed jobs
 
 If you have the need to cancel a delayed job, you can do like so:
 
@@ -189,7 +189,7 @@ A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler
 for handling the heavy lifting of the actual scheduling engine.
 
 
-##### Support for resque-status (and other custom jobs)
+#### Support for resque-status (and other custom jobs)
 
 Some Resque extensions like
 [resque-status](http://github.com/quirkey/resque-status) use custom job
