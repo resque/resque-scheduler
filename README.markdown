@@ -133,7 +133,7 @@ since the jobs are stored in a redis sorted set (zset).  I can't imagine this
 being an issue for someone since redis is stupidly fast even at log(n), but full
 disclosure is always best.
 
-##### Removing Delayed jobs
+#### Removing Delayed jobs
 
 If you have the need to cancel a delayed job, you can do like so:
 
@@ -183,7 +183,7 @@ A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler
 for handling the heavy lifting of the actual scheduling engine.
 
 
-##### Support for resque-status (and other custom jobs)
+#### Support for resque-status (and other custom jobs)
 
 Some Resque extensions like
 [resque-status](http://github.com/quirkey/resque-status) use custom job
