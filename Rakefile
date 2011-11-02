@@ -1,5 +1,5 @@
 require 'bundler'
-require 'rake/rdoctask'
+require 'rdoc/task'
 Bundler::GemHelper.install_tasks
 
 $LOAD_PATH.unshift 'lib'
