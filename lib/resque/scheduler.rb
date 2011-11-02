@@ -116,13 +116,9 @@ module Resque
           interval_types = %w{cron every}
           interval_types.each do |interval_type|
             if !config[interval_type].nil? && config[interval_type].length > 0
-              begin
-                @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, config[interval_type]) do
-                  log! "queueing #{config['class']} (#{name})"
-                  enqueue_from_config(config)
-                end
-              rescue Exception => e
-                log! "#{e.class.name}: #{e.message}"
+              @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, config[interval_type]) do
+                log! "queueing #{config['class']} (#{name})"
+                handle_errors { enqueue_from_config(config) }
               end
               interval_defined = true
               break
@@ -160,7 +156,7 @@ module Resque
           handle_shutdown do
             if item = Resque.next_item_for_timestamp(timestamp)
               log "queuing #{item['class']} [delayed]"
-              enqueue_from_config(item)
+              handle_errors { enqueue_from_config(item) }
             end
           end
         # continue processing until there are no more ready items in this timestamp
@@ -171,6 +167,14 @@ module Resque
         exit if @shutdown
         yield
         exit if @shutdown
+      end
+      
+      def handle_errors
+        begin
+          yield
+        rescue Exception => e
+          log! "#{e.class.name}: #{e.message}"
+        end
       end
 
       # Enqueues a job based on a config hash
@@ -200,11 +204,11 @@ module Resque
           if Class === klass
             Resque.enqueue(klass, *params)
           else
+            # This will not run the before_hooks in rescue, but will at least
+            # queue the job.
             Resque::Job.create(queue, klass, *params)
           end
         end
-      rescue
-        log! "Failed to enqueue #{klass_name}:\n #{$!}"
       end
 
       def rufus_scheduler
