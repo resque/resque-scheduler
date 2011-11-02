@@ -102,14 +102,23 @@ module ResqueScheduler
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
     validate_job!(klass)
-    delayed_push(timestamp, job_to_hash(klass, args))
+    enqueue_at_with_queue( queue_from_class(klass), timestamp, klass, *args)
   end
 
   # Identical to +enqueue_at+, except you can also specify
   # a queue in which the job will be placed after the 
   # timestamp has passed.
   def enqueue_at_with_queue(queue, timestamp, klass, *args)
+    before_hooks = before_schedule_hooks(klass).collect do |hook|
+      klass.send(hook,*args)
+    end
+    return false if before_hooks.any? { |result| result == false }
+    
     delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
+    
+    after_schedule_hooks(klass).collect do |hook|
+      klass.send(hook,*args)
+    end
   end
 
   # Identical to enqueue_at but takes number_of_seconds_from_now
@@ -238,6 +247,14 @@ module ResqueScheduler
       unless queue_from_class(klass)
         raise Resque::NoQueueError.new("Jobs must be placed onto a queue.")
       end
+    end
+
+    def before_schedule_hooks(klass)
+      klass.methods.grep(/^before_schedule/).sort
+    end
+
+    def after_schedule_hooks(klass)
+      klass.methods.grep(/^after_schedule/).sort
     end
 
 end
