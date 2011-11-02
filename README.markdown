@@ -128,6 +128,12 @@ down when a particular job is supposed to be queue, they will simply "catch up"
 once they are started again.  Jobs are guaranteed to run (provided they make it
 into the delayed queue) after their given queue_at time has passed.
 
+Similar to `before_enqueue` and `after_enqueue` hooks provided in Resque 
+(>= 1.19.1), your jobs can specify one or more `before_schedule` and
+`after_schedule` hooks, to be run before or after scheduling. If *any* of your
+`before_schedule` hooks returns `false`, the job will *not* be scheduled and
+your `after_schedule` hooks will *not* be run.
+
 One other thing to note is that insertion into the delayed queue is O(log(n))
 since the jobs are stored in a redis sorted set (zset).  I can't imagine this
 being an issue for someone since redis is stupidly fast even at log(n), but full

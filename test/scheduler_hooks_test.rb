@@ -5,7 +5,6 @@ class Resque::ScheduleHooksTest < Test::Unit::TestCase
     @queue = :job_that_cannot_be_scheduled_without_arguments
     def self.perform(*x);end
     def self.before_schedule_return_nil_if_arguments_not_supplied(*args)
-      puts "running"
       counters[:before_schedule] += 1
       return false if args.empty?
     end
@@ -36,7 +35,6 @@ class Resque::ScheduleHooksTest < Test::Unit::TestCase
 
   def test_schedule_job_that_can_reject_being_scheduled_but_doesnt
     enqueue_time = Time.now + 12
-    puts JobThatCannotBeScheduledWithoutArguments.clean.counters.inspect
     Resque.enqueue_at(enqueue_time, JobThatCannotBeScheduledWithoutArguments.clean, :foo)
     assert_equal(1, Resque.redis.llen("delayed:#{enqueue_time.to_i}").to_i, "delayed queue should have one entry now")
     assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
@@ -46,7 +44,6 @@ class Resque::ScheduleHooksTest < Test::Unit::TestCase
 
   def test_schedule_job_that_can_reject_being_scheduled_and_does
     enqueue_time = Time.now + 60
-    puts JobThatCannotBeScheduledWithoutArguments.clean.counters.inspect
     assert_equal(0, JobThatCannotBeScheduledWithoutArguments.counters[:before_schedule], 'before_schedule should be zero')
     Resque.enqueue_at(enqueue_time, JobThatCannotBeScheduledWithoutArguments.clean)
     assert_equal(0, Resque.redis.llen("delayed:#{enqueue_time.to_i}").to_i, "job should not have been put in queue")
