@@ -203,7 +203,10 @@ module ResqueScheduler
     redis.del :delayed_queue_schedule
   end
 
-  # given an encoded item, remove it from the delayed_queue
+  # Given an encoded item, remove it from the delayed_queue
+  # 
+  # This method is potentially very expensive since it needs to scan
+  # through the delayed queue for every timestamp.
   def remove_delayed(klass, *args)
     destroyed = 0
     search = encode(job_to_hash(klass, args))
@@ -211,6 +214,15 @@ module ResqueScheduler
       destroyed += redis.lrem key, 0, search
     end
     destroyed
+  end
+  
+  # Given a timestamp and job (klass + args) it removes all instances and
+  # returns the count of jobs removed.
+  #
+  # O(N) where N is the number of jobs scheduled to fire at the given
+  # timestamp
+  def remove_delayed_job_from_timestamp(timestamp, klass, *args)
+    redis.lrem "delayed:#{timestamp.to_i}", 0, encode(job_to_hash(klass, args))
   end
 
   def count_all_scheduled_jobs

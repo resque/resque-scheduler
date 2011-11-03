@@ -1,8 +1,10 @@
-## 2.0.0.f (???)
+## 2.0.0.f (2011-11-03)
 
 * TODO: address race condition with delayed jobs (using redis transactions)
 * Support ENV['BACKGROUND'] flag for daemonizing (bernerdschaefer)
 * Added support for before_schedule and after_schedule hooks (yaauie)
+* Added remove_delayed_job_from_timestamp to remove delayed jobs from
+  a given timestamp.
 
 ## 2.0.0.e (2011-09-16)
 

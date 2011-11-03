@@ -258,6 +258,42 @@ context "DelayedQueue" do
     assert_equal(2, Resque.remove_delayed(SomeIvarJob, "bar"))
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
+  
+  test "remove_delayed_job_from_timestamp removes instances of jobs at a given timestamp" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
+    assert_equal 0, Resque.delayed_timestamp_size(t)
+  end
+  
+  test "remove_delayed_job_from_timestamp doesn't remove items from other timestamps" do
+    t1 = Time.now + 120
+    t2 = t1 + 1
+    Resque.enqueue_at(t1, SomeIvarJob, "foo")
+    Resque.enqueue_at(t2, SomeIvarJob, "foo")
+    assert_equal 1, Resque.remove_delayed_job_from_timestamp(t2, SomeIvarJob, "foo")
+    assert_equal 1, Resque.delayed_timestamp_size(t1)
+    assert_equal 0, Resque.delayed_timestamp_size(t2)
+  end
+  
+  test "remove_delayed_job_from_timestamp removes nothing if there are no matches" do
+    t = Time.now + 120
+    assert_equal 0, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
+  end
+  
+  test "remove_delayed_job_from_timestamp only removes items that match args" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t, SomeIvarJob, "bar")
+    assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
+    assert_equal 1, Resque.delayed_timestamp_size(t)    
+  end
+  
+  test "remove_delayed_job_from_timestamp returns the number of items removed" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")    
+    assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
+  end
 
   test "invalid job class" do
     assert_raise Resque::NoClassError do
