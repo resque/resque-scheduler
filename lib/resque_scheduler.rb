@@ -222,11 +222,14 @@ module ResqueScheduler
   # O(N) where N is the number of jobs scheduled to fire at the given
   # timestamp
   def remove_delayed_job_from_timestamp(timestamp, klass, *args)
-    redis.lrem "delayed:#{timestamp.to_i}", 0, encode(job_to_hash(klass, args))
+    key = "delayed:#{timestamp.to_i}"
+    count = redis.lrem key, 0, encode(job_to_hash(klass, args))
+    clean_up_timestamp(key, timestamp)
+    count
   end
 
   def count_all_scheduled_jobs
-    total_jobs = 0 
+    total_jobs = 0
     Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
       total_jobs += redis.llen("delayed:#{timestamp}").to_i
     end 

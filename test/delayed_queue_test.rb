@@ -291,8 +291,16 @@ context "DelayedQueue" do
   
   test "remove_delayed_job_from_timestamp returns the number of items removed" do
     t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
+  end
+  
+  test "remove_delayed_job_from_timestamp should cleanup the delayed timestamp list if not jobs are left" do
+    t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")    
     assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
+    assert !Resque.redis.exists("delayed:#{t.to_i}")
+    assert Resque.delayed_queue_peek(0, 100).empty?
   end
 
   test "invalid job class" do
