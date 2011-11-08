@@ -25,7 +25,7 @@
   <% resque.delayed_queue_peek(start, 20).each do |timestamp| %>
     <tr>
       <td>
-        <form action="<%= u "/delayed/queue_now" %>" method="post">
+        <form action="<%= u "/delayed/queue_now" %>" method="post" style="margin-top:0">
           <input type="hidden" name="timestamp" value="<%= timestamp.to_i %>">
           <input type="submit" value="Queue now">
         </form>
