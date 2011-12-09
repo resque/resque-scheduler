@@ -189,6 +189,24 @@ A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler
 for handling the heavy lifting of the actual scheduling engine.
 
 
+#### Time zones
+
+Note that if you use the cron syntax, this will be interpreted as in the server time zone
+rather than the `config.time_zone` specified in Rails.
+
+You can explicitly specify the time zone that rufus-scheduler will use:
+
+    cron: "30 6 * * 1 Europe/Stockholm"
+
+Also note that `config.time_zone` in Rails allows for a shorthand (e.g. "Stockholm")
+that rufus-scheduler does not accept. If you write code to set the scheduler time zone
+from the `config.time_zone` value, make sure it's the right format, e.g. with:
+
+    ActiveSupport::TimeZone.find_tzinfo(Rails.configuration.time_zone).name
+
+A future version of resque-scheduler may do this for you.
+
+
 #### Support for resque-status (and other custom jobs)
 
 Some Resque extensions like
@@ -200,11 +218,11 @@ support scheduled job.
 
 Let's pretend we have a JobWithStatus class called FakeLeaderboard
 
-		class FakeLeaderboard < Resque::JobWithStatus
-			def perform
-				# do something and keep track of the status
-			end
-		end
+    class FakeLeaderboard < Resque::JobWithStatus
+      def perform
+        # do something and keep track of the status
+      end
+    end
 
 And then a schedule:
 
@@ -294,6 +312,3 @@ work on resque-scheduler.
 For bugs or suggestions, please just open an issue in github.
 
 Patches are always welcome.
-
-
-
