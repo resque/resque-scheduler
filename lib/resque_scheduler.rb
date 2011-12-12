@@ -239,11 +239,19 @@ module ResqueScheduler
   private
   
     def job_to_hash(klass, args)
-      {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
+      base_job_hash(klass).merge(:args => args, :queue => queue_from_class(klass))
     end
     
     def job_to_hash_with_queue(queue, klass, args)
-      {:class => klass.to_s, :args => args, :queue => queue}
+      base_job_hash(klass).merge(:args => args, :queue => queue)
+    end
+
+    def base_job_hash(klass)
+      {:class => klass.to_s}.tap do |hash|
+        if klass.instance_variable_get(:@require_custom_class)
+          hash.merge! :custom_job_class => klass.to_s
+        end
+      end
     end
 
     def clean_up_timestamp(key, timestamp)

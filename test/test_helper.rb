@@ -69,6 +69,8 @@ def context(*args, &block)
 end
 
 class FakeCustomJobClass
+  @require_custom_class = true
+
   def self.scheduled(queue, klass, *args); end
 end
 
