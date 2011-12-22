@@ -1,3 +1,5 @@
+require 'resque_scheduler'
+require 'resque/server'
 
 # Extend Resque::Server to add tabs
 module ResqueScheduler
@@ -60,4 +62,8 @@ module ResqueScheduler
 
   end
   
+end
+
+Resque::Server.class_eval do
+  include ResqueScheduler::Server
 end
