@@ -1,9 +1,10 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path("../lib/resque_scheduler/version", __FILE__)
+$:.unshift File.expand_path("../lib", __FILE__)
+require "resque_scheduler/version"
 
 Gem::Specification.new do |s|
   s.name        = "resque-scheduler"
-  s.version     = ResqueScheduler::Version
+  s.version     = ResqueScheduler::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Ben VandenBos']
   s.email       = ['bvandenbos@gmail.com']
