@@ -3,7 +3,7 @@ require File.expand_path("../lib/resque_scheduler/version", __FILE__)
 
 Gem::Specification.new do |s|
   s.name        = "resque-scheduler"
-  s.version     = ResqueScheduler::Version
+  s.version     = ResqueScheduler::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ['Ben VandenBos']
   s.email       = ['bvandenbos@gmail.com']
