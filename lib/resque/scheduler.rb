@@ -116,8 +116,18 @@ module Resque
           interval_types = %w{cron every}
           interval_types.each do |interval_type|
             if !config[interval_type].nil? && config[interval_type].length > 0
-              @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, config[interval_type]) do
-                log! "queueing #{config['class']} (#{name})"
+
+              # Allow people to pass options directly to Rufus-Scheduler
+              # C.f., https://github.com/jmettraux/rufus-scheduler
+              rufus_options = {}
+              [:blocking, :mutex, :allow_overlapping, :first_in, :first_at].each do |opt|
+                unless config[opt.to_s].nil?
+                  rufus_options[opt] = config[opt.to_s]
+                end
+              end
+
+              @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, config[interval_type], rufus_options) do
+                log! "queueing #{config['class']} (#{name}) with options #{rufus_options.inspect}"
                 handle_errors { enqueue_from_config(config) }
               end
               interval_defined = true
