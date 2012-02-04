@@ -17,7 +17,7 @@ module Resque
 
       # If set, will try to update the schulde in the loop
       attr_accessor :dynamic
-      
+
       # Amount of time in seconds to sleep between polls of the delayed
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
@@ -26,7 +26,7 @@ module Resque
       def scheduled_jobs
         @@scheduled_jobs
       end
-      
+
       def poll_sleep_amount
         @poll_sleep_amount ||= 5 # seconds
       end
@@ -47,13 +47,16 @@ module Resque
 
         # Now start the scheduling part of the loop.
         loop do
-          begin
-            handle_delayed_items
-            update_schedule if dynamic
-          rescue Errno::EAGAIN, Errno::ECONNRESET => e
-            warn e.message
+          handle_shutdown do
+            begin
+              handle_delayed_items
+              update_schedule if dynamic
+            rescue Errno::EAGAIN, Errno::ECONNRESET => e
+              warn e.message
+            end
+
+            sleep poll_sleep_amount
           end
-          poll_sleep
         end
 
         # never gets here.
@@ -254,18 +257,9 @@ module Resque
         end
       end
 
-      # Sleeps and returns true
-      def poll_sleep
-        @sleeping = true
-        handle_shutdown { sleep poll_sleep_amount }
-        @sleeping = false
-        true
-      end
-
-      # Sets the shutdown flag, exits if sleeping
+      # Sets the shutdown flag
       def shutdown
         @shutdown = true
-        exit if @sleeping
       end
 
       def log!(msg)
