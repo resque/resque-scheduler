@@ -10,21 +10,29 @@ module ResqueScheduler
   #
   # Accepts a new schedule configuration of the form:
   #
-  #   {'some_name' => {"cron" => "5/* * * *",
-  #                  "class" => "DoSomeWork",
-  #                  "args" => "work on this string",
-  #                  "description" => "this thing works it"s butter off"},
-  #    ...}
+  #   {
+  #     "MakeTea" => {
+  #       "every" => "1m" },
+  #     "some_name" => {
+  #       "cron"        => "5/* * * *",
+  #       "class"       => "DoSomeWork",
+  #       "args"        => "work on this string",
+  #       "description" => "this thing works it"s butter off" },
+  #     ...
+  #   }
   #
-  # 'some_name' can be anything and is used only to describe and reference 
-  # the scheduled job
+  # Hash keys can be anything and are used to describe and reference
+  # the scheduled job. If the "class" argument is missing, the key
+  # is used implicitly as "class" argument - in the "MakeTea" example,
+  # "MakeTea" is used both as job name and resque worker class.
   #
-  # :cron can be any cron scheduling string :job can be any resque job class
+  # :cron can be any cron scheduling string
   #
   # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage
   # for valid syntax. If :cron is present it will take precedence over :every.
   #
-  # :class must be a resque worker class
+  # :class must be a resque worker class. If it is missing, the job name (hash key)
+  # will be used as :class.
   #
   # :args can be any yaml which will be converted to a ruby literal and
   # passed in a params. (optional)
@@ -36,6 +44,8 @@ module ResqueScheduler
   # params is an array, each element in the array is passed as a separate
   # param, otherwise params is passed in as the only parameter to perform.
   def schedule=(schedule_hash)
+    schedule_hash = prepare_schedule(schedule_hash)
+
     if Resque::Scheduler.dynamic
       schedule_hash.each do |name, job_spec|
         set_schedule(name, job_spec)
@@ -270,6 +280,16 @@ module ResqueScheduler
 
     def after_schedule_hooks(klass)
       klass.methods.grep(/^after_schedule/).sort
+    end
+
+    def prepare_schedule(schedule_hash)
+      prepared_hash = {}
+      schedule_hash.each do |name, job_spec|
+        job_spec = job_spec.dup
+        job_spec['class'] = name unless job_spec.key?('class') || job_spec.key?(:class)
+        prepared_hash[name] = job_spec
+      end
+      prepared_hash
     end
 
 end

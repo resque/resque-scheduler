@@ -165,6 +165,24 @@ context "Resque::Scheduler" do
       Resque.decode(Resque.redis.hget(:schedules, "my_ivar_job")))
   end
 
+  test "schedule= uses job name as 'class' argument if it's missing" do
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {"SomeIvarJob" => {
+      'cron' => "* * * * *", 'args' => "/tmp/75"
+    }}
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/75"},
+      Resque.decode(Resque.redis.hget(:schedules, "SomeIvarJob")))
+    assert_equal('SomeIvarJob', Resque.schedule['SomeIvarJob']['class'])
+  end
+
+  test "schedule= does not mutate argument" do
+    schedule = {"SomeIvarJob" => {
+      'cron' => "* * * * *", 'args' => "/tmp/75"
+    }}
+    Resque.schedule = schedule
+    assert !schedule['SomeIvarJob'].key?('class')
+  end
+
   test "set_schedule can set an individual schedule" do
     Resque.set_schedule("some_ivar_job", {
       'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/22"
