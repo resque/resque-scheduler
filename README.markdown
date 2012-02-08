@@ -41,6 +41,14 @@ the queue is given it is not necessary for the scheduler to load the class.
       args: moderators
       description: "This job resets the weekly leaderboard for moderators"
 
+You can provide options to "every" or "cron" via Array:
+
+    clear_leaderboards_moderator:
+      every: ["30s", :first_in => '120s']
+      class: CheckDaemon
+      queue: daemons
+      description: "This job will check Daemon every 30 seconds after 120 seconds after start"
+
 And then set the schedule wherever you configure Resque, like so:
 
     require 'resque_scheduler'
