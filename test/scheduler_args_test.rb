@@ -83,6 +83,15 @@ context "scheduling jobs with arguments" do
     Resque.reserve('ivar').perform
   end
 
+  test "mutexes will be held if asked" do
+    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/1", 'mutex' => 'some_mutex'}}
+    Resque::Scheduler.load_schedule!
+
+    job = Resque::Scheduler.rufus_scheduler.all_jobs.first[1]
+    job.trigger
+    assert_equal("some_mutex", job.instance_variable_get(:@scheduler).instance_variable_get(:@mutexes).keys.first)
+  end
+
   test "calls the worker with a string when the config lists a string" do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob

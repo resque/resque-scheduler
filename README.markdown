@@ -193,6 +193,17 @@ seconds past the minute).
 A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler)
 for handling the heavy lifting of the actual scheduling engine.
 
+Since this project uses [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler), you can also pass options
+familiar to rufus:
+
+    queue_documents_for_indexing:
+      cron: "*/2 * * * *"
+      # Ensures that only one instance is running at a time
+      mutex: "some_mutex"
+      class: QueueDocuments
+      queue: high
+      args:
+      description: "This job queues all content for indexing in solr"
 
 #### Time zones
 
