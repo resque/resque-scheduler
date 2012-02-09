@@ -158,10 +158,15 @@ The schedule is a list of Resque worker classes with arguments and a
 schedule frequency (in crontab syntax).  The schedule is just a hash, but
 is most likely stored in a YAML like so:
 
+    CancelAbandonedOrders:
+      cron: "*/5 * * * *"
+
     queue_documents_for_indexing:
       cron: "0 0 * * *"
       # you can use rufus-scheduler "every" syntax in place of cron if you prefer
       # every: 1hr
+      # By default the job name (hash key) will be taken as worker class name.
+      # If you want to have a different job name and class name, provide the 'class' option
       class: QueueDocuments
       queue: high
       args: 
