@@ -69,6 +69,24 @@ context "Resque::Scheduler" do
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
     assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
   end
+  
+  test "load_schedule_job with every with options" do 
+    Resque::Scheduler.load_schedule_job("some_ivar_job", {'every' => ['30s', {'first_in' => '60s'}], 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
+    assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+    assert Resque::Scheduler.scheduled_jobs["some_ivar_job"].params.keys.include?(:first_in)
+  end
+  
+  test "load_schedule_job with cron with options" do 
+    Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => ['* * * * *', {'allow_overlapping' => 'true'}], 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
+    assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+    assert Resque::Scheduler.scheduled_jobs["some_ivar_job"].params.keys.include?(:allow_overlapping)
+  end
 
   test "load_schedule_job without cron" do
     Resque::Scheduler.load_schedule_job("some_ivar_job", {'class' => 'SomeIvarJob', 'args' => "/tmp"})
