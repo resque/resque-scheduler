@@ -8,9 +8,9 @@ require 'rubygems'
 require 'test/unit'
 require 'mocha'
 require 'resque'
-require File.join(dir, '../lib/resque_scheduler')
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
-
+require 'resque_scheduler'
+require 'resque_scheduler/server'
 
 #
 # make sure we can run redis
