@@ -103,6 +103,21 @@ module Resque
         Resque.redis.del(:schedules_changed)
         procline "Schedules Loaded"
       end
+      
+      # modify interval type value to value with options if options available
+      def optionizate_interval_value(value)
+        args = value
+        if args.is_a?(::Array)
+          return args.first if args.size > 2 || !args.last.is_a?(::Hash)
+          # symbolize keys of hash for options
+          args[1] = args[1].inject({}) do |m, i|
+            key, value = i
+            m[(key.to_sym rescue key) || key] = value
+            m
+          end
+        end
+        args
+      end
 
       # Loads a job schedule into the Rufus::Scheduler and stores it in @@scheduled_jobs
       def load_schedule_job(name, config)
@@ -116,7 +131,8 @@ module Resque
           interval_types = %w{cron every}
           interval_types.each do |interval_type|
             if !config[interval_type].nil? && config[interval_type].length > 0
-              @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, config[interval_type]) do
+              args = optionizate_interval_value(config[interval_type])
+              @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, *args) do
                 log! "queueing #{config['class']} (#{name})"
                 handle_errors { enqueue_from_config(config) }
               end
