@@ -25,7 +25,9 @@ context "Resque::Scheduler" do
     config = {'cron' => "* * * * *", 'class' => 'SomeRealClass', 'args' => "/tmp"}
 
     Resque::Job.expects(:create).with(SomeRealClass.queue, SomeRealClass, '/tmp')
-    SomeRealClass.expects(:after_enqueue_example)
+    SomeRealClass.expects(:before_delayed_enqueue_example).with("/tmp")
+    SomeRealClass.expects(:before_enqueue_example).with("/tmp")
+    SomeRealClass.expects(:after_enqueue_example).with("/tmp")
 
     Resque::Scheduler.enqueue_from_config(config)
   end
