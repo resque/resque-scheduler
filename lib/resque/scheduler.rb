@@ -218,6 +218,7 @@ module Resque
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another
           if Class === klass
+            ResqueScheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
             Resque.enqueue(klass, *params)
           else
             # This will not run the before_hooks in rescue, but will at least
