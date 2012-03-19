@@ -1,3 +1,7 @@
+## 2.0.0.g (2012-03-19)
+
+* Adding plugin support with hooks (andreas)
+
 ## 2.0.0.f (2011-11-03)
 
 * TODO: address race condition with delayed jobs (using redis transactions)
