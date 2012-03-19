@@ -1,4 +1,4 @@
-## 2.0.0.g (2012-03-19)
+## 2.0.0.h (2012-03-19)
 
 * Adding plugin support with hooks (andreas)
 
