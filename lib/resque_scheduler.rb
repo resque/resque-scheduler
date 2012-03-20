@@ -122,7 +122,12 @@ module ResqueScheduler
   def enqueue_at_with_queue(queue, timestamp, klass, *args)
     return false unless Plugin.run_before_schedule_hooks(klass, *args)
 
-    delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
+    if Resque.inline?
+      # Just create the job and let resque perform it right away with inline.
+      Resque::Job.create(queue, klass, *args)
+    else
+      delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
+    end
 
     Plugin.run_after_schedule_hooks(klass, *args)
   end
