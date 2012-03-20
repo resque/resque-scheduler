@@ -59,12 +59,12 @@ module ResqueScheduler
   def schedule
     @schedule ||= {}
   end
-  
+
   # reloads the schedule from redis
   def reload_schedule!
     @schedule = get_schedules
   end
-  
+
   # gets the schedule as it exists in redis
   def get_schedules
     if redis.exists(:schedules)
@@ -77,12 +77,12 @@ module ResqueScheduler
       nil
     end
   end
-  
+
   # Create or update a schedule with the provided name and configuration.
   #
   # Note: values for class and custom_job_class need to be strings,
   # not constants.
-  #  
+  #
   #    Resque.set_schedule('some_job', {:class => 'SomeJob',
   #                                     :every => '15mins',
   #                                     :queue => 'high',
@@ -95,12 +95,12 @@ module ResqueScheduler
     end
     config
   end
-  
+
   # retrive the schedule configuration for the given name
   def get_schedule(name)
     decode(redis.hget(:schedules, name))
   end
-  
+
   # remove a given schedule by name
   def remove_schedule(name)
     redis.hdel(:schedules, name)
@@ -117,13 +117,13 @@ module ResqueScheduler
   end
 
   # Identical to +enqueue_at+, except you can also specify
-  # a queue in which the job will be placed after the 
+  # a queue in which the job will be placed after the
   # timestamp has passed.
   def enqueue_at_with_queue(queue, timestamp, klass, *args)
     return false unless Plugin.run_before_schedule_hooks(klass, *args)
-    
+
     delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
-    
+
     Plugin.run_after_schedule_hooks(klass, *args)
   end
 
@@ -134,7 +134,7 @@ module ResqueScheduler
   end
 
   # Identical to +enqueue_in+, except you can also specify
-  # a queue in which the job will be placed after the 
+  # a queue in which the job will be placed after the
   # number of seconds has passed.
   def enqueue_in_with_queue(queue, number_of_seconds_from_now, klass, *args)
     enqueue_at_with_queue(queue, Time.now + number_of_seconds_from_now, klass, *args)
@@ -210,7 +210,7 @@ module ResqueScheduler
   end
 
   # Given an encoded item, remove it from the delayed_queue
-  # 
+  #
   # This method is potentially very expensive since it needs to scan
   # through the delayed queue for every timestamp.
   def remove_delayed(klass, *args)
@@ -221,7 +221,7 @@ module ResqueScheduler
     end
     destroyed
   end
-  
+
   # Given a timestamp and job (klass + args) it removes all instances and
   # returns the count of jobs removed.
   #
@@ -238,16 +238,16 @@ module ResqueScheduler
     total_jobs = 0
     Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
       total_jobs += redis.llen("delayed:#{timestamp}").to_i
-    end 
+    end
     total_jobs
-  end 
+  end
 
   private
-  
+
     def job_to_hash(klass, args)
       {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
     end
-    
+
     def job_to_hash_with_queue(queue, klass, args)
       {:class => klass.to_s, :args => args, :queue => queue}
     end
