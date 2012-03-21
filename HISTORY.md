@@ -1,3 +1,7 @@
+##
+
+* Add support for Resque.inline configuration (carlosantoniodasilva)
+
 ## 2.0.0.h (2012-03-19)
 
 * Adding plugin support with hooks (andreas)
@@ -108,7 +112,7 @@
 
 ## 1.0.4 (2010-02-26)
 
-* Added support for specifying the queue to put the job onto. This allows for 
+* Added support for specifying the queue to put the job onto. This allows for
   you to have one job that can go onto multiple queues and be able to schedule
   jobs without having to load the job classes.
 
