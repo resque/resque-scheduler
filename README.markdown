@@ -21,7 +21,7 @@ The syntax is pretty explanatory:
 
 ### Documentation
 
-This README covers what most people need to know.  If you're looking for 
+This README covers what most people need to know.  If you're looking for
 details on individual methods, you might want to try the [rdoc](http://rdoc.info/github/bvandenbos/resque-scheduler/master/frames).
 
 ### Installation
@@ -32,7 +32,7 @@ To install:
 
 Adding the resque:scheduler rake task:
 
-    require 'resque_scheduler/tasks'    
+    require 'resque_scheduler/tasks'
 
 There are three things `resque-scheduler` needs to know about in order to do
 it's jobs: the schedule, where redis lives, and which queues to use.  The
@@ -45,35 +45,35 @@ to know.
 
     # Resque tasks
     require 'resque/tasks'
-    require 'resque_scheduler/tasks'    
-  
+    require 'resque_scheduler/tasks'
+
     namespace :resque do
       task :setup do
         require 'resque'
         require 'resque_scheduler'
-        require 'resque/scheduler'      
-      
+        require 'resque/scheduler'
+
         # you probably already have this somewhere
         Resque.redis = 'localhost:6379'
 
         # If you want to be able to dynamically change the schedule,
         # uncomment this line.  A dynamic schedule can be updated via the
         # Resque::Scheduler.set_schedule (and remove_schedule) methods.
-        # When dynamic is set to true, the scheduler process looks for 
+        # When dynamic is set to true, the scheduler process looks for
         # schedule changes and applies them on the fly.
         # Note: This feature is only available in >=2.0.0.
         #Resque::Scheduler.dynamic = true
-        
+
         # The schedule doesn't need to be stored in a YAML, it just needs to
         # be a hash.  YAML is usually the easiest.
         Resque.schedule = YAML.load_file('your_resque_schedule.yml')
-        
+
         # If your schedule already has +queue+ set for each job, you don't
         # need to require your jobs.  This can be an advantage since it's
         # less code that resque-scheduler needs to know about. But in a small
         # project, it's usually easier to just include you job classes here.
         # So, someting like this:
-        require 'jobs'        
+        require 'jobs'
       end
     end
 
@@ -82,7 +82,7 @@ queueing items from the schedule and polling the delayed queue for items
 ready to be pushed on to the work queues.  For obvious reasons, this process
 never exits.
 
-    $ rake resque:scheduler 
+    $ rake resque:scheduler
 
 Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
 any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
@@ -118,7 +118,7 @@ time is in the past, the job moves from the delayed queue to the actual resque
 work queue and will be completed as workers as free to process it.
 
 Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
-job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a 
+job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a
 queue name.
 
 The delayed queue is stored in redis and is persisted in the same way the
@@ -163,7 +163,7 @@ is most likely stored in a YAML like so:
       # If you want to have a different job name and class name, provide the 'class' option
       class: QueueDocuments
       queue: high
-      args: 
+      args:
       description: "This job queues all content for indexing in solr"
 
     clear_leaderboards_contributors:
@@ -174,7 +174,7 @@ is most likely stored in a YAML like so:
       description: "This job resets the weekly leaderboard for contributions"
 
 The queue value is optional, but if left unspecified resque-scheduler will
-attempt to get the queue from the job class, which means it needs to be 
+attempt to get the queue from the job class, which means it needs to be
 defined.  If you're getting "uninitialized constant" errors, you probably
 need to either set the queue in the schedule or require your jobs in your
 "resque:setup" rake task.
@@ -253,7 +253,7 @@ And then a schedule:
       cron: "30 6 * * 1"
       queue: scoring
       custom_job_class: FakeLeaderboard
-      args: 
+      args:
       rails_env: demo
       description: "This job will auto-create leaderboards for our online demo and the status will update as the worker makes progress"
 

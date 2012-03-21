@@ -118,7 +118,8 @@ module ResqueScheduler
 
   # Identical to +enqueue_at+, except you can also specify
   # a queue in which the job will be placed after the
-  # timestamp has passed.
+  # timestamp has passed. It respects Resque.inline option, by
+  # creating the job right away instead of adding to the queue.
   def enqueue_at_with_queue(queue, timestamp, klass, *args)
     return false unless Plugin.run_before_schedule_hooks(klass, *args)
 
