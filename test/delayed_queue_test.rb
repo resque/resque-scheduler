@@ -123,26 +123,26 @@ context "DelayedQueue" do
 
   test "delayed_timestamp_size returns 0 when nothing is queue" do
     t = Time.now + 60
-    assert_equal(0, Resque.delayed_timestamp_size(t))    
+    assert_equal(0, Resque.delayed_timestamp_size(t))
   end
-  
+
   test "delayed_timestamp_size returns 1 when one thing is queued" do
     t = Time.now + 60
     Resque.enqueue_at(t, SomeIvarJob)
-    assert_equal(1, Resque.delayed_timestamp_size(t))    
+    assert_equal(1, Resque.delayed_timestamp_size(t))
   end
 
   test "delayed_timestamp_peek returns empty array when nothings in it" do
     t = Time.now + 60
     assert_equal([], Resque.delayed_timestamp_peek(t, 0, 1), "make sure it's an empty array, not nil")
   end
-  
+
   test "delayed_timestamp_peek returns an array containing one job when one thing is queued" do
     t = Time.now + 60
     Resque.enqueue_at(t, SomeIvarJob)
     assert_equal [{'args' => [], 'class' => 'SomeIvarJob', 'queue' => 'ivar'}], Resque.delayed_timestamp_peek(t, 0, 1)
   end
-  
+
   test "delayed_timestamp_peek returns an array of multiple jobs when more than one job is queued" do
     t = Time.now + 60
     Resque.enqueue_at(t, SomeIvarJob)
@@ -150,7 +150,7 @@ context "DelayedQueue" do
     job = {'args' => [], 'class' => 'SomeIvarJob', 'queue' => 'ivar'}
     assert_equal([job, job], Resque.delayed_timestamp_peek(t, 0, 2))
   end
-  
+
   test "delayed_timestamp_peek only returns an array of one job if only asked for 1" do
     t = Time.now + 60
     Resque.enqueue_at(t, SomeIvarJob)
@@ -258,14 +258,14 @@ context "DelayedQueue" do
     assert_equal(2, Resque.remove_delayed(SomeIvarJob, "bar"))
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
-  
+
   test "remove_delayed_job_from_timestamp removes instances of jobs at a given timestamp" do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")
     assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
     assert_equal 0, Resque.delayed_timestamp_size(t)
   end
-  
+
   test "remove_delayed_job_from_timestamp doesn't remove items from other timestamps" do
     t1 = Time.now + 120
     t2 = t1 + 1
@@ -275,29 +275,29 @@ context "DelayedQueue" do
     assert_equal 1, Resque.delayed_timestamp_size(t1)
     assert_equal 0, Resque.delayed_timestamp_size(t2)
   end
-  
+
   test "remove_delayed_job_from_timestamp removes nothing if there are no matches" do
     t = Time.now + 120
     assert_equal 0, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
   end
-  
+
   test "remove_delayed_job_from_timestamp only removes items that match args" do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")
     Resque.enqueue_at(t, SomeIvarJob, "bar")
     assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
-    assert_equal 1, Resque.delayed_timestamp_size(t)    
+    assert_equal 1, Resque.delayed_timestamp_size(t)
   end
-  
+
   test "remove_delayed_job_from_timestamp returns the number of items removed" do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")
     assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
   end
-  
+
   test "remove_delayed_job_from_timestamp should cleanup the delayed timestamp list if not jobs are left" do
     t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, "foo")    
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
     assert_equal 1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, "foo")
     assert !Resque.redis.exists("delayed:#{t.to_i}")
     assert Resque.delayed_queue_peek(0, 100).empty?
@@ -309,6 +309,21 @@ context "DelayedQueue" do
     end
     assert_raise Resque::NoQueueError do
       Resque.enqueue_in(10, String) # string serves as invalid Job class
+    end
+  end
+
+  test "inlining jobs with Resque.inline config" do
+    begin
+      Resque.inline = true
+      Resque::Job.expects(:create).once.with(:ivar, SomeIvarJob, "foo", "bar")
+
+      timestamp = Time.now + 120
+      Resque.enqueue_at(timestamp, SomeIvarJob, "foo", "bar")
+
+      assert_equal 0, Resque.count_all_scheduled_jobs
+      assert !Resque.redis.exists("delayed:#{timestamp.to_i}")
+    ensure
+      Resque.inline = false
     end
   end
 end

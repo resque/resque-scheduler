@@ -1,7 +1,7 @@
 
 # Extend Resque::Server to add tabs
 module ResqueScheduler
-  
+
   module Server
 
     def self.included(base)
@@ -29,7 +29,7 @@ module ResqueScheduler
           Resque::Scheduler.enqueue_from_config(config)
           redirect u("/overview")
         end
-        
+
         get "/delayed" do
           # Is there a better way to specify alternate template locations with sinatra?
           erb File.read(File.join(File.dirname(__FILE__), 'server/views/delayed.erb'))
@@ -39,13 +39,13 @@ module ResqueScheduler
           # Is there a better way to specify alternate template locations with sinatra?
           erb File.read(File.join(File.dirname(__FILE__), 'server/views/delayed_timestamp.erb'))
         end
-        
+
         post "/delayed/queue_now" do
           timestamp = params['timestamp']
           Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp.to_i) if timestamp.to_i > 0
           redirect u("/overview")
         end
-        
+
         post "/delayed/clear" do
           Resque.reset_delayed_queue
           redirect u('delayed')
@@ -59,5 +59,5 @@ module ResqueScheduler
     Resque::Server.tabs << 'Delayed'
 
   end
-  
+
 end
