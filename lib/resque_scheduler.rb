@@ -1,9 +1,7 @@
 require 'rubygems'
 require 'resque'
-require 'resque/server'
 require 'resque_scheduler/version'
 require 'resque/scheduler'
-require 'resque_scheduler/server'
 require 'resque_scheduler/plugin'
 
 module ResqueScheduler
@@ -289,6 +287,3 @@ module ResqueScheduler
 end
 
 Resque.extend ResqueScheduler
-Resque::Server.class_eval do
-  include ResqueScheduler::Server
-end
