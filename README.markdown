@@ -298,6 +298,7 @@ Now, you want to add the following:
 
     # This will make the tabs show up.
     require 'resque_scheduler'
+    require 'resque_scheduler/server'
 
 As of resque-scheduler 2.0, it's no longer necessary to have the resque-web
 process aware of the schedule because it reads it from redis.  But prior to
