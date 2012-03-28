@@ -3,6 +3,7 @@ require 'resque'
 require 'resque_scheduler/version'
 require 'resque/scheduler'
 require 'resque_scheduler/plugin'
+require 'resque_scheduler/server'
 
 module ResqueScheduler
 
