@@ -286,10 +286,12 @@ The Delayed tab:
 
 ![The Delayed Tab](http://img.skitch.com/20100111-ne4fcqtc5emkcuwc5qtais2kwx.jpg)
 
+#### How do I get the schedule tabs to show up???
+
 To get these to show up you need to pass a file to `resque-web` to tell it to
-include the `resque-scheduler` plugin.  Unless you're running redis on
-localhost, you probably already have this file.  It probably looks something
-like this:
+include the `resque-scheduler` plugin and the resque-schedule server extension
+to the resque-web sinatra app.  Unless you're running redis on localhost, you
+probably already have this file.  It probably looks something like this:
 
     require 'resque' # include resque so we can configure it
     Resque.redis = "redis_server:6379" # tell Resque where redis lives
@@ -300,7 +302,12 @@ Now, you want to add the following:
     require 'resque_scheduler'
     require 'resque_scheduler/server'
 
-As of resque-scheduler 2.0, it's no longer necessary to have the resque-web
+That should make the scheduler tabs show up in `resque-web`.
+
+
+#### Changes as of 2.0.0
+
+As of resque-scheduler 2.0.0, it's no longer necessary to have the resque-web
 process aware of the schedule because it reads it from redis.  But prior to
 2.0, you'll want to make sure you load the schedule in this file as well.
 Something like this:
@@ -311,7 +318,6 @@ Now make sure you're passing that file to resque-web like so:
 
     resque-web ~/yourapp/config/resque_config.rb
 
-That should make the scheduler tabs show up in `resque-web`.
 
 ### Running in the background
 
