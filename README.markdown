@@ -30,6 +30,10 @@ To install:
 
     gem install resque-scheduler
 
+If you use a Gemfile, you may want to specify the `:require` explicitly:
+
+    gem 'resque-scheduler', :require => 'resque_scheduler'
+
 Adding the resque:scheduler rake task:
 
     require 'resque_scheduler/tasks'
