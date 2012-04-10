@@ -218,7 +218,7 @@ module Resque
           # one app that schedules for another
           if Class === klass
             ResqueScheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
-            Resque.enqueue(klass, *params)
+            Resque.enqueue_to(queue, klass, *params)
           else
             # This will not run the before_hooks in rescue, but will at least
             # queue the job.

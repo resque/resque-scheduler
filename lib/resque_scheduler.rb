@@ -111,7 +111,7 @@ module ResqueScheduler
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
     validate_job!(klass)
-    enqueue_at_with_queue( queue_from_class(klass), timestamp, klass, *args)
+    enqueue_at_with_queue(queue_from_class(klass), timestamp, klass, *args)
   end
 
   # Identical to +enqueue_at+, except you can also specify

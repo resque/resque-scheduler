@@ -170,7 +170,7 @@ context "DelayedQueue" do
     Resque.enqueue_at(t, SomeIvarJob)
 
     # 2 SomeIvarJob jobs should be created in the "ivar" queue
-    Resque::Job.expects(:create).twice.with(:ivar, SomeIvarJob, nil)
+    Resque::Job.expects(:create).twice.with('ivar', SomeIvarJob, nil)
     Resque::Scheduler.handle_delayed_items
   end
 
@@ -180,7 +180,7 @@ context "DelayedQueue" do
     Resque.enqueue_at(t, SomeIvarJob)
 
     # 2 SomeIvarJob jobs should be created in the "ivar" queue
-    Resque::Job.expects(:create).twice.with(:ivar, SomeIvarJob, nil)
+    Resque::Job.expects(:create).twice.with('ivar', SomeIvarJob, nil)
     Resque::Scheduler.handle_delayed_items(t)
   end
 
@@ -191,7 +191,7 @@ context "DelayedQueue" do
     Resque.enqueue_at(t, SomeIvarJob)
 
     # 2 SomeIvarJob jobs should be created in the "ivar" queue
-    Resque::Job.expects(:create).twice.with(:ivar, SomeIvarJob, nil)
+    Resque::Job.expects(:create).twice.with('ivar', SomeIvarJob, nil)
 
     Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
 
