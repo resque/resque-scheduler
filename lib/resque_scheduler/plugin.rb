@@ -14,7 +14,7 @@ module ResqueScheduler
     end
 
     def method_missing(method_name, *args, &block)
-      if method_name =~ /^run_(.*)_hooks$/
+      if method_name.to_s =~ /^run_(.*)_hooks$/
         job = args.shift
         run_hooks job, $1, *args
       else
