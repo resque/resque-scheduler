@@ -1,14 +1,14 @@
-##
+## 2.0.0
 
 * Add support for Resque.inline configuration (carlosantoniodasilva)
 * Fixing possible job loss race condition around deleting delayed queues
   and enqueuing a job 0 seconds in the future.
 
-## 2.0.0.h (2012-03-19)
+### 2.0.0.h (2012-03-19)
 
 * Adding plugin support with hooks (andreas)
 
-## 2.0.0.f (2011-11-03)
+### 2.0.0.f (2011-11-03)
 
 * TODO: address race condition with delayed jobs (using redis transactions)
 * Support ENV['BACKGROUND'] flag for daemonizing (bernerdschaefer)
@@ -16,7 +16,7 @@
 * Added remove_delayed_job_from_timestamp to remove delayed jobs from
   a given timestamp.
 
-## 2.0.0.e (2011-09-16)
+### 2.0.0.e (2011-09-16)
 
 * Adding enqueue_at_with_queue/enqueue_in_with_queue support (niralisse)
 * Adding `Resque::Scheduler.poll_sleep_amount` to allow for configuring
@@ -24,19 +24,19 @@
 * Add a "Clear Delayed Jobs" button to the Delayed Jobs page (john-griffin)
 * Fixed pagination issue on the Delayed tab
 
-## 2.0.0.d (2011-04-04)
+### 2.0.0.d (2011-04-04)
 
 * porting bug fixes from v1.9-stable
 
-## 2.0.0.c
+### 2.0.0.c
 
 * Rake task drop a pid file (sreeix)
 
-## 2.0.0.b
+### 2.0.0.b
 
 * Bug fixes
 
-## 2.0.0.a
+### 2.0.0.a
 
 * Dynamic schedule support (brianjlandau, davidyang)
 * Now depends on redis >=1.3
