@@ -11,7 +11,7 @@ This table explains the version requirements for redis
 | resque-scheduler version | required redis version|
 |:-------------------------|----------------------:|
 | >= 2.0.0.i               | >= 2.2.0              |
-| <= 2.0.0.i               | >= 1.3                |
+| > 0.0.1                  | >= 1.3                |
 
 
 Job scheduling is supported in two different way: Recurring (scheduled) and
