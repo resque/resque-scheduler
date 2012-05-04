@@ -110,9 +110,9 @@ context "DelayedQueue" do
       Resque.delayed_push(timestamp, {:class => SomeIvarJob, :args => 'blah1'})
     end
 
-    timestamps = Resque.delayed_queue_peek(2,3)
+    timestamps = Resque.delayed_queue_peek(1,2)
 
-    assert_equal(expected_timestamps[2,3], timestamps)
+    assert_equal(expected_timestamps[1,2], timestamps)
   end
 
   test "delayed_queue_schedule_size returns correct size" do
