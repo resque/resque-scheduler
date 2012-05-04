@@ -1,6 +1,8 @@
 ##
 
 * Add support for Resque.inline configuration (carlosantoniodasilva)
+* Fixing possible job loss race condition around deleting delayed queues
+  and enqueuing a job 0 seconds in the future.
 
 ## 2.0.0.h (2012-03-19)
 

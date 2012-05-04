@@ -258,12 +258,16 @@ module ResqueScheduler
 
     def clean_up_timestamp(key, timestamp)
       # If the list is empty, remove it.
+      redis.watch key
       if 0 == redis.llen(key).to_i
-        redis.del key
-        redis.zrem :delayed_queue_schedule, timestamp.to_i
+        redis.multi do
+          redis.del key
+          redis.zrem :delayed_queue_schedule, timestamp.to_i
+        end
+      else
+        redis.unwatch
       end
     end
-
     def validate_job!(klass)
       if klass.to_s.empty?
         raise Resque::NoClassError.new("Jobs must be given a class.")
