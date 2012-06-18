@@ -51,11 +51,15 @@ module Resque
 
         # Now start the scheduling part of the loop.
         loop do
-          begin
-            handle_delayed_items
-            update_schedule if dynamic
-          rescue Errno::EAGAIN, Errno::ECONNRESET => e
-            warn e.message
+          if Resque.redis.setnx "resque:scheduler:lock", 1 == 1
+            begin
+              handle_delayed_items
+              update_schedule if dynamic
+            rescue Errno::EAGAIN, Errno::ECONNRESET => e
+              warn e.message
+            ensure
+              Resque.redis.del "resque:scheduler:lock"
+            end
           end
           poll_sleep
         end
