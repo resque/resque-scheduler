@@ -1,5 +1,6 @@
 require 'rufus/scheduler'
 require 'thwait'
+require 'logger'
 
 module Resque
 
@@ -21,6 +22,9 @@ module Resque
       # Amount of time in seconds to sleep between polls of the delayed
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
+
+      # A logger!
+      attr_accessor :logger
 
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
@@ -284,13 +288,16 @@ module Resque
         exit if @sleeping
       end
 
-      def log!(msg)
-        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}" unless mute
+      def log!(msg, level = Logger::INFO)
+        if logger
+          logger.log level, msg
+        end
       end
 
-      def log(msg)
-        # add "verbose" logic later
-        log!(msg) if verbose
+      def log(msg, level = Logger::INFO)
+        if logger
+          logger.log level, msg
+        end
       end
 
       def procline(string)
