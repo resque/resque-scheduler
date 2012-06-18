@@ -21,6 +21,7 @@ namespace :resque do
     Resque::Scheduler.logger  = Logger.new(ENV['LOGFILE'], 'weekly') if ENV['LOGFILE']
     Resque::Scheduler.dynamic = true if ENV['DYNAMIC_SCHEDULE']
     Resque::Scheduler.verbose = true if ENV['VERBOSE']
+    Resque::Scheduler.poll_sleep_amount = ENV['TICK'].to_i if ENV['TICK']
     Resque::Scheduler.run
   end
 
