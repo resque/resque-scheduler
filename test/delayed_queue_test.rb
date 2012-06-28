@@ -227,6 +227,13 @@ context "DelayedQueue" do
     assert_equal(1, Resque.remove_delayed(SomeIvarJob))
   end
 
+  test "scheduled_at returns an array containing job schedule time" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+
+    assert_equal([t.to_i], Resque.scheduled_at(SomeIvarJob))
+  end
+
   test "remove_delayed doesn't remove things it shouldn't" do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")
