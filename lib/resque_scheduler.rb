@@ -152,6 +152,9 @@ module ResqueScheduler
     # First add this item to the list for this timestamp
     redis.rpush("delayed:#{timestamp.to_i}", encode(item))
 
+    # Store the timestamps at with this item occurs
+    redis.sadd("timestamps:#{encode(item)}", "delayed:#{timestamp.to_i}")
+
     # Now, add this timestamp to the zsets.  The score and the value are
     # the same since we'll be querying by timestamp, and we don't have
     # anything else to store.
@@ -214,16 +217,15 @@ module ResqueScheduler
   end
 
   # Given an encoded item, remove it from the delayed_queue
-  #
-  # This method is potentially very expensive since it needs to scan
-  # through the delayed queue for every timestamp.
   def remove_delayed(klass, *args)
-    destroyed = 0
     search = encode(job_to_hash(klass, args))
-    Array(redis.keys("delayed:*")).each do |key|
-      destroyed += redis.lrem key, 0, search
+    timestamps = redis.smembers("timestamps:#{search}")
+
+    replies = redis.pipelined do
+      timestamps.each {|key| redis.lrem(key, 0, search)}
     end
-    destroyed
+
+    replies.nil? ? 0 : replies.collect {|destroyed| destroyed.to_i}.inject(:+)
   end
 
   # Given a timestamp and job (klass + args) it removes all instances and
