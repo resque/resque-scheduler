@@ -225,6 +225,8 @@ module ResqueScheduler
       timestamps.each {|key| redis.lrem(key, 0, search)}
     end
 
+    redis.del("timestamps:#{search}")
+
     replies.nil? ? 0 : replies.collect {|destroyed| destroyed.to_i}.inject(:+)
   end
 
