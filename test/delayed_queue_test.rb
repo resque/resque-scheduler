@@ -231,13 +231,16 @@ context "DelayedQueue" do
 
     Resque.reset_delayed_queue
     assert_equal(0, Resque.delayed_queue_schedule_size)
+    assert_equal(0, Resque.redis.keys("timestamps:*").size)
   end
 
   test "remove_delayed removes job and returns the count" do
     t = Time.now + 120
+    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => [], :queue => Resque.queue_from_class(SomeIvarJob)})
     Resque.enqueue_at(t, SomeIvarJob)
 
     assert_equal(1, Resque.remove_delayed(SomeIvarJob))
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"))
   end
 
   test "scheduled_at returns an array containing job schedule time" do

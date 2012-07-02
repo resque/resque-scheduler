@@ -212,7 +212,12 @@ module ResqueScheduler
   # Clears all jobs created with enqueue_at or enqueue_in
   def reset_delayed_queue
     Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |item|
-      redis.del "delayed:#{item}"
+      key = "delayed:#{item}"
+      items = redis.lrange(key, 0, -1)
+      redis.pipelined do
+        items.each {|ts_item| redis.del("timestamps:#{ts_item}")}
+      end
+      redis.del key
     end
 
     redis.del :delayed_queue_schedule
