@@ -200,7 +200,9 @@ module ResqueScheduler
   def next_item_for_timestamp(timestamp)
     key = "delayed:#{timestamp.to_i}"
 
-    item = decode redis.lpop(key)
+    encoded_item = redis.lpop(key)
+    redis.srem("timestamps:#{encoded_item}", key)
+    item = decode(encoded_item)
 
     # If the list is empty, remove it.
     clean_up_timestamp(key, timestamp)
@@ -239,8 +241,12 @@ module ResqueScheduler
   # timestamp
   def remove_delayed_job_from_timestamp(timestamp, klass, *args)
     key = "delayed:#{timestamp.to_i}"
-    count = redis.lrem key, 0, encode(job_to_hash(klass, args))
+    encoded_job = encode(job_to_hash(klass, args))
+
+    redis.srem("timestamps:#{encoded_job}", key)
+    count = redis.lrem(key, 0, encoded_job)
     clean_up_timestamp(key, timestamp)
+
     count
   end
 

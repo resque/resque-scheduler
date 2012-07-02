@@ -9,13 +9,16 @@ context "DelayedQueue" do
 
   test "enqueue_at adds correct list and zset" do
     timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
+    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob)})
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty to start")
 
     Resque.enqueue_at(timestamp, SomeIvarJob, "path")
 
     # Confirm the correct keys were added
     assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should have one entry now")
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps should have one entry now")
     assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
 
     read_timestamp = Resque.next_delayed_timestamp
@@ -31,17 +34,21 @@ context "DelayedQueue" do
     # And now confirm the keys are gone
     assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty")
   end
 
   test "enqueue_at with queue adds correct list and zset and queue" do
     timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
+    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => 'critical'})
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty to start")
 
     Resque.enqueue_at_with_queue('critical', timestamp, SomeIvarJob, "path")
 
     # Confirm the correct keys were added
     assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should have one entry now")
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps should have one entry now")
     assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
 
     read_timestamp = Resque.next_delayed_timestamp
@@ -58,17 +65,21 @@ context "DelayedQueue" do
     # And now confirm the keys are gone
     assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty")
   end
 
   test "a job in the future doesn't come out" do
     timestamp = Time.now + 600 # 10 minutes from now (in the future, shouldn't come out)
+    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob)})
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty to start")
 
     Resque.enqueue_at(timestamp, SomeIvarJob, "path")
 
     # Confirm the correct keys were added
     assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should have one entry now")
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps should have one entry now")
     assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
 
     read_timestamp = Resque.next_delayed_timestamp
@@ -88,12 +99,14 @@ context "DelayedQueue" do
 
   test "enqueue_at and enqueue_in are equivelent" do
     timestamp = Time.now + 60
+    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob)})
 
     Resque.enqueue_at(timestamp, SomeIvarJob, "path")
     Resque.enqueue_in(timestamp - Time.now, SomeIvarJob, "path")
 
     assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "should have one timestamp in the delayed queue")
     assert_equal(2, Resque.redis.llen("delayed:#{timestamp.to_i}"), "should have 2 items in the timestamp queue")
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps should have one entry now")
   end
 
   test "empty delayed_queue_peek returns empty array" do
