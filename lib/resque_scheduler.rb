@@ -250,6 +250,14 @@ module ResqueScheduler
     total_jobs
   end
 
+  # Returns delayed jobs schedule timestamp for +klass+, +args+.
+  def scheduled_at(klass, *args)
+    search = encode(job_to_hash(klass, args))
+    redis.smembers("timestamps:#{search}").collect do |key|
+      key.tr('delayed:', '').to_i
+    end
+  end
+
   private
 
     def job_to_hash(klass, args)
