@@ -72,7 +72,7 @@ module Resque
     end
 
     def is_master?
-      acquire_master_lock || has_master_lock?
+      acquire_master_lock! || has_master_lock?
     end
 
     def master_lock_value
@@ -88,7 +88,7 @@ module Resque
       Resque.redis.expire(master_lock_key, lock_timeout)
     end
 
-    def acquire_master_lock
+    def acquire_master_lock!
       if Resque.redis.setnx(master_lock_key, master_lock_value)
         extend_lock!
         true

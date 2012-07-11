@@ -4,8 +4,7 @@ context "Resque::Scheduler" do
 
   setup do
     Resque::Scheduler.dynamic = false
-    Resque.redis.del(:schedules)
-    Resque.redis.del(:schedules_changed)
+    Resque.redis.flushall
     Resque::Scheduler.mute = true
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
@@ -235,6 +234,36 @@ context "Resque::Scheduler" do
     Resque.remove_schedule("some_ivar_job3")
     assert_equal nil, Resque.redis.hget(:schedules, "some_ivar_job3")
     assert Resque.redis.sismember(:schedules_changed, "some_ivar_job3")
+  end
+
+  test "has_master_lock? returns false if lock is set to something else" do
+    Resque.redis.set(Resque::Scheduler.master_lock_key, "someothermachine:1234")
+    assert !Resque::Scheduler.has_master_lock?
+  end
+
+  test "has_master_lock? returns true if process has lock" do
+    assert Resque::Scheduler.acquire_master_lock!, "Should have acquired the master lock"
+    assert Resque::Scheduler.has_master_lock?, "Should have the master lock"
+  end
+
+  test "has_master_lock? extends the TTL of the lock key" do
+    Resque.redis.setex(Resque::Scheduler.master_lock_key, 5, Resque::Scheduler.master_lock_value)
+    Resque::Scheduler.has_master_lock?
+    assert Resque.redis.ttl(Resque::Scheduler.master_lock_key) > 5, "TTL should have been updated to 180"
+  end
+
+  test "acquire_master_lock! sets the TTL" do
+    assert Resque::Scheduler.acquire_master_lock!
+    assert (175..185).include?(Resque.redis.ttl(Resque::Scheduler.master_lock_key)), "TTL should have been updated to 180"
+  end
+
+  test "is_master? should return true if process already has master lock" do
+    assert Resque::Scheduler.acquire_master_lock!, "Should have acquired the master lock"
+    assert Resque::Scheduler.is_master?, "Should have the lock"
+  end
+
+  test "is_master? should return true if it needs to acquire the lock" do
+    assert Resque::Scheduler.is_master?, "Should acquire the lock"
   end
 
   test "adheres to lint" do
