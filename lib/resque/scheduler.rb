@@ -1,5 +1,6 @@
 require 'rufus/scheduler'
 require 'thwait'
+require 'logger'
 
 module Resque
 
@@ -21,6 +22,9 @@ module Resque
       # Amount of time in seconds to sleep between polls of the delayed
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
+
+      # A logger!
+      attr_accessor :logger
 
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
@@ -47,11 +51,15 @@ module Resque
 
         # Now start the scheduling part of the loop.
         loop do
-          begin
-            handle_delayed_items
-            update_schedule if dynamic
-          rescue Errno::EAGAIN, Errno::ECONNRESET => e
-            warn e.message
+          if Resque.redis.setnx "resque:scheduler:lock", 1 == 1
+            begin
+              handle_delayed_items
+              update_schedule if dynamic
+            rescue Errno::EAGAIN, Errno::ECONNRESET => e
+              warn e.message
+            ensure
+              Resque.redis.del "resque:scheduler:lock"
+            end
           end
           poll_sleep
         end
@@ -284,13 +292,16 @@ module Resque
         exit if @sleeping
       end
 
-      def log!(msg)
-        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}" unless mute
+      def log!(msg, level = Logger::INFO)
+        if logger
+          logger.log level, msg
+        end
       end
 
-      def log(msg)
-        # add "verbose" logic later
-        log!(msg) if verbose
+      def log(msg, level = Logger::INFO)
+        if logger
+          logger.log level, msg
+        end
       end
 
       def procline(string)
