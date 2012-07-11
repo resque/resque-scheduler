@@ -271,7 +271,7 @@ custom job class to support the #scheduled method:
 
 ### Redundancy and Fail-Over
 
-*>= 2.0.1*
+*>= 2.0.1 only.  Prior to 2.0.1, it is not recommended to run multiple resque-scheduler processes and will result in duplicate jobs.*
 
 You may want to have resque-scheduler running on multiple machines for 
 redudancy.  Electing a master and failover is built in and default.  Simply
