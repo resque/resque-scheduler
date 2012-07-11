@@ -2,7 +2,7 @@
 # ### Locking the scheduler process
 #
 # There are two places in resque-scheduler that need to be synchonized
-# in order to be able to run redudant scheduler processes while ensuring jobs don't 
+# in order to be able to run redundant scheduler processes while ensuring jobs don't 
 # get queued multiple times when the master process changes.
 # 
 # 1) Processing the delayed queues (jobs that are created from enqueue_at/enqueue_in, etc)
