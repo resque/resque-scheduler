@@ -1,5 +1,6 @@
 require 'rufus/scheduler'
 require 'thwait'
+require 'socket'
 
 module Resque
 
@@ -8,7 +9,6 @@ module Resque
     extend Resque::Helpers
 
     class << self
-
       # If true, logs more stuff...
       attr_accessor :verbose
 
@@ -31,6 +31,38 @@ module Resque
         @poll_sleep_amount ||= 5 # seconds
       end
 
+      def hostname
+        Socket.gethostbyname(Socket.gethostname).first
+      end
+
+      def process_id
+        Process.pid
+      end
+
+      def identifier
+        [hostname, process_id].join ':'
+      end
+
+      def lock_timeout
+        60
+      end
+
+      def lock_key
+        'schedule:lock'
+      end
+
+      def has_lock?
+        Resque.redis.get(lock_key) == identifier
+      end
+
+      def try_lock?
+        Resque.redis.setnx lock_key, identifier
+      end
+
+      def update_lock_expiry
+        Resque.redis.expire lock_key, lock_timeout
+      end
+
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
         $0 = "resque-scheduler: Starting"
@@ -48,8 +80,11 @@ module Resque
         # Now start the scheduling part of the loop.
         loop do
           begin
-            handle_delayed_items
-            update_schedule if dynamic
+            if has_lock? || try_lock?
+              update_lock_expiry
+              handle_delayed_items
+              update_schedule if dynamic
+            end
           rescue Errno::EAGAIN, Errno::ECONNRESET => e
             warn e.message
           end
