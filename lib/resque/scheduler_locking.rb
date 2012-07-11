@@ -18,7 +18,7 @@
 # better to miss a few scheduled jobs than it is to run them multiple times
 # for the same iteration.)
 #
-# To avoid queuing multiple jobs in the case of master hand-off, the master
+# To avoid queuing multiple jobs in the case of master fail-over, the master
 # should remain the master as long as it can rather than a simple SETNX which
 # would result in the master roll being passed around frequently.
 #
@@ -26,29 +26,28 @@
 # Each resque-scheduler process attempts to get the master lock via SETNX.
 # Once obtained, it sets the expiration for 3 minutes (configurable).  The
 # master process continually updates the timeout on the lock key to be 3
-# minutes in the future in it's loop (see `run`) and when jobs come out of
+# minutes in the future in it's loop(s) (see `run`) and when jobs come out of
 # rufus-scheduler (see `load_schedule_job`).  That ensures that a minimum of
 # 3 minutes must pass since the last queuing operation before a new master is
-# chosen.  IF, for whatever reason, the master fails to update the expiration
+# chosen.  If, for whatever reason, the master fails to update the expiration
 # for 3 minutes, the key expires and the lock is up for grabs.  If
 # miraculously the original master comes back to life, it will realize it is
 # no longer the master and stop processing jobs.
 #
 # The clocks on the scheduler machines can then be up to 3 minutes off from
-# each without the risk of queueing the same scheduled job twice during a
-# master change.  The catch is, in the event of a master change, no scheduled
-# jobs will be queued during those 3 minutes.  So, there is a trade off: the
-# higher the timeout, the less likely scheduled jobs will be queued twice and
-# the more jobs will potentially be missed.  The lower the timeout, less jobs
-# are missed, but increased chances of firing the jobs twice.  If you don't
-# care about jobs firing twice or are certain your machines' clocks are well
-# in sync, a lower timeout is preferable.  One thing to keep in mind: this
-# only effects *scheduled* jobs - delayed jobs will never be lost or skipped
-# since eventually a master will come online and it will process everything
-# that is ready (no matter how old it is).  Scheduled jobs work like cron -
-# if you stop cron, no jobs fire while it's stopped and it doesn't fire jobs
-# that were missed when it starts up again.
-
+# each other without the risk of queueing the same scheduled job twice during
+# a master change.  The catch is, in the event of a master change, no
+# scheduled jobs will be queued during those 3 minutes.  So, there is a trade
+# off: the higher the timeout, the less likely scheduled jobs will be fired
+# twice but greater chances of missing scheduled jobs.  The lower the timeout,
+# less likely jobs will be missed, greater the chances of jobs firing twice.  If
+# you don't care about jobs firing twice or are certain your machines' clocks
+# are well in sync, a lower timeout is preferable.  One thing to keep in mind:
+# this only effects *scheduled* jobs - delayed jobs will never be lost or
+# skipped since eventually a master will come online and it will process
+# everything that is ready (no matter how old it is).  Scheduled jobs work
+# like cron - if you stop cron, no jobs fire while it's stopped and it doesn't
+# fire jobs that were missed when it starts up again.
 
 module Resque
 

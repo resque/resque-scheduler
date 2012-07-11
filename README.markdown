@@ -99,17 +99,6 @@ any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
 to stdout.  `MUTE` does the opposite and silences all output. `MUTE`
 supersedes `VERBOSE`.
 
-NOTE: You DO NOT want to run >1 instance of the scheduler.  Doing so will
-result in the same job being queued more than once.  You only need one
-instance of the scheduler running per resque instance (regardless of number
-of machines).
-
-If the scheduler process goes down for whatever reason, the delayed items
-that should have fired during the outage will fire once the scheduler process
-is started back up again (regardless of it being on a new machine).  Missed
-scheduled jobs, however, will not fire upon recovery of the scheduler process.
-
-
 
 ### Delayed jobs
 
@@ -280,6 +269,26 @@ custom job class to support the #scheduled method:
       end
     end
 
+### Redundancy and Fail-Over
+
+*>= 2.0.1*
+
+You may want to have resque-scheduler running on multiple machines for 
+redudancy.  Electing a master and failover is built in and default.  
+Simply run resque-scheduler on as many machine as you want pointing
+to the same redis instance and schedule.  The scheduler processes will
+use redis to elect a master process and detect failover when the master
+dies.  Precautions are taken to prevent jobs form potentially being
+queued twice during failover even when the clocks of the scheduler
+machines are slightly out of sync (or load effects scheduled job firing
+time).  If you want the gory details, look at Resque::SchedulerLocking.
+
+If the scheduler process(es) goes down for whatever reason, the delayed items
+that should have fired during the outage will fire once the scheduler process
+is started back up again (regardless of it being on a new machine).  Missed
+scheduled jobs, however, will not fire upon recovery of the scheduler process.
+Think of scheduled (recurring) jobs as cron jobs - if you stop cron, it doesn't fire
+missed jobs once it starts back up.
 
 
 ### resque-web Additions
