@@ -1,11 +1,13 @@
 require 'rufus/scheduler'
 require 'thwait'
+require 'resque/scheduler_locking'
 
 module Resque
 
   class Scheduler
 
     extend Resque::Helpers
+    extend Resque::SchedulerLocking
 
     class << self
 
@@ -47,17 +49,20 @@ module Resque
 
         # Now start the scheduling part of the loop.
         loop do
-          begin
-            handle_delayed_items
-            update_schedule if dynamic
-          rescue Errno::EAGAIN, Errno::ECONNRESET => e
-            warn e.message
+          if is_master?
+            begin
+              handle_delayed_items
+              update_schedule if dynamic
+            rescue Errno::EAGAIN, Errno::ECONNRESET => e
+              warn e.message
+            end
           end
           poll_sleep
         end
 
         # never gets here.
       end
+     
 
       # For all signals, set the shutdown flag and wait for current
       # poll/enqueing to finish (should be almost istant).  In the
@@ -133,8 +138,10 @@ module Resque
             if !config[interval_type].nil? && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])
               @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, *args) do
-                log! "queueing #{config['class']} (#{name})"
-                handle_errors { enqueue_from_config(config) }
+                if is_master?
+                  log! "queueing #{config['class']} (#{name})"
+                  handle_errors { enqueue_from_config(config) }
+                end
               end
               interval_defined = true
               break
@@ -169,7 +176,8 @@ module Resque
         item = nil
         begin
           handle_shutdown do
-            if item = Resque.next_item_for_timestamp(timestamp)
+            # Continually check that it is still the master
+            if is_master? && item = Resque.next_item_for_timestamp(timestamp)
               log "queuing #{item['class']} [delayed]"
               handle_errors { enqueue_from_config(item) }
             end
