@@ -274,14 +274,14 @@ custom job class to support the #scheduled method:
 *>= 2.0.1*
 
 You may want to have resque-scheduler running on multiple machines for 
-redudancy.  Electing a master and failover is built in and default.  
-Simply run resque-scheduler on as many machine as you want pointing
-to the same redis instance and schedule.  The scheduler processes will
-use redis to elect a master process and detect failover when the master
-dies.  Precautions are taken to prevent jobs form potentially being
-queued twice during failover even when the clocks of the scheduler
-machines are slightly out of sync (or load effects scheduled job firing
-time).  If you want the gory details, look at Resque::SchedulerLocking.
+redudancy.  Electing a master and failover is built in and default.  Simply
+run resque-scheduler on as many machine as you want pointing to the same
+redis instance and schedule.  The scheduler processes will use redis to
+elect a master process and detect failover when the master dies.  
+Precautions are taken to prevent jobs form potentially being queued twice
+during failover even when the clocks of the scheduler machines are slightly
+out of sync (or load effects scheduled job firing time).  If you want the
+gory details, look at Resque::SchedulerLocking.
 
 If the scheduler process(es) goes down for whatever reason, the delayed items
 that should have fired during the outage will fire once the scheduler process
