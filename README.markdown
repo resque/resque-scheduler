@@ -279,7 +279,7 @@ run resque-scheduler on as many machine as you want pointing to the same
 redis instance and schedule.  The scheduler processes will use redis to
 elect a master process and detect failover when the master dies.  Precautions are
 taken to prevent jobs from potentially being queued twice during failover even
-when the clocks of the scheduler machines are slightly out of sync (or load effects
+when the clocks of the scheduler machines are slightly out of sync (or load affects
 scheduled job firing time).  If you want the gory details, look at Resque::SchedulerLocking.
 
 If the scheduler process(es) goes down for whatever reason, the delayed items
