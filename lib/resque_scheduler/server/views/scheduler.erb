@@ -26,17 +26,15 @@
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= if !config['every'].nil? 
+      <td style="white-space:nowrap"><%= if !config['every'].nil?
                                            h('every: ' + config['every'])
                                          elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron']) 
+                                           h('cron: ' + config['cron'])
                                          else
                                            'Not currently scheduled'
                                          end %></td>
-      <td><%= (config['class'].nil? && !config['custom_job_class'].nil?) ?
-              h(config['custom_job_class']) :
-              h(config['class']) %></td>
-      <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
+      <td><%= h(class_from_config(config)) %></td>
+      <td><%= h config['queue'] || queue_from_class_name(class_from_config(config)) %></td>
       <td><%= h config['args'].inspect %></td>
     </tr>
   <% end %>

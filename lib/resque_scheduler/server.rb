@@ -18,6 +18,14 @@ module ResqueScheduler
           def queue_from_class_name(class_name)
             Resque.queue_from_class(Resque.constantize(class_name))
           end
+
+          def class_from_config(config)
+            if !config['custom_job_class'].nil?
+              config['custom_job_class']
+            else
+              config['class']
+            end
+          end
         end
 
         get "/schedule" do
