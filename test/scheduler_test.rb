@@ -203,6 +203,16 @@ context "Resque::Scheduler" do
     assert_equal('SomeIvarJob', Resque.schedule['SomeIvarJob']['class'])
   end
 
+  test "schedule= uses the custom job name as 'class' argument if 'class' is missing" do
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {"SomeIvarJob" => {
+      'cron' => "* * * * *", 'custom_job_class' => 'FakeCustomJobClass', 'args' => "/tmp/75"
+    }}
+    assert_equal({'cron' => "* * * * *", 'custom_job_class' => 'FakeCustomJobClass', 'class' => 'FakeCustomJobClass', 'args' => "/tmp/75"},
+      Resque.decode(Resque.redis.hget(:schedules, "SomeIvarJob")))
+    assert_equal('FakeCustomJobClass', Resque.schedule['SomeIvarJob']['class'])
+  end
+
   test "schedule= does not mutate argument" do
     schedule = {"SomeIvarJob" => {
       'cron' => "* * * * *", 'args' => "/tmp/75"
