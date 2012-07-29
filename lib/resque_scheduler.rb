@@ -282,6 +282,9 @@ module ResqueScheduler
       prepared_hash = {}
       schedule_hash.each do |name, job_spec|
         job_spec = job_spec.dup
+        if job_spec.key?('custom_job_class') && !job_spec.key?('class')
+          job_spec['class'] = job_spec['custom_job_class']
+        end
         job_spec['class'] = name unless job_spec.key?('class') || job_spec.key?(:class)
         prepared_hash[name] = job_spec
       end
