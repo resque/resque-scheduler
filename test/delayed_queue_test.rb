@@ -326,4 +326,26 @@ context "DelayedQueue" do
       Resque.inline = false
     end
   end
+
+  test "inlining custom jobs with Resque.inline config" do
+    class TestCustomWorker
+      @queue = :custom
+      def self.scheduled(*args)
+        # do nothing
+      end
+    end
+
+    begin
+      Resque.inline = true
+      TestCustomWorker.expects(:scheduled).once.with(:custom, TestCustomWorker, "foo", "bar")
+
+      timestamp = Time.now + 120
+      Resque.enqueue_at(timestamp, TestCustomWorker, "foo", "bar")
+
+      assert_equal 0, Resque.count_all_scheduled_jobs
+      assert !Resque.redis.exists("delayed:#{timestamp.to_i}")
+    ensure
+      Resque.inline = false
+    end
+  end
 end

@@ -123,7 +123,14 @@ module ResqueScheduler
 
     if Resque.inline?
       # Just create the job and let resque perform it right away with inline.
-      Resque::Job.create(queue, klass, *args)
+      # The custom job class API must offer a static "scheduled" method. If the custom
+      # job class can not be constantized (via a requeue call from the web perhaps), fall
+      # back to enqueing normally via Resque::Job.create.
+      begin
+        constantize(klass).scheduled(queue, klass, *args)
+      rescue NameError
+        Resque::Job.create(queue, klass, *args)
+      end
     else
       delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
     end
