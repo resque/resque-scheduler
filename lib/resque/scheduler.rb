@@ -37,6 +37,11 @@ module Resque
         # trap signals
         register_signal_handlers
 
+        # Quote from the resque/worker.
+        # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
+        # get output from the child in there.
+        $stdout.sync = true
+
         # Load the schedule into rufus
         # If dynamic is set, load that schedule otherwise use normal load
         if dynamic
