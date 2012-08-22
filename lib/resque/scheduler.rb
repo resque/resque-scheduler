@@ -289,7 +289,10 @@ module Resque
       # Sets the shutdown flag, exits if sleeping
       def shutdown
         @shutdown = true
-        exit if @sleeping
+        if @sleeping
+          release_master_lock!
+          exit
+        end
       end
 
       def log!(msg)

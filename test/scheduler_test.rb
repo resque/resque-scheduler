@@ -273,4 +273,11 @@ context "Resque::Scheduler" do
     end
   end
 
+  test "release_master_lock! should delete the lock key" do
+    assert Resque::Scheduler.acquire_master_lock!, "Should have acquired the master lock"
+    assert Resque::Scheduler.has_master_lock?, "Should have the lock"
+    Resque::Scheduler.release_master_lock!
+    assert !Resque::Scheduler.has_master_lock?, "Should NOT have the lock"
+  end
+
 end

@@ -79,12 +79,16 @@ module Resque
     end
 
     def master_lock_key
-      :master_lock
+      :resque_scheduler_master_lock
     end
 
     def extend_lock!
       # If the master fails to checkin for 3 minutes, the lock is released and is up for grabs
       Resque.redis.expire(master_lock_key, lock_timeout)
+    end
+
+    def release_master_lock!
+      Resque.redis.del(master_lock_key)
     end
 
     def acquire_master_lock!
