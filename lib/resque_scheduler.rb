@@ -229,14 +229,13 @@ module ResqueScheduler
     timestamps = redis.smembers("timestamps:#{search}")
 
     replies = redis.pipelined do
-      timestamps.each {|key| redis.lrem(key, 0, search)}
+      timestamps.each do |key|
+        redis.lrem(key, 0, search)
+        redis.srem("timestamps:#{search}", key)
+      end
     end
 
-    redis.pipelined do
-      timestamps.each {|key| redis.srem("timestamps:#{search}", key)}
-    end
-
-    (replies.nil? || replies.empty?) ? 0 : replies.collect {|destroyed| destroyed.to_i}.inject(:+)
+    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).inject(0) { |x,(i,b)| x += i.to_i }
   end
 
   # Given a timestamp and job (klass + args) it removes all instances and
