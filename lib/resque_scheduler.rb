@@ -236,7 +236,7 @@ module ResqueScheduler
       timestamps.each {|key| redis.srem("timestamps:#{search}", key)}
     end
 
-    replies.nil? ? 0 : replies.collect {|destroyed| destroyed.to_i}.inject(:+)
+    (replies.nil? || replies.empty?) ? 0 : replies.collect {|destroyed| destroyed.to_i}.inject(:+)
   end
 
   # Given a timestamp and job (klass + args) it removes all instances and
