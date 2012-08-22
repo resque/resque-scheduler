@@ -71,15 +71,15 @@ context "Resque::Scheduler" do
     assert Resque::Scheduler.scheduled_jobs.include?("some_ivar_job2")
   end
 
-  test "load_schedule_job loads a schedule" do 
+  test "load_schedule_job loads a schedule" do
     Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"})
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
     assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
   end
-  
-  test "load_schedule_job with every with options" do 
+
+  test "load_schedule_job with every with options" do
     Resque::Scheduler.load_schedule_job("some_ivar_job", {'every' => ['30s', {'first_in' => '60s'}], 'class' => 'SomeIvarJob', 'args' => "/tmp"})
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
@@ -87,8 +87,8 @@ context "Resque::Scheduler" do
     assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
     assert Resque::Scheduler.scheduled_jobs["some_ivar_job"].params.keys.include?(:first_in)
   end
-  
-  test "load_schedule_job with cron with options" do 
+
+  test "load_schedule_job with cron with options" do
     Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => ['* * * * *', {'allow_overlapping' => 'true'}], 'class' => 'SomeIvarJob', 'args' => "/tmp"})
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
@@ -236,48 +236,10 @@ context "Resque::Scheduler" do
     assert Resque.redis.sismember(:schedules_changed, "some_ivar_job3")
   end
 
-  test "has_master_lock? returns false if lock is set to something else" do
-    Resque.redis.set(Resque::Scheduler.master_lock_key, "someothermachine:1234")
-    assert !Resque::Scheduler.has_master_lock?
-  end
-
-  test "has_master_lock? returns true if process has lock" do
-    assert Resque::Scheduler.acquire_master_lock!, "Should have acquired the master lock"
-    assert Resque::Scheduler.has_master_lock?, "Should have the master lock"
-  end
-
-  test "has_master_lock? extends the TTL of the lock key" do
-    Resque.redis.setex(Resque::Scheduler.master_lock_key, 5, Resque::Scheduler.master_lock_value)
-    Resque::Scheduler.has_master_lock?
-    assert Resque.redis.ttl(Resque::Scheduler.master_lock_key) > 5, "TTL should have been updated to 180"
-  end
-
-  test "acquire_master_lock! sets the TTL" do
-    assert Resque::Scheduler.acquire_master_lock!
-    assert (175..185).include?(Resque.redis.ttl(Resque::Scheduler.master_lock_key)), "TTL should have been updated to 180"
-  end
-
-  test "is_master? should return true if process already has master lock" do
-    assert Resque::Scheduler.acquire_master_lock!, "Should have acquired the master lock"
-    assert Resque::Scheduler.is_master?, "Should have the lock"
-  end
-
-  test "is_master? should return true if it needs to acquire the lock" do
-    assert Resque::Scheduler.is_master?, "Should acquire the lock"
-  end
-
   test "adheres to lint" do
     assert_nothing_raised do
       Resque::Plugin.lint(Resque::Scheduler)
       Resque::Plugin.lint(ResqueScheduler)
     end
   end
-
-  test "release_master_lock! should delete the lock key" do
-    assert Resque::Scheduler.acquire_master_lock!, "Should have acquired the master lock"
-    assert Resque::Scheduler.has_master_lock?, "Should have the lock"
-    Resque::Scheduler.release_master_lock!
-    assert !Resque::Scheduler.has_master_lock?, "Should NOT have the lock"
-  end
-
 end

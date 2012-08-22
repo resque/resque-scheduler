@@ -2,13 +2,13 @@
 # ### Locking the scheduler process
 #
 # There are two places in resque-scheduler that need to be synchonized
-# in order to be able to run redundant scheduler processes while ensuring jobs don't 
+# in order to be able to run redundant scheduler processes while ensuring jobs don't
 # get queued multiple times when the master process changes.
-# 
+#
 # 1) Processing the delayed queues (jobs that are created from enqueue_at/enqueue_in, etc)
 # 2) Processing the scheduled (cron-like) jobs from rufus-scheduler
 #
-# Protecting the delayed queues (#1) is relatively easy.  A simple SETNX in 
+# Protecting the delayed queues (#1) is relatively easy.  A simple SETNX in
 # redis would suffice.  However, protecting the scheduled jobs is trickier
 # because the clocks on machines could be slightly off or actual firing times
 # could vary slightly due to load.  If scheduler A's clock is slightly ahead
@@ -49,67 +49,42 @@
 # like cron - if you stop cron, no jobs fire while it's stopped and it doesn't
 # fire jobs that were missed when it starts up again.
 
+require 'resque/scheduler/lock'
+
 module Resque
-
   module SchedulerLocking
-
-    # The TTL (in seconds) for the master lock
-    def lock_timeout=(v)
-      @lock_timeout = v
+    def master_lock
+      @master_lock ||= build_master_lock
     end
 
-    def lock_timeout
-      @lock_timeout ||= 60 * 3 # 3 minutes
-    end
-
-    def hostname
-      Socket.gethostbyname(Socket.gethostname).first
-    end
-
-    def process_id
-      Process.pid
+    def supports_lua?
+      redis_master_version >= 2.5
     end
 
     def is_master?
-      acquire_master_lock! || has_master_lock?
+      master_lock.acquire! || master_lock.locked?
     end
 
-    def master_lock_value
-      [hostname, process_id].join(':')
+    def release_master_lock!
+      master_lock.release!
+    end
+
+  private
+
+    def build_master_lock
+      if supports_lua?
+        Resque::Scheduler::Lock::Resilient.new(master_lock_key)
+      else
+        Resque::Scheduler::Lock::Basic.new(master_lock_key)
+      end
     end
 
     def master_lock_key
       :resque_scheduler_master_lock
     end
 
-    def extend_lock!
-      # If the master fails to checkin for 3 minutes, the lock is released and is up for grabs
-      Resque.redis.expire(master_lock_key, lock_timeout)
+    def redis_master_version
+      Resque.redis.info['redis_version'].to_f
     end
-
-    def release_master_lock!
-      Resque.redis.del(master_lock_key)
-    end
-
-    def acquire_master_lock!
-      if Resque.redis.setnx(master_lock_key, master_lock_value)
-        extend_lock!
-        true
-      end
-    end
-
-    def has_master_lock?
-      if Resque.redis.get(master_lock_key) == master_lock_value
-        extend_lock!
-        # Since this process could lose the lock between checking
-        # if it has it and extending the lock, check again to make 
-        # sure it still has it.
-        if Resque.redis.get(master_lock_key) == master_lock_value
-          true
-        end
-      end
-    end
-
   end
-
 end
