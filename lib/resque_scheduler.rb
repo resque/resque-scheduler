@@ -238,6 +238,12 @@ module ResqueScheduler
     (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).inject(0) { |x,(i,b)| x += i.to_i }
   end
 
+  # Given an encoded item, enqueue it now
+  def enqueue_delayed(klass, *args)
+    hash = job_to_hash(klass, args)
+    remove_delayed(klass, *args).times { Resque::Scheduler.enqueue_from_config(hash) }
+  end
+
   # Given a timestamp and job (klass + args) it removes all instances and
   # returns the count of jobs removed.
   #
