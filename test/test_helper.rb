@@ -23,10 +23,10 @@ if !system("which redis-server")
 end
 
 
-#
-# start our own redis when the tests start,
-# kill it when they end
-#
+# Start our own Redis when the tests start. RedisInstance will take care of
+# starting and stopping.
+require File.dirname(__FILE__) + '/support/redis_instance'
+RedisInstance.run!
 
 at_exit do
   next if $!
@@ -37,16 +37,8 @@ at_exit do
     exit_code = Test::Unit::AutoRunner.run
   end
 
-  pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
-  puts "Killing test redis server..."
-  `rm -f #{dir}/dump.rdb`
-  Process.kill("KILL", pid.to_i)
   exit exit_code
 end
-
-puts "Starting redis for testing at localhost:9736..."
-`redis-server #{dir}/redis-test.conf`
-Resque.redis = 'localhost:9736'
 
 ##
 # test/spec/mini 3
