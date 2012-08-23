@@ -235,7 +235,7 @@ module ResqueScheduler
       end
     end
 
-    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).inject(0) { |x,(i,b)| x += i.to_i }
+    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).collect {|slice| slice.first}.inject(:+)
   end
 
   # Given an encoded item, enqueue it now
