@@ -229,14 +229,19 @@ module ResqueScheduler
     timestamps = redis.smembers("timestamps:#{search}")
 
     replies = redis.pipelined do
-      timestamps.each {|key| redis.lrem(key, 0, search)}
+      timestamps.each do |key|
+        redis.lrem(key, 0, search)
+        redis.srem("timestamps:#{search}", key)
+      end
     end
 
-    redis.pipelined do
-      timestamps.each {|key| redis.srem("timestamps:#{search}", key)}
-    end
+    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).inject(0) { |x,(i,b)| x += i.to_i }
+  end
 
-    replies.nil? ? 0 : replies.collect {|destroyed| destroyed.to_i}.inject(:+)
+  # Given an encoded item, enqueue it now
+  def enqueue_delayed(klass, *args)
+    hash = job_to_hash(klass, args)
+    remove_delayed(klass, *args).times { Resque::Scheduler.enqueue_from_config(hash) }
   end
 
   # Given a timestamp and job (klass + args) it removes all instances and

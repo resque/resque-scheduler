@@ -212,6 +212,24 @@ context "DelayedQueue" do
     assert_equal(0, Resque.delayed_timestamp_peek(t, 0, 3).length)
   end
 
+  test "enqueue_delayed creates jobs and empties the delayed queue" do
+    t = Time.now + 60
+
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t, SomeIvarJob, "bar")
+    Resque.enqueue_at(t, SomeIvarJob, "bar")
+
+    # 3 SomeIvarJob jobs should be created in the "ivar" queue
+    Resque::Job.expects(:create).never.with(:ivar, SomeIvarJob, "foo")
+    Resque::Job.expects(:create).twice.with(:ivar, SomeIvarJob, "bar")
+
+    # 2 SomeIvarJob jobs should be enqueued
+    assert_equal(2, Resque.enqueue_delayed(SomeIvarJob, "bar"))
+
+    # delayed queue for timestamp should have one remaining
+    assert_equal(1, Resque.delayed_timestamp_peek(t, 0, 3).length)
+  end
+
   test "handle_delayed_items works with out specifying queue (upgrade case)" do
     t = Time.now - 60
     Resque.delayed_push(t, :class => 'SomeIvarJob')
