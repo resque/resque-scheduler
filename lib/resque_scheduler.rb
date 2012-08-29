@@ -272,6 +272,26 @@ module ResqueScheduler
     remove_delayed(klass, *args).times { Resque::Scheduler.enqueue_from_config(hash) }
   end
 
+  # Given a block, remove jobs that return true from a block
+  #
+  # This allows for removal of delayed jobs that have arguments matching certain criteria
+  def remove_delayed_selection
+    raise ArgumentError, "Please supply a block" unless block_given?
+
+    destroyed = 0
+    # There is no way to search Redis list entries for a partial match, so we query for all
+    # delayed job tasks and do our matching after decoding the payload data
+    jobs = Resque.redis.keys("delayed:*")
+    jobs.each do |job|
+      payload = Resque.redis.lindex(job, 0)
+      decoded_payload = decode(payload)
+      if yield(decoded_payload['args'])
+        destroyed += redis.lrem job, 0, payload
+      end
+    end
+    destroyed
+  end
+
   # Given a timestamp and job (klass + args) it removes all instances and
   # returns the count of jobs removed.
   #
