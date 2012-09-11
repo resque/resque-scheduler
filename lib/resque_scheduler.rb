@@ -45,17 +45,18 @@ module ResqueScheduler
   def schedule=(schedule_hash)
     schedule_hash = prepare_schedule(schedule_hash)
 
-    if Resque::Scheduler.dynamic
+    #if Resque::Scheduler.dynamic
+      # store all schedules in redis, so we can retrieve them back everywhere.
       schedule_hash.each do |name, job_spec|
         set_schedule(name, job_spec)
       end
-    end
+    #end
     @schedule = schedule_hash
   end
 
   # Returns the schedule hash
   def schedule
-    @schedule ||= {}
+    @schedule ||= get_schedules
   end
 
   # reloads the schedule from redis
@@ -65,14 +66,14 @@ module ResqueScheduler
 
   # gets the schedule as it exists in redis
   def get_schedules
-    if redis.exists(:schedules)
-      redis.hgetall(:schedules).tap do |h|
-        h.each do |name, config|
-          h[name] = decode(config)
-        end
+    unless redis.exists(:schedules)
+      return {}
+    end
+
+    redis.hgetall(:schedules).tap do |h|
+      h.each do |name, config|
+        h[name] = decode(config)
       end
-    else
-      nil
     end
   end
 
