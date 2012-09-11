@@ -64,7 +64,7 @@ module ResqueScheduler
     @schedule = get_schedules
   end
 
-  # gets the schedule as it exists in redis
+  # gets the schedules as it exists in redis
   def get_schedules
     unless redis.exists(:schedules)
       return nil
@@ -75,6 +75,17 @@ module ResqueScheduler
         h[name] = decode(config)
       end
     end
+  end
+
+  # clean the schedules as it exists in redis, useful for first setup?
+  def clean_schedules
+    if redis.exists(:schedules)
+      redis.hkeys(:schedules).each do |key|
+        remove_schedule(key)
+      end
+    end
+    @schedule = nil
+    true
   end
 
   # Create or update a schedule with the provided name and configuration.

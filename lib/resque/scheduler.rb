@@ -34,6 +34,10 @@ module Resque
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
         $0 = "resque-scheduler: Starting"
+
+        # clean schedules
+        Resque.clean_schedules
+
         # trap signals
         register_signal_handlers
 
@@ -281,7 +285,7 @@ module Resque
       # Sets the shutdown flag, exits if sleeping
       def shutdown
         @shutdown = true
-        exit if @sleeping
+        Resque.clean_schedules && exit if @sleeping
       end
 
       def log!(msg)
