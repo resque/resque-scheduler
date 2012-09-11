@@ -67,7 +67,7 @@ module ResqueScheduler
   # gets the schedule as it exists in redis
   def get_schedules
     unless redis.exists(:schedules)
-      return {}
+      return nil
     end
 
     redis.hgetall(:schedules).tap do |h|

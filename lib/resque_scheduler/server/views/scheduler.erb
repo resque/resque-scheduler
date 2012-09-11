@@ -15,7 +15,7 @@
     <th>Queue</th>
     <th>Arguments</th>
   </tr>
-  <% Resque.schedule.keys.sort.each do |name| %>
+  <% !Resque.schedule.nil? && Resque.schedule.keys.sort.each do |name| %>
     <% config = Resque.schedule[name] %>
     <tr>
       <td>
@@ -26,10 +26,10 @@
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= if !config['every'].nil? 
+      <td style="white-space:nowrap"><%= if !config['every'].nil?
                                            h('every: ' + config['every'])
                                          elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron']) 
+                                           h('cron: ' + config['cron'])
                                          else
                                            'Not currently scheduled'
                                          end %></td>
