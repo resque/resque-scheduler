@@ -35,9 +35,6 @@ module Resque
       def run
         $0 = "resque-scheduler: Starting"
 
-        # clean schedules
-        Resque.clean_schedules
-
         # trap signals
         register_signal_handlers
 
