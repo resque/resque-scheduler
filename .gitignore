@@ -4,3 +4,4 @@ pkg
 nbproject
 Gemfile.lock
 .rvmrc
+*.swp
