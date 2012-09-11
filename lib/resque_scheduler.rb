@@ -57,6 +57,10 @@ module ResqueScheduler
   # Returns the schedule hash
   def schedule
     @schedule ||= get_schedules
+    if @schedule.nil?
+      return {}
+    end
+    @schedule
   end
 
   # reloads the schedule from redis

@@ -15,7 +15,7 @@
     <th>Queue</th>
     <th>Arguments</th>
   </tr>
-  <% !Resque.schedule.nil? && Resque.schedule.keys.sort.each do |name| %>
+  <% Resque.schedule.keys.sort.each do |name| %>
     <% config = Resque.schedule[name] %>
     <tr>
       <td>
