@@ -184,6 +184,13 @@ context "DelayedQueue" do
     Resque::Scheduler.handle_delayed_items(t)
   end
 
+  test "calls klass#scheduled when enqueuing jobs if it exists" do
+    t = Time.now - 60
+    Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, :foo => "bar")
+    FakeCustomJobClassEnqueueAt.expects(:scheduled).once.with('test', FakeCustomJobClassEnqueueAt.to_s, {"foo" => "bar"})
+    Resque::Scheduler.handle_delayed_items
+  end
+
   test "enqueue_delayed_items_for_timestamp creates jobs and empties the delayed queue" do
     t = Time.now + 60
 
