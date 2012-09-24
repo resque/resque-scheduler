@@ -216,12 +216,13 @@ module ResqueScheduler
   # Given an encoded item, remove it from the delayed_queue
   #
   # This method is potentially very expensive since it needs to scan
-  # through the delayed queue for every timestamp.
+  # through the delayed queue for every timestamp, but at least it
+  # doesn't kill Redis by calling redis.keys.
   def remove_delayed(klass, *args)
     destroyed = 0
     search = encode(job_to_hash(klass, args))
-    Array(redis.keys("delayed:*")).each do |key|
-      destroyed += redis.lrem key, 0, search
+    Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
+      destroyed += redis.lrem "delayed:#{timestamp}", 0, search
     end
     destroyed
   end
