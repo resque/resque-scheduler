@@ -25,6 +25,9 @@ module ResqueScheduler
   # is used implicitly as "class" argument - in the "MakeTea" example,
   # "MakeTea" is used both as job name and resque worker class.
   #
+  # Any jobs that were in the old schedule, but are not 
+  # present in the new schedule, will be removed.
+  #
   # :cron can be any cron scheduling string
   #
   # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage
@@ -46,8 +49,12 @@ module ResqueScheduler
     schedule_hash = prepare_schedule(schedule_hash)
 
     if Resque::Scheduler.dynamic
+      reload_schedule!
       schedule_hash.each do |name, job_spec|
         set_schedule(name, job_spec)
+      end
+      (schedule.keys - schedule_hash.keys.map(&:to_s)).each do |name|
+        remove_schedule(name)
       end
     end
     @schedule = schedule_hash
