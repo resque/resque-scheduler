@@ -313,6 +313,20 @@ context "DelayedQueue" do
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
+  test "remove_delayed_selection removes multiple items matching arguments at same timestamp" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "llama")
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "monkey")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "platypus")
+    Resque.enqueue_at(t, SomeIvarJob, "baz")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "llama")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "llama")
+
+    assert_equal(5, Resque.remove_delayed_selection {|args| args[0] == 'bar'})
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
   test "remove_delayed_selection removes single item matching arguments" do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")

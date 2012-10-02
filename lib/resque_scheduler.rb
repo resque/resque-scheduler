@@ -283,10 +283,17 @@ module ResqueScheduler
     # delayed job tasks and do our matching after decoding the payload data
     jobs = Resque.redis.keys("delayed:*")
     jobs.each do |job|
-      payload = Resque.redis.lindex(job, 0)
-      decoded_payload = decode(payload)
-      if yield(decoded_payload['args'])
-        destroyed += redis.lrem job, 0, payload
+      index = Resque.redis.llen(job) - 1
+      while index >= 0
+        payload = Resque.redis.lindex(job, index)
+        decoded_payload = decode(payload)
+        if yield(decoded_payload['args'])
+          removed = redis.lrem job, 0, payload
+          destroyed += removed
+          index -= removed
+        else
+          index -= 1
+        end
       end
     end
     destroyed
