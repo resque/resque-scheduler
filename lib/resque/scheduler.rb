@@ -9,6 +9,8 @@ module Resque
 
     class << self
 
+      ENV['RAILS_ENV'] = Rails.env if defined?(Rails.env)
+
       # If true, logs more stuff...
       attr_accessor :verbose
 
@@ -122,9 +124,8 @@ module Resque
       # Loads a job schedule into the Rufus::Scheduler and stores it in @@scheduled_jobs
       def load_schedule_job(name, config)
         # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
-        # required for the jobs to be scheduled.  If rails_env is missing, the
-        # job should be scheduled regardless of what ENV['RAILS_ENV'] is set
-        # to.
+        # required for the jobs to be scheduled. If rails_env is missing, the
+        # job should be scheduled regardless of what ENV['RAILS_ENV'] is set to
         if config['rails_env'].nil? || rails_env_matches?(config)
           log! "Scheduling #{name} "
           interval_defined = false
