@@ -15,7 +15,7 @@ module Resque
       # If set, produces no output
       attr_accessor :mute
 
-      # If set, will try to update the schulde in the loop
+      # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
 
       # Amount of time in seconds to sleep between polls of the delayed
