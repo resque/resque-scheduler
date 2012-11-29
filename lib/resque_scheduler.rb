@@ -123,7 +123,13 @@ module ResqueScheduler
 
     if Resque.inline?
       # Just create the job and let resque perform it right away with inline.
-      Resque::Job.create(queue, klass, *args)
+      # If the class is a custom job class, call self#scheduled on it. This allows you to do things like
+      # Resque.enqueue_at(timestamp, CustomJobClass, :opt1 => val1). Otherwise, pass off to Resque.
+      if klass.respond_to?(:scheduled)
+        klass.scheduled(queue, klass.to_s(), *args)
+      else
+        Resque::Job.create(queue, klass, *args)
+      end
     else
       delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
     end
