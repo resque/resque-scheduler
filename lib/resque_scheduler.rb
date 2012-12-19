@@ -110,6 +110,7 @@ module ResqueScheduler
   # for queueing.  Until timestamp is in the past, the job will
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
+    raise "Did you pass a number_of_seconds to enqueue_at instead of a timestamp?  #{timestamp} is more than 10 years in the past." if timestamp.to_i < 315360000 # (60 * 60 * 24 * 365 * 10)
     validate_job!(klass)
     enqueue_at_with_queue(queue_from_class(klass), timestamp, klass, *args)
   end
@@ -140,6 +141,7 @@ module ResqueScheduler
   # Identical to enqueue_at but takes number_of_seconds_from_now
   # instead of a timestamp.
   def enqueue_in(number_of_seconds_from_now, klass, *args)
+    raise "Did you pass a timestamp to enqueue_in instead of a number of seconds from now?  #{number_of_seconds_from_now} is more than 40 years in the future." if number_of_seconds_from_now.to_i > 1261440000 # (60 * 60 * 24 * 365 * 40)
     enqueue_at(Time.now + number_of_seconds_from_now, klass, *args)
   end
 
