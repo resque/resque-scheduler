@@ -26,10 +26,10 @@
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= if !config['every'].nil? 
-                                           h('every: ' + config['every'])
+      <td style="white-space:nowrap"><%= if config['every']
+                                           h('every: ' + (config['every'].is_a?(Array) ? "#{config['every'][0]}, first in:  #{config['every'][1]['first_in']}" : config['every']))
                                          elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron']) 
+                                           h('cron: ' + config['cron'])
                                          else
                                            'Not currently scheduled'
                                          end %></td>
