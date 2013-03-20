@@ -18,18 +18,18 @@
   <% Resque.schedule.keys.sort.each do |name| %>
     <% config = Resque.schedule[name] %>
     <tr>
-      <td>
-        <form action="<%= u "/schedule/requeue" %>" method="post">
+      <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
+        <form action="<%= u "/schedule/requeue" %>" method="post" style="margin-left: 0">
           <input type="hidden" name="job_name" value="<%= h name %>">
           <input type="submit" value="Queue now">
         </form>
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= if !config['every'].nil? 
-                                           h('every: ' + config['every'])
+      <td style="white-space:nowrap"><%= if config['every']
+                                           h('every: ' + (config['every'].is_a?(Array) ? "#{config['every'][0]}, first in:  #{config['every'][1]}" : config['every']))
                                          elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron']) 
+                                           h('cron: ' + config['cron'].to_s)
                                          else
                                            'Not currently scheduled'
                                          end %></td>
