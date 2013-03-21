@@ -100,7 +100,7 @@ context "DelayedQueue" do
     assert_equal([], Resque.delayed_queue_peek(0,20))
   end
 
-  test "delqyed_queue_peek returns stuff" do
+  test "delayed_queue_peek returns stuff" do
     t = Time.now
     expected_timestamps = (1..5).to_a.map do |i|
       (t + 60 + i).to_i
