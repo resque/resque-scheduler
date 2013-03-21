@@ -64,6 +64,11 @@ class FakeCustomJobClass
   def self.scheduled(queue, klass, *args); end
 end
 
+class FakeCustomJobClassEnqueueAt
+  @queue = :test
+  def self.scheduled(queue, klass, *args); end
+end
+
 class SomeJob
   def self.perform(repo_id, path)
   end

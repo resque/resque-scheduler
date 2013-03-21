@@ -17,7 +17,7 @@ module Resque
       # If set, produces no output
       attr_accessor :mute
 
-      # If set, will try to update the schulde in the loop
+      # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
 
       # Amount of time in seconds to sleep between polls of the delayed
@@ -226,7 +226,14 @@ module Resque
           # one app that schedules for another
           if Class === klass
             ResqueScheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
-            Resque.enqueue_to(queue, klass, *params)
+
+            # If the class is a custom job class, call self#scheduled on it. This allows you to do things like
+            # Resque.enqueue_at(timestamp, CustomJobClass). Otherwise, pass off to Resque.
+            if klass.respond_to?(:scheduled)
+              klass.scheduled(queue, klass_name, *params)
+            else
+              Resque.enqueue_to(queue, klass, *params)
+            end
           else
             # This will not run the before_hooks in rescue, but will at least
             # queue the job.

@@ -123,7 +123,13 @@ module ResqueScheduler
 
     if Resque.inline?
       # Just create the job and let resque perform it right away with inline.
-      Resque::Job.create(queue, klass, *args)
+      # If the class is a custom job class, call self#scheduled on it. This allows you to do things like
+      # Resque.enqueue_at(timestamp, CustomJobClass, :opt1 => val1). Otherwise, pass off to Resque.
+      if klass.respond_to?(:scheduled)
+        klass.scheduled(queue, klass.to_s(), *args)
+      else
+        Resque::Job.create(queue, klass, *args)
+      end
     else
       delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
     end
@@ -216,12 +222,13 @@ module ResqueScheduler
   # Given an encoded item, remove it from the delayed_queue
   #
   # This method is potentially very expensive since it needs to scan
-  # through the delayed queue for every timestamp.
+  # through the delayed queue for every timestamp, but at least it
+  # doesn't kill Redis by calling redis.keys.
   def remove_delayed(klass, *args)
     destroyed = 0
     search = encode(job_to_hash(klass, args))
-    Array(redis.keys("delayed:*")).each do |key|
-      destroyed += redis.lrem key, 0, search
+    Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
+      destroyed += redis.lrem "delayed:#{timestamp}", 0, search
     end
     destroyed
   end
