@@ -28,7 +28,6 @@ module Resque
 
         # Releases the lock.
         def release!
-          puts "releasing #{key}"
           Resque.redis.del(key) == 1
         end
 
