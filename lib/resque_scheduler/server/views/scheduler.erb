@@ -27,7 +27,7 @@
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
       <td style="white-space:nowrap"><%= if !config['every'].nil? 
-                                           h('every: ' + config['every'])
+                                           h('every: ' + config['every'].inspect)
                                          elsif !config['cron'].nil?
                                            h('cron: ' + config['cron']) 
                                          else
