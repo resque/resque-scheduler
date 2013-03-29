@@ -23,6 +23,7 @@ namespace :resque do
 
     Resque::Scheduler.dynamic = true if ENV['DYNAMIC_SCHEDULE']
     Resque::Scheduler.verbose = true if ENV['VERBOSE']
+    Resque::Scheduler.app_name = ENV['APP_NAME'] if ENV['APP_NAME']
     Resque::Scheduler.run
   end
 

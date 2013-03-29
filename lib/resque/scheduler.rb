@@ -20,6 +20,9 @@ module Resque
       # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
 
+      # If set, will append the app name to procline
+      attr_accessor :app_name
+
       # Amount of time in seconds to sleep between polls of the delayed
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
@@ -311,9 +314,13 @@ module Resque
         log!(msg) if verbose
       end
 
+      def app_str
+        app_name ? "[#{app_name}]" : ''
+      end
+
       def procline(string)
         log! string
-        $0 = "resque-scheduler-#{ResqueScheduler::VERSION}: #{string}"
+        $0 = "resque-scheduler-#{ResqueScheduler::VERSION}#{app_str}: #{string}"
       end
 
     end
