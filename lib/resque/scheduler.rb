@@ -11,6 +11,9 @@ module Resque
 
     class << self
 
+      # environment
+      attr_accessor :env
+
       # If true, logs more stuff...
       attr_accessor :verbose
 
@@ -313,7 +316,11 @@ module Resque
 
       def procline(string)
         log! string
-        $0 = "resque-scheduler-#{ResqueScheduler::VERSION}: #{string}"
+        if env
+          $0 = "resque-scheduler-#{ResqueScheduler::VERSION} [#{env}]: #{string}"
+        else
+          $0 = "resque-scheduler-#{ResqueScheduler::VERSION}: #{string}"
+        end
       end
 
     end
