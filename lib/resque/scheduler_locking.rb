@@ -80,7 +80,7 @@ module Resque
     end
 
     def master_lock_key
-      :resque_scheduler_master_lock
+      "#{Resque.redis.namespace}:resque_scheduler_master_lock"
     end
 
     def redis_master_version
