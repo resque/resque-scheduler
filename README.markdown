@@ -1,6 +1,16 @@
 resque-scheduler
 ================
 
+### Help Wanted
+
+I no longer have time to give resque-scheduler the attention it deserves #sadface.  If anyone is
+interested in either co-maintaining or taking over the repo entirely, please 
+message me.
+
+Cheers,
+
+bvandenbos
+
 ### Description
 
 Resque-scheduler is an extension to [Resque](http://github.com/defunkt/resque)
