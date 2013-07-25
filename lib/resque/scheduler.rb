@@ -11,7 +11,7 @@ module Resque
 
       # If true, logs more stuff...
       attr_accessor :verbose
-      
+
       # If set, produces no output
       attr_accessor :mute
 
@@ -39,7 +39,7 @@ module Resque
       def register_signal_handlers
         trap("TERM") { shutdown }
         trap("INT") { shutdown }
-        
+
         begin
           trap('QUIT') { shutdown   }
           trap('USR1') { kill_child }
@@ -96,7 +96,7 @@ module Resque
         # continue processing until there are no more ready timestamps
         end while !timestamp.nil?
       end
-      
+
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
         item = nil
@@ -140,7 +140,7 @@ module Resque
           constantize(job_klass).scheduled(queue, klass_name, *params)
         else
           Resque::Job.create(queue, klass_name, *params)
-        end        
+        end
       rescue
         log! "Failed to enqueue #{klass_name}:\n #{$!}"
       end

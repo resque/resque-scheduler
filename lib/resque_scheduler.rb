@@ -18,7 +18,7 @@ module ResqueScheduler
   #
   # :name can be anything and is used only to describe the scheduled job
   # :cron can be any cron scheduling string :job can be any resque job class
-  # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage for 
+  # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage for
   #   valid syntax. If :cron is present it will take precedence over :every.
   # :class must be a resque worker class
   # :args can be any yaml which will be converted to a ruby literal and passed
@@ -46,7 +46,7 @@ module ResqueScheduler
   end
 
   # Identical to +enqueue_at+, except you can also specify
-  # a queue in which the job will be placed after the 
+  # a queue in which the job will be placed after the
   # timestamp has passed.
   def enqueue_at_with_queue(queue, timestamp, klass, *args)
     validate_job!(klass)
@@ -60,7 +60,7 @@ module ResqueScheduler
   end
 
   # Identical to +enqueue_in+, except you can also specify
-  # a queue in which the job will be placed after the 
+  # a queue in which the job will be placed after the
   # number of seconds has passed.
   def enqueue_in_with_queue(queue, number_of_seconds_from_now, klass, *args)
     enqueue_at_with_queue(queue, Time.now + number_of_seconds_from_now, klass, *args)
@@ -146,12 +146,12 @@ module ResqueScheduler
   end
 
   def count_all_scheduled_jobs
-    total_jobs = 0 
+    total_jobs = 0
     Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
       total_jobs += redis.llen("delayed:#{timestamp}").to_i
-    end 
+    end
     total_jobs
-  end 
+  end
 
   private
     def job_to_hash(klass, args)
