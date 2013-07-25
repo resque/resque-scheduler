@@ -39,11 +39,11 @@ at_exit do
 
   pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
   puts "Killing test redis server..."
-  `rm -f #{dir}/dump.rdb`
   Process.kill("KILL", pid.to_i)
   exit exit_code
 end
 
+`rm -f #{dir}/dump.rdb`
 puts "Starting redis for testing at localhost:9736..."
 `redis-server #{dir}/redis-test.conf`
 Resque.redis = 'localhost:9736'
@@ -65,7 +65,7 @@ def context(*args, &block)
     def self.teardown(&block) define_method(:teardown, &block) end 
   end 
   (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
-  klass.class_eval &block
+  klass.class_eval(&block)
 end
 
 class SomeJob
