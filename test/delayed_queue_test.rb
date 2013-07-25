@@ -33,6 +33,59 @@ context "DelayedQueue" do
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
   end
 
+  test "enqueue_at with standard job class writes out custom class to queue" do
+    timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
+
+    assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
+
+    Resque.enqueue_at_with_queue(:queue, timestamp, SomeJob, "path")
+
+    # Confirm the correct keys were added
+    assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should have one entry now")
+    assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
+
+    read_timestamp = Resque.next_delayed_timestamp
+
+    # Confirm the timestamp came out correctly
+    assert_equal(timestamp.to_i, read_timestamp, "The timestamp we pull out of redis should match the one we put in")
+    item = Resque.next_item_for_timestamp(read_timestamp)
+
+    # Confirm the item came out correctly
+    assert_equal('SomeJob', item['class'], "Should be the same class that we queued")
+    assert_nil(item['custom_job_class'], "Should not be present")
+    assert_equal(["path"], item['args'], "Should have the same arguments that we queued")
+
+    # And now confirm the keys are gone
+    assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
+    assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
+  end
+  test "enqueue_at with custom job class writes out custom class to queue" do
+    timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
+
+    assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
+
+    Resque.enqueue_at_with_queue(:queue, timestamp, FakeCustomJobClass, "path")
+
+    # Confirm the correct keys were added
+    assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should have one entry now")
+    assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
+
+    read_timestamp = Resque.next_delayed_timestamp
+
+    # Confirm the timestamp came out correctly
+    assert_equal(timestamp.to_i, read_timestamp, "The timestamp we pull out of redis should match the one we put in")
+    item = Resque.next_item_for_timestamp(read_timestamp)
+
+    # Confirm the item came out correctly
+    assert_equal('FakeCustomJobClass', item['class'], "Should be the same class that we queued")
+    assert_equal('FakeCustomJobClass', item['custom_job_class'], "Should be the same class that we queued")
+    assert_equal(["path"], item['args'], "Should have the same arguments that we queued")
+
+    # And now confirm the keys are gone
+    assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
+    assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
+  end
+
   test "enqueue_at with queue adds correct list and zset and queue" do
     timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
 
