@@ -15,7 +15,7 @@
     <th>Queue</th>
     <th>Arguments</th>
   </tr>
-  <% Resque.schedule.keys.sort.each do |name| %>
+  <% Resque.schedule.keys.map(&:to_s).sort.map(&:to_sym).each do |name| %>
     <% config = Resque.schedule[name] %>
     <tr>
       <td>
