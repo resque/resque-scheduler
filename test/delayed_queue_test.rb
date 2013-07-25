@@ -33,6 +33,33 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
   end
+  
+  def test_enqueue_at_with_queue_inserts_into_correct_queue
+    timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
+
+    assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
+
+    Resque.enqueue_at_with_queue("critical", timestamp, SomeIvarJob, "path")
+
+    # Confirm the correct keys were added
+    assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should have one entry now")
+    assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
+
+    read_timestamp = Resque.next_delayed_timestamp
+
+    # Confirm the timestamp came out correctly
+    assert_equal(timestamp.to_i, read_timestamp, "The timestamp we pull out of redis should match the one we put in")
+    item = Resque.next_item_for_timestamp(read_timestamp)
+
+    # Confirm the item came out correctly
+    assert_equal('SomeIvarJob', item['class'], "Should be the same class that we queued")
+    assert_equal(["path"], item['args'], "Should have the same arguments that we queued")
+    assert_equal('critical', item['queue'], "Should have the queue that we asked for")
+
+    # And now confirm the keys are gone
+    assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
+    assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule), "delayed queue should be empty")
+  end
 
   def test_something_in_the_future_doesnt_come_out
     timestamp = Time.now + 600 # 10 minutes from now (in the future, shouldn't come out)
