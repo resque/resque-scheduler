@@ -104,6 +104,9 @@ never exits.
 
     $ rake resque:scheduler
 
+or
+
+    $ rake environment resque:scheduler ## If you want to load environment 
 Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
 any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
 to stdout.  `MUTE` does the opposite and silences all output. `MUTE`
