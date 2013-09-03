@@ -308,7 +308,7 @@ module Resque
       end
 
       def log!(msg)
-        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}" unless mute
+        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}\n" unless mute
       end
 
       def log(msg)
