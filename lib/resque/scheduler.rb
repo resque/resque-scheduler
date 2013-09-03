@@ -43,6 +43,7 @@ module Resque
         # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
         # get output from the child in there.
         $stdout.sync = true
+        $stderr.sync = true
 
         # Load the schedule into rufus
         # If dynamic is set, load that schedule otherwise use normal load
@@ -67,7 +68,7 @@ module Resque
 
         # never gets here.
       end
-     
+
 
       # For all signals, set the shutdown flag and wait for current
       # poll/enqueing to finish (should be almost istant).  In the
