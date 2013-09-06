@@ -1,0 +1,9 @@
+---
+language: ruby
+rvm:
+- ree
+- 1.9.3
+- 2.0.0
+notifications:
+  email:
+    recipients: daniel.buch+resque-scheduler@gmail.com
