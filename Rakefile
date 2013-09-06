@@ -9,6 +9,15 @@ task :default => :test
 # Tests
 desc "Run tests"
 task :test do
+  if RUBY_VERSION =~ /^1\.8/
+    unless ENV['SEED']
+      srand
+      ENV['SEED'] = (srand % 0xFFFF).to_s
+    end
+
+    $stdout.puts "Running with SEED=#{ENV['SEED']}"
+    srand Integer(ENV['SEED'])
+  end
   Dir['test/*_test.rb'].each do |f|
     require File.expand_path(f)
   end
