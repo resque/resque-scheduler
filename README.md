@@ -399,6 +399,12 @@ work on resque-scheduler.
 
 ### Contributing
 
-For bugs or suggestions, please just open an issue in github.
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
-Patches are always welcome.
+### Authors
+
+See [AUTHORS.md](AUTHORS.md)
+
+### License
+
+See [LICENSE](LICENSE)
