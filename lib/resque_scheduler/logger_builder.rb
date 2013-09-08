@@ -13,7 +13,7 @@ module ResqueScheduler
     #
     # Example:
     #
-    #   LoggerBuilder.new(mute: false, verbose: true, log_dev: 'log/sheduler.log')
+    #   LoggerBuilder.new(:mute => false, :verbose => true, :log_dev => 'log/sheduler.log')
     def initialize(opts={})
       @muted   = opts[:mute].nil?    ? false : opts[:mute]
       @verbose = opts[:verbose].nil? ? false : opts[:verbose]

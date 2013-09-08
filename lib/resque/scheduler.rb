@@ -319,7 +319,7 @@ module Resque
       end
 
       def logger
-        @logger ||= ResqueScheduler::LoggerBuilder.new(muted: mute, verbose: verbose, log_dev: logfile).build
+        @logger ||= ResqueScheduler::LoggerBuilder.new(:muted => mute, :verbose => verbose, :log_dev => logfile).build
       end
 
       def procline(string)
