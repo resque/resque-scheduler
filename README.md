@@ -388,6 +388,23 @@ worker is started.
 
     $ PIDFILE=./resque-scheduler.pid BACKGROUND=yes \
         rake resque:scheduler
+        
+### Logging
+
+There are several options to toggle the way, scheduler logs it's actions. They
+are toggled by environment variables:
+
+  - `MUTE` will stop logging anything. Completely silent;
+  - `VERBOSE` opposite to 'mute' will log even debug information;
+  - `LOGFILE` specifies the file to write logs to. Default is standard output.
+
+All those variables are non-mandatory and default values are 
+
+```ruby
+  Resque::Scheduler.multe = false
+  Resque::Scheduler.verbose = false
+  Resque::Scheduler.logfile = nil # that means, all messages go to STDOUT
+```
 
 ### Plagiarism alert
 
