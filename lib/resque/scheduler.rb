@@ -1,5 +1,6 @@
 require 'rufus/scheduler'
 require 'resque/scheduler_locking'
+require 'resque_scheduler/logger_builder'
 
 module Resque
 
@@ -15,6 +16,9 @@ module Resque
 
       # If set, produces no output
       attr_accessor :mute
+
+      # If set, will write messages to the file
+      attr_accessor :logfile
 
       # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
@@ -66,7 +70,7 @@ module Resque
 
         # never gets here.
       end
-     
+
 
       # For all signals, set the shutdown flag and wait for current
       # poll/enqueing to finish (should be almost istant).  In the
@@ -307,12 +311,15 @@ module Resque
       end
 
       def log!(msg)
-        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}" unless mute
+        logger.info msg
       end
 
       def log(msg)
-        # add "verbose" logic later
-        log!(msg) if verbose
+        logger.debug msg
+      end
+
+      def logger
+        @logger ||= ResqueScheduler::LoggerBuilder.new(muted: mute, verbose: verbose, log_dev: logfile).build
       end
 
       def procline(string)
