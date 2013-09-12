@@ -8,7 +8,7 @@ context "DelayedQueue" do
   end
 
   test "enqueue_at adds correct list and zset" do
-    timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
+    timestamp = Time.now + 1
     encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob)})
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
@@ -21,10 +21,8 @@ context "DelayedQueue" do
     assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps should have one entry now")
     assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
 
-    read_timestamp = Resque.next_delayed_timestamp
+    read_timestamp = timestamp.to_i
 
-    # Confirm the timestamp came out correctly
-    assert_equal(timestamp.to_i, read_timestamp, "The timestamp we pull out of redis should match the one we put in")
     item = Resque.next_item_for_timestamp(read_timestamp)
 
     # Confirm the item came out correctly
@@ -38,7 +36,7 @@ context "DelayedQueue" do
   end
 
   test "enqueue_at with queue adds correct list and zset and queue" do
-    timestamp = Time.now - 1 # 1 second ago (in the past, should come out right away)
+    timestamp = Time.now + 1
     encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => 'critical'})
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
@@ -51,10 +49,8 @@ context "DelayedQueue" do
     assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps should have one entry now")
     assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule), "The delayed_queue_schedule should have 1 entry now")
 
-    read_timestamp = Resque.next_delayed_timestamp
+    read_timestamp = timestamp.to_i
 
-    # Confirm the timestamp came out correctly
-    assert_equal(timestamp.to_i, read_timestamp, "The timestamp we pull out of redis should match the one we put in")
     item = Resque.next_item_for_timestamp(read_timestamp)
 
     # Confirm the item came out correctly
@@ -179,12 +175,11 @@ context "DelayedQueue" do
 
   test "handle_delayed_item with items" do
     t = Time.now - 60 # in the past
-    Resque.enqueue_at(t, SomeIvarJob)
-    Resque.enqueue_at(t, SomeIvarJob)
 
     # 2 SomeIvarJob jobs should be created in the "ivar" queue
-    Resque::Job.expects(:create).twice.with('ivar', SomeIvarJob, nil)
-    Resque::Scheduler.handle_delayed_items
+    Resque::Job.expects(:create).twice.with(:ivar, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob)
   end
 
   test "handle_delayed_items with items in the future" do
@@ -199,9 +194,8 @@ context "DelayedQueue" do
 
   test "calls klass#scheduled when enqueuing jobs if it exists" do
     t = Time.now - 60
+    FakeCustomJobClassEnqueueAt.expects(:scheduled).once.with(:test, FakeCustomJobClassEnqueueAt.to_s, {:foo => "bar"})
     Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, :foo => "bar")
-    FakeCustomJobClassEnqueueAt.expects(:scheduled).once.with('test', FakeCustomJobClassEnqueueAt.to_s, {"foo" => "bar"})
-    Resque::Scheduler.handle_delayed_items
   end
 
   test "when Resque.inline = true, calls klass#scheduled when enqueuing jobs if it exists" do
