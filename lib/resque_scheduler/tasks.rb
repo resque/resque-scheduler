@@ -10,13 +10,14 @@ namespace :resque do
     require 'resque_scheduler'
 
     # Need to set this here for conditional Process.daemon redirect of stderr/stdout to /dev/null
-    Resque::Scheduler.mute = true if ENV['MUTE'] 
+    Resque::Scheduler.mute = true if ENV['MUTE']
 
     if ENV['BACKGROUND']
       unless Process.respond_to?('daemon')
         abort "env var BACKGROUND is set, which requires ruby >= 1.9"
       end
-      Process.daemon(true,!Resque::Scheduler.mute)
+      Process.daemon(true, !Resque::Scheduler.mute)
+      Resque.redis.client.reconnect
     end
 
     File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid.to_s } if ENV['PIDFILE']
