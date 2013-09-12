@@ -33,6 +33,7 @@ Resque Scheduler authors
 - Matt Aimonetti
 - Matt Simpson
 - Matteo Centenaro
+- Michael Lovitt
 - Michael Rykov
 - Nickolas Means
 - Olek Janiszewski
