@@ -1,5 +1,4 @@
 require 'rufus/scheduler'
-require 'thwait'
 require 'resque/scheduler_locking'
 
 module Resque
