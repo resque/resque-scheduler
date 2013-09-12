@@ -1,11 +1,12 @@
 require 'rufus/scheduler'
-require 'thwait'
+require 'resque/scheduler_locking'
 
 module Resque
 
   class Scheduler
 
     extend Resque::Helpers
+    extend Resque::SchedulerLocking
 
     class << self
 
@@ -15,7 +16,7 @@ module Resque
       # If set, produces no output
       attr_accessor :mute
 
-      # If set, will try to update the schulde in the loop
+      # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
 
       # Amount of time in seconds to sleep between polls of the delayed
@@ -37,6 +38,11 @@ module Resque
         # trap signals
         register_signal_handlers
 
+        # Quote from the resque/worker.
+        # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
+        # get output from the child in there.
+        $stdout.sync = true
+
         # Load the schedule into rufus
         # If dynamic is set, load that schedule otherwise use normal load
         if dynamic
@@ -47,17 +53,20 @@ module Resque
 
         # Now start the scheduling part of the loop.
         loop do
-          begin
-            handle_delayed_items
-            update_schedule if dynamic
-          rescue Errno::EAGAIN, Errno::ECONNRESET => e
-            warn e.message
+          if is_master?
+            begin
+              handle_delayed_items
+              update_schedule if dynamic
+            rescue Errno::EAGAIN, Errno::ECONNRESET => e
+              warn e.message
+            end
           end
           poll_sleep
         end
 
         # never gets here.
       end
+     
 
       # For all signals, set the shutdown flag and wait for current
       # poll/enqueing to finish (should be almost istant).  In the
@@ -133,8 +142,10 @@ module Resque
             if !config[interval_type].nil? && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])
               @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, *args) do
-                log! "queueing #{config['class']} (#{name})"
-                handle_errors { enqueue_from_config(config) }
+                if is_master?
+                  log! "queueing #{config['class']} (#{name})"
+                  handle_errors { enqueue_from_config(config) }
+                end
               end
               interval_defined = true
               break
@@ -169,7 +180,8 @@ module Resque
         item = nil
         begin
           handle_shutdown do
-            if item = Resque.next_item_for_timestamp(timestamp)
+            # Continually check that it is still the master
+            if is_master? && item = Resque.next_item_for_timestamp(timestamp)
               log "queuing #{item['class']} [delayed]"
               handle_errors { enqueue_from_config(item) }
             end
@@ -288,7 +300,10 @@ module Resque
       # Sets the shutdown flag, exits if sleeping
       def shutdown
         @shutdown = true
-        exit if @sleeping
+        if @sleeping
+          release_master_lock!
+          exit
+        end
       end
 
       def log!(msg)
