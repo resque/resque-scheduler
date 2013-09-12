@@ -13,7 +13,7 @@ context "on GET to /schedule with scheduled jobs" do
   setup do 
     ENV['rails_env'] = 'production'
     Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'production'},
-                       :some_other_job => {'queue' => 'high', 'class' => 'SomeOtherJob', 'args' => {:b => 'blah'}}}
+                       :some_other_job => {'every' => ['5m'], 'queue' => 'high', 'class' => 'SomeOtherJob', 'args' => {:b => 'blah'}}}
     Resque::Scheduler.load_schedule!
     get "/schedule"
   end

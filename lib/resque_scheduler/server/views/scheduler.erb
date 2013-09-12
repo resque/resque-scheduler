@@ -27,9 +27,9 @@
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
       <td style="white-space:nowrap"><%= if !config['every'].nil? 
-                                           h('every: ' + config['every'])
+                                           h('every: ' + config['every'].to_s)
                                          elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron']) 
+                                           h('cron: ' + config['cron'].to_s) 
                                          else
                                            'Not currently scheduled'
                                          end %></td>
