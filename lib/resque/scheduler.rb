@@ -27,6 +27,8 @@ module Resque
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
 
+      attr_writer :logger
+
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
         @@scheduled_jobs
@@ -34,6 +36,10 @@ module Resque
 
       def poll_sleep_amount
         @poll_sleep_amount ||= 5 # seconds
+      end
+
+      def logger
+        @logger ||= ResqueScheduler::LoggerBuilder.new(:mute => mute, :verbose => verbose, :log_dev => logfile).build
       end
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
@@ -316,10 +322,6 @@ module Resque
 
       def log(msg)
         logger.debug msg
-      end
-
-      def logger
-        @logger ||= ResqueScheduler::LoggerBuilder.new(:muted => mute, :verbose => verbose, :log_dev => logfile).build
       end
 
       def procline(string)
