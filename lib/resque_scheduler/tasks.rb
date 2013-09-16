@@ -24,6 +24,7 @@ namespace :resque do
 
     Resque::Scheduler.dynamic = true if ENV['DYNAMIC_SCHEDULE']
     Resque::Scheduler.verbose = true if ENV['VERBOSE']
+    Resque::Scheduler.logfile = ENV['LOGFILE'] if ENV['LOGFILE']
     Resque::Scheduler.run
   end
 
