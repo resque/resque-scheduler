@@ -17,6 +17,7 @@ Resque Scheduler authors
 - David Balatero
 - David Doan
 - David Yang
+- Denis Yagofarov
 - Evan Tahler
 - Giovanni Cappellotto
 - Henrik Nyh

@@ -83,3 +83,10 @@ class SomeRealClass
     :some_real_queue
   end
 end
+
+def nullify_logger
+  Resque::Scheduler.mute    = nil
+  Resque::Scheduler.verbose = nil
+  Resque::Scheduler.logfile = nil
+  Resque::Scheduler.logger  = nil
+end
