@@ -4,8 +4,7 @@ $LOAD_PATH.unshift 'lib'
 
 task :default => :test
 
-# Tests
-desc "Run tests"
+desc 'Run tests'
 task :test do
   if RUBY_VERSION =~ /^1\.8/
     unless ENV['SEED']
@@ -15,21 +14,28 @@ task :test do
 
     $stdout.puts "Running with SEED=#{ENV['SEED']}"
     srand Integer(ENV['SEED'])
+  elsif ENV['SEED']
+    ARGV += %W(--seed #{ENV['SEED']})
   end
   Dir['test/*_test.rb'].each do |f|
     require File.expand_path(f)
   end
 end
 
-# Documentation Tasks
+desc 'Run rubocop'
+task :rubocop do
+  unless RUBY_VERSION < '1.9'
+    sh('rubocop --config .rubocop.yml --format simple') { |r, _| r || abort }
+  end
+end
+
 begin
   require 'rdoc/task'
 
   Rake::RDocTask.new do |rd|
-    rd.main = "README.markdown"
-    rd.rdoc_files.include("README.markdown", "lib/**/*.rb")
+    rd.main = 'README.md'
+    rd.rdoc_files.include('README.md', 'lib/**/*.rb')
     rd.rdoc_dir = 'doc'
   end
 rescue LoadError
 end
-

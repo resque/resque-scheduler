@@ -57,7 +57,7 @@ def context(*args, &block)
     def self.teardown(&block) define_method(:teardown, &block) end
   end
   (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
-  klass.class_eval &block
+  klass.class_eval(&block)
 end
 
 class FakeCustomJobClass
