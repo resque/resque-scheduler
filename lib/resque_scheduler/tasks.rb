@@ -22,9 +22,10 @@ namespace :resque do
 
     File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid.to_s } if ENV['PIDFILE']
 
-    Resque::Scheduler.dynamic = true if ENV['DYNAMIC_SCHEDULE']
-    Resque::Scheduler.verbose = true if ENV['VERBOSE']
-    Resque::Scheduler.logfile = ENV['LOGFILE'] if ENV['LOGFILE']
+    Resque::Scheduler.dynamic           = true if ENV['DYNAMIC_SCHEDULE']
+    Resque::Scheduler.verbose           = true if ENV['VERBOSE']
+    Resque::Scheduler.logfile           = ENV['LOGFILE'] if ENV['LOGFILE']
+    Resque::Scheduler.poll_sleep_amount = Integer(ENV['INTERVAL']) if ENV['INTERVAL']
     Resque::Scheduler.run
   end
 

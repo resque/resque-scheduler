@@ -383,6 +383,7 @@ worker is started.
     $ PIDFILE=./resque-scheduler.pid BACKGROUND=yes \
         rake resque:scheduler
 
+
 ### Logging
 
 There are several options to toggle the way scheduler logs its actions. They
@@ -395,10 +396,18 @@ are toggled by environment variables:
 All those variables are non-mandatory and default values are
 
 ```ruby
-  Resque::Scheduler.mute    = false
-  Resque::Scheduler.verbose = false
-  Resque::Scheduler.logfile = nil # that means, all messages go to STDOUT
+Resque::Scheduler.mute    = false
+Resque::Scheduler.verbose = false
+Resque::Scheduler.logfile = nil # that means, all messages go to STDOUT
 ```
+
+
+### Polling frequency
+
+You can pass an INTERVAL option which is a integer representing the polling frequency.
+The default is 5 seconds, but for a semi-active app you may want to use a smaller (integer) value.
+
+    $ INTERVAL=1 rake resque:scheduler
 
 ### Plagiarism alert
 
