@@ -1,6 +1,7 @@
 resque-scheduler
 ================
 
+[![Dependency Status](https://gemnasium.com/meatballhat/resque-scheduler.png)](https://gemnasium.com/meatballhat/resque-scheduler)
 [![Gem Version](https://badge.fury.io/rb/resque-scheduler.png)](http://badge.fury.io/rb/resque-scheduler)
 [![Build Status](https://travis-ci.org/resque/resque-scheduler.png?branch=master)](https://travis-ci.org/resque/resque-scheduler)
 
