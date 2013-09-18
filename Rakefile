@@ -1,6 +1,4 @@
-require 'bundler'
-
-Bundler::GemHelper.install_tasks
+require 'bundler/gem_tasks'
 
 $LOAD_PATH.unshift 'lib'
 
