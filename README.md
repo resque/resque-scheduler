@@ -1,6 +1,8 @@
 resque-scheduler
 ================
 
+[![Build Status](https://travis-ci.org/resque/resque-scheduler.png?branch=master)](https://travis-ci.org/resque/resque-scheduler)
+
 ### Description
 
 Resque-scheduler is an extension to [Resque](http://github.com/defunkt/resque)
