@@ -35,6 +35,7 @@ Resque Scheduler authors
 - Matt Simpson
 - Matteo Centenaro
 - Michael Lovitt
+- Michael Nikitochkin
 - Michael Rykov
 - Nickolas Means
 - Olek Janiszewski
