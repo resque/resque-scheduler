@@ -1,6 +1,7 @@
 Resque Scheduler authors
 ========================
 
+- Aaron Suggs
 - Alexander Simonov
 - Ben VandenBos
 - Bernerd Schaefer
