@@ -176,7 +176,7 @@ module ResqueScheduler
 
   # Returns an array of timestamps based on start and count
   def delayed_queue_peek(start, count)
-    Array(redis.zrange(:delayed_queue_schedule, start, start+count-1)).collect{|x| x.to_i}
+    Array(redis.zrange(:delayed_queue_schedule, start, start+count-1)).collect { |x| x.to_i }
   end
 
   # Returns the size of the delayed queue schedule
@@ -228,7 +228,7 @@ module ResqueScheduler
       key = "delayed:#{item}"
       items = redis.lrange(key, 0, -1)
       redis.pipelined do
-        items.each {|ts_item| redis.del("timestamps:#{ts_item}")}
+        items.each { |ts_item| redis.del("timestamps:#{ts_item}") }
       end
       redis.del key
     end
@@ -248,7 +248,7 @@ module ResqueScheduler
       end
     end
 
-    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).collect {|slice| slice.first}.inject(:+)
+    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).collect { |slice| slice.first }.inject(:+)
   end
 
   # Given an encoded item, enqueue it now
