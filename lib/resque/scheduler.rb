@@ -312,7 +312,7 @@ module Resque
       def shutdown
         @shutdown = true
         if @sleeping
-          release_master_lock!
+          Thread.new { release_master_lock! }
           exit
         end
       end
