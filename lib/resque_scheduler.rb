@@ -25,6 +25,9 @@ module ResqueScheduler
   # is used implicitly as "class" argument - in the "MakeTea" example,
   # "MakeTea" is used both as job name and resque worker class.
   #
+  # Any jobs that were in the old schedule, but are not
+  # present in the new schedule, will be removed.
+  #
   # :cron can be any cron scheduling string
   #
   # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage
@@ -48,13 +51,13 @@ module ResqueScheduler
 
     schedule_hash = prepare_schedule(schedule_hash)
 
-    #if Resque::Scheduler.dynamic
-      # store all schedules in redis, so we can retrieve them back everywhere.
-      schedule_hash.each do |name, job_spec|
-        set_schedule(name, job_spec)
-      end
-    #end
-    @schedule = schedule_hash
+    # store all schedules in redis, so we can retrieve them back everywhere.
+    schedule_hash.each do |name, job_spec|
+      set_schedule(name, job_spec)
+    end
+
+    # ensure only return the successfully saved data!
+    reload_schedule!
   end
 
   # Returns the schedule hash
@@ -140,9 +143,15 @@ module ResqueScheduler
   def enqueue_at_with_queue(queue, timestamp, klass, *args)
     return false unless Plugin.run_before_schedule_hooks(klass, *args)
 
-    if Resque.inline?
+    if Resque.inline? || timestamp.to_i < Time.now.to_i
       # Just create the job and let resque perform it right away with inline.
-      Resque::Job.create(queue, klass, *args)
+      # If the class is a custom job class, call self#scheduled on it. This allows you to do things like
+      # Resque.enqueue_at(timestamp, CustomJobClass, :opt1 => val1). Otherwise, pass off to Resque.
+      if klass.respond_to?(:scheduled)
+        klass.scheduled(queue, klass.to_s(), *args)
+      else
+        Resque::Job.create(queue, klass, *args)
+      end
     else
       delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
     end
@@ -170,6 +179,9 @@ module ResqueScheduler
   def delayed_push(timestamp, item)
     # First add this item to the list for this timestamp
     redis.rpush("delayed:#{timestamp.to_i}", encode(item))
+
+    # Store the timestamps at with this item occurs
+    redis.sadd("timestamps:#{encode(item)}", "delayed:#{timestamp.to_i}")
 
     # Now, add this timestamp to the zsets.  The score and the value are
     # the same since we'll be querying by timestamp, and we don't have
@@ -216,7 +228,9 @@ module ResqueScheduler
   def next_item_for_timestamp(timestamp)
     key = "delayed:#{timestamp.to_i}"
 
-    item = decode redis.lpop(key)
+    encoded_item = redis.lpop(key)
+    redis.srem("timestamps:#{encoded_item}", key)
+    item = decode(encoded_item)
 
     # If the list is empty, remove it.
     clean_up_timestamp(key, timestamp)
@@ -226,23 +240,36 @@ module ResqueScheduler
   # Clears all jobs created with enqueue_at or enqueue_in
   def reset_delayed_queue
     Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |item|
-      redis.del "delayed:#{item}"
+      key = "delayed:#{item}"
+      items = redis.lrange(key, 0, -1)
+      redis.pipelined do
+        items.each {|ts_item| redis.del("timestamps:#{ts_item}")}
+      end
+      redis.del key
     end
 
     redis.del :delayed_queue_schedule
   end
 
   # Given an encoded item, remove it from the delayed_queue
-  #
-  # This method is potentially very expensive since it needs to scan
-  # through the delayed queue for every timestamp.
   def remove_delayed(klass, *args)
-    destroyed = 0
     search = encode(job_to_hash(klass, args))
-    Array(redis.keys("delayed:*")).each do |key|
-      destroyed += redis.lrem key, 0, search
+    timestamps = redis.smembers("timestamps:#{search}")
+
+    replies = redis.pipelined do
+      timestamps.each do |key|
+        redis.lrem(key, 0, search)
+        redis.srem("timestamps:#{search}", key)
+      end
     end
-    destroyed
+
+    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).collect {|slice| slice.first}.inject(:+)
+  end
+
+  # Given an encoded item, enqueue it now
+  def enqueue_delayed(klass, *args)
+    hash = job_to_hash(klass, args)
+    remove_delayed(klass, *args).times { Resque::Scheduler.enqueue_from_config(hash) }
   end
 
   # Given a timestamp and job (klass + args) it removes all instances and
@@ -252,8 +279,12 @@ module ResqueScheduler
   # timestamp
   def remove_delayed_job_from_timestamp(timestamp, klass, *args)
     key = "delayed:#{timestamp.to_i}"
-    count = redis.lrem key, 0, encode(job_to_hash(klass, args))
+    encoded_job = encode(job_to_hash(klass, args))
+
+    redis.srem("timestamps:#{encoded_job}", key)
+    count = redis.lrem(key, 0, encoded_job)
     clean_up_timestamp(key, timestamp)
+
     count
   end
 
@@ -263,6 +294,14 @@ module ResqueScheduler
       total_jobs += redis.llen("delayed:#{timestamp}").to_i
     end
     total_jobs
+  end
+
+  # Returns delayed jobs schedule timestamp for +klass+, +args+.
+  def scheduled_at(klass, *args)
+    search = encode(job_to_hash(klass, args))
+    redis.smembers("timestamps:#{search}").collect do |key|
+      key.tr('delayed:', '').to_i
+    end
   end
 
   private
@@ -277,6 +316,9 @@ module ResqueScheduler
 
     def clean_up_timestamp(key, timestamp)
       # If the list is empty, remove it.
+
+      # Use a watch here to ensure nobody adds jobs to this delayed
+      # queue while we're removing it.
       redis.watch key
       if 0 == redis.llen(key).to_i
         redis.multi do
@@ -287,6 +329,7 @@ module ResqueScheduler
         redis.unwatch
       end
     end
+
     def validate_job!(klass)
       if klass.to_s.empty?
         raise Resque::NoClassError.new("Jobs must be given a class.")

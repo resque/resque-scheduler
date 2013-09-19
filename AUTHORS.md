@@ -1,0 +1,57 @@
+Resque Scheduler authors
+========================
+
+- Alexander Simonov
+- Ben VandenBos
+- Bernerd Schaefer
+- Bogdan Gusiev
+- Brian Landau
+- Brian P O'Rourke
+- Carlos Antonio da Silva
+- Chris Kampmeier
+- DJ Hartman
+- Damon P. Cortesi
+- Dan Buch
+- Dave Grijalva
+- David Backeus
+- David Balatero
+- David Doan
+- David Yang
+- Denis Yagofarov
+- Evan Tahler
+- Giovanni Cappellotto
+- Henrik Nyh
+- James Le Cuirot
+- John Crepezzi
+- John Griffin
+- Jon Larkowski and Les Hill
+- Jonathan Hyman
+- Jonathan Owens
+- Joshua Szmajda
+- Justin Weiss
+- Les Hill
+- Manuel Meurer
+- Matt Aimonetti
+- Matt Simpson
+- Matteo Centenaro
+- Michael Lovitt
+- Michael Rykov
+- Nickolas Means
+- Olek Janiszewski
+- Olivier Brisse
+- Petteri Räty
+- Phil Cohen
+- Russell Branca
+- Ryan Biesemeyer
+- Ryan Carver
+- Sebastian Kippe
+- Tim Liner
+- Tony Lewis
+- V Sreekanth
+- andreas
+- bbauer
+- fallwith
+- gravis
+- hpoydar
+- malomalo
+- sawanoboly

@@ -1,11 +1,13 @@
 require 'rufus/scheduler'
-require 'thwait'
+require 'resque/scheduler_locking'
+require 'resque_scheduler/logger_builder'
 
 module Resque
 
   class Scheduler
 
     extend Resque::Helpers
+    extend Resque::SchedulerLocking
 
     class << self
 
@@ -15,12 +17,17 @@ module Resque
       # If set, produces no output
       attr_accessor :mute
 
-      # If set, will try to update the schulde in the loop
+      # If set, will write messages to the file
+      attr_accessor :logfile
+
+      # If set, will try to update the schedule in the loop
       attr_accessor :dynamic
 
       # Amount of time in seconds to sleep between polls of the delayed
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
+
+      attr_writer :logger
 
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
@@ -31,12 +38,22 @@ module Resque
         @poll_sleep_amount ||= 5 # seconds
       end
 
+      def logger
+        @logger ||= ResqueScheduler::LoggerBuilder.new(:mute => mute, :verbose => verbose, :log_dev => logfile).build
+      end
+
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
         $0 = "resque-scheduler: Starting"
 
         # trap signals
         register_signal_handlers
+
+        # Quote from the resque/worker.
+        # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
+        # get output from the child in there.
+        $stdout.sync = true
+        $stderr.sync = true
 
         # Load the schedule into rufus
         # If dynamic is set, load that schedule otherwise use normal load
@@ -48,17 +65,20 @@ module Resque
 
         # Now start the scheduling part of the loop.
         loop do
-          begin
-            handle_delayed_items
-            update_schedule if dynamic
-          rescue Errno::EAGAIN, Errno::ECONNRESET => e
-            warn e.message
+          if is_master?
+            begin
+              handle_delayed_items
+              update_schedule if dynamic
+            rescue Errno::EAGAIN, Errno::ECONNRESET => e
+              warn e.message
+            end
           end
           poll_sleep
         end
 
         # never gets here.
       end
+
 
       # For all signals, set the shutdown flag and wait for current
       # poll/enqueing to finish (should be almost istant).  In the
@@ -134,8 +154,10 @@ module Resque
             if !config[interval_type].nil? && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])
               @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, *args) do
-                log! "queueing #{config['class']} (#{name})"
-                handle_errors { enqueue_from_config(config) }
+                if is_master?
+                  log! "queueing #{config['class']} (#{name})"
+                  handle_errors { enqueue_from_config(config) }
+                end
               end
               interval_defined = true
               break
@@ -170,7 +192,8 @@ module Resque
         item = nil
         begin
           handle_shutdown do
-            if item = Resque.next_item_for_timestamp(timestamp)
+            # Continually check that it is still the master
+            if is_master? && item = Resque.next_item_for_timestamp(timestamp)
               log "queuing #{item['class']} [delayed]"
               handle_errors { enqueue_from_config(item) }
             end
@@ -219,7 +242,14 @@ module Resque
           # one app that schedules for another
           if Class === klass
             ResqueScheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
-            Resque.enqueue_to(queue, klass, *params)
+
+            # If the class is a custom job class, call self#scheduled on it. This allows you to do things like
+            # Resque.enqueue_at(timestamp, CustomJobClass). Otherwise, pass off to Resque.
+            if klass.respond_to?(:scheduled)
+              klass.scheduled(queue, klass_name, *params)
+            else
+              Resque.enqueue_to(queue, klass, *params)
+            end
           else
             # This will not run the before_hooks in rescue, but will at least
             # queue the job.
@@ -279,19 +309,23 @@ module Resque
         true
       end
 
-      # Sets the shutdown flag, exits if sleeping
+      # Sets the shutdown flag, clean schedules and exits if sleeping
       def shutdown
         @shutdown = true
-        Resque.clean_schedules && exit if @sleeping
+
+        if @sleeping
+          Resque.clean_schedules
+          release_master_lock!
+          exit
+        end
       end
 
       def log!(msg)
-        puts "#{Time.now.strftime("%Y-%m-%d %H:%M:%S")} #{msg}" unless mute
+        logger.info msg
       end
 
       def log(msg)
-        # add "verbose" logic later
-        log!(msg) if verbose
+        logger.debug msg
       end
 
       def procline(string)

@@ -3,6 +3,7 @@
 <p class='intro'>
   The list below contains all scheduled jobs.  Click &quot;Queue now&quot; to queue
   a job immediately.
+  Server local time: <%= Time.now %>
 </p>
 
 <table>
@@ -27,9 +28,9 @@
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
       <td style="white-space:nowrap"><%= if !config['every'].nil?
-                                           h('every: ' + config['every'])
+                                           h('every: ' + (config['every'].is_a?(Array) ? config['every'].join(", ") : config['every'].to_s ))
                                          elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron'])
+                                           h('cron: ' + config['cron'].to_s)
                                          else
                                            'Not currently scheduled'
                                          end %></td>
