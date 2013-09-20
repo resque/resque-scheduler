@@ -6,7 +6,7 @@ dir = File.dirname(File.expand_path(__FILE__))
 
 require 'rubygems'
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 require 'resque'
 require File.join(dir, '../lib/resque_scheduler')
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
