@@ -23,9 +23,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
-  unless RUBY_VERSION < '1.9'
-    spec.add_development_dependency 'rubocop'
-  end
+  spec.add_development_dependency 'json' if RUBY_VERSION < '1.9'
+  spec.add_development_dependency 'rubocop' unless RUBY_VERSION < '1.9'
 
   spec.add_runtime_dependency 'redis', '>= 2.0.1'
   spec.add_runtime_dependency 'resque', ['>= 1.8.0', '< 1.25.0']
