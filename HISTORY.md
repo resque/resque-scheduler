@@ -1,7 +1,9 @@
-## 2.0.0 (???)
+## 1.9.10 (2013-09-19)
 
-* Dynamic schedule support (brianjlandau, davidyang)
-* Now depends on redis >=1.3
+* Backported `#enqueue_at_with_queue`
+* Locking to resque &lt; 1.25.0
+* Mocha setup compatibility
+* Ruby 1.8 compatibility in scheduler tab when schedule keys are symbols
 
 ## 1.9.9 (2011-03-29)
 
