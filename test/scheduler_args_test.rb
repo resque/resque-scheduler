@@ -77,7 +77,7 @@ context "scheduling jobs with arguments" do
   test "calls the worker without arguments when 'args' is blank in the config" do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
-      args: 
+      args:
     YAML
     SomeIvarJob.expects(:perform).once.with()
     Resque.reserve('ivar').perform
