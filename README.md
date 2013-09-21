@@ -328,7 +328,7 @@ the delayed queue.
 
 The Schedule tab:
 
-![The Schedule Tab](http://img.skitch.com/20100111-km2f5gmtpbq23enpujbruj6mgk.png)
+![The Schedule Tab](https://f.cloud.github.com/assets/45143/1178456/c99e5568-21b0-11e3-8c57-e1305d0ee8ef.png)
 
 The Delayed tab:
 
