@@ -47,6 +47,7 @@ Resque Scheduler authors
 - Ryan Biesemeyer
 - Ryan Carver
 - Sebastian Kippe
+- Spring MC
 - Tim Liner
 - Tony Lewis
 - V Sreekanth

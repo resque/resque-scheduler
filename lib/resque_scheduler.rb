@@ -25,7 +25,7 @@ module ResqueScheduler
   # is used implicitly as "class" argument - in the "MakeTea" example,
   # "MakeTea" is used both as job name and resque worker class.
   #
-  # Any jobs that were in the old schedule, but are not 
+  # Any jobs that were in the old schedule, but are not
   # present in the new schedule, will be removed.
   #
   # :cron can be any cron scheduling string
@@ -46,23 +46,27 @@ module ResqueScheduler
   # params is an array, each element in the array is passed as a separate
   # param, otherwise params is passed in as the only parameter to perform.
   def schedule=(schedule_hash)
+    # clean the schedules as it exists in redis
+    clean_schedules
+
     schedule_hash = prepare_schedule(schedule_hash)
 
-    if Resque::Scheduler.dynamic
-      reload_schedule!
-      schedule_hash.each do |name, job_spec|
-        set_schedule(name, job_spec)
-      end
-      (schedule.keys - schedule_hash.keys.map(&:to_s)).each do |name|
-        remove_schedule(name)
-      end
+    # store all schedules in redis, so we can retrieve them back everywhere.
+    schedule_hash.each do |name, job_spec|
+      set_schedule(name, job_spec)
     end
-    @schedule = schedule_hash
+
+    # ensure only return the successfully saved data!
+    reload_schedule!
   end
 
   # Returns the schedule hash
   def schedule
-    @schedule ||= {}
+    @schedule ||= get_schedules
+    if @schedule.nil?
+      return {}
+    end
+    @schedule
   end
 
   # reloads the schedule from redis
@@ -70,17 +74,28 @@ module ResqueScheduler
     @schedule = get_schedules
   end
 
-  # gets the schedule as it exists in redis
+  # gets the schedules as it exists in redis
   def get_schedules
-    if redis.exists(:schedules)
-      redis.hgetall(:schedules).tap do |h|
-        h.each do |name, config|
-          h[name] = decode(config)
-        end
-      end
-    else
-      nil
+    unless redis.exists(:schedules)
+      return nil
     end
+
+    redis.hgetall(:schedules).tap do |h|
+      h.each do |name, config|
+        h[name] = decode(config)
+      end
+    end
+  end
+
+  # clean the schedules as it exists in redis, useful for first setup?
+  def clean_schedules
+    if redis.exists(:schedules)
+      redis.hkeys(:schedules).each do |key|
+        remove_schedule(key)
+      end
+    end
+    @schedule = nil
+    true
   end
 
   # Create or update a schedule with the provided name and configuration.
@@ -314,7 +329,7 @@ module ResqueScheduler
         redis.unwatch
       end
     end
-    
+
     def validate_job!(klass)
       if klass.to_s.empty?
         raise Resque::NoClassError.new("Jobs must be given a class.")
