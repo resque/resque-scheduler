@@ -21,6 +21,7 @@ Resque Scheduler authors
 - Denis Yagofarov
 - Evan Tahler
 - Giovanni Cappellotto
+- Harry Lascelles
 - Henrik Nyh
 - James Le Cuirot
 - John Crepezzi
