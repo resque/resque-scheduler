@@ -319,6 +319,13 @@ scheduled jobs, however, will not fire upon recovery of the scheduler process.
 Think of scheduled (recurring) jobs as cron jobs - if you stop cron, it doesn't fire
 missed jobs once it starts back up.
 
+You might want to share a redis instance amongst multiple Rails applications with different
+scheduler with different config yaml files. If this is the case, normally, only one will ever
+run, leading to undesired behaviour. To allow different scheduler configs run at the same time
+on one redis, you can either namespace your redis connections, or supply an environment variable
+to split the shared lock key resque-scheduler uses thus:
+
+    RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
 
 ### resque-web Additions
 
