@@ -1,4 +1,32 @@
-## 2.0.0
+## 2.1.0 (2013-09-20)
+
+* Locking to resque &lt; 1.25.0 (for now)
+* Ensuring `Resque.schedule=` sets rather than appends
+* Process daemonization fixes including stdio redirection and redis client
+  reconnection
+* Add `#scheduled_at` which returns an array of timestamps at which the
+  specified job is scheduled
+* Syncing stdout/stderr
+* Add `#enqueue_delayed` for enqueueing specific delayed jobs immediately
+* Show server local time in resque-web
+* Enqueue immediately if job is being enqueued in the past
+* Using a logger instead of `#puts`, configurable via `LOGFILE`, `VERBOSE`, and
+  `MUTE` environmental variables, as well as being settable via
+  `Resque::Scheduler#logger`
+* Fixing scheduler template when arrays are passed to rufus-scheduler
+* Add support for configuring `Resque::Scheduler.poll_sleep_amount` via the
+  `INTERVAL` environmental variable.
+* Fixed shutdown in ruby 2.0.0
+* Removed dependency on `Resque::Helpers`
+
+## 2.0.1 (2013-03-20)
+
+* Adding locking to support master failover
+* Allow custom job classes to be used in `Resque.enqueue_at`
+* More efficient `#remove_delayed` implementation
+* Allowing `#enqueue_at` to call `#scheduled` when `Resque.inline` is `true`
+
+## 2.0.0 (2012-05-04)
 
 * Add support for Resque.inline configuration (carlosantoniodasilva)
 * Fixing possible job loss race condition around deleting delayed queues
@@ -11,14 +39,14 @@
 ### 2.0.0.f (2011-11-03)
 
 * TODO: address race condition with delayed jobs (using redis transactions)
-* Support ENV['BACKGROUND'] flag for daemonizing (bernerdschaefer)
-* Added support for before_schedule and after_schedule hooks (yaauie)
-* Added remove_delayed_job_from_timestamp to remove delayed jobs from
+* Support `ENV['BACKGROUND']` flag for daemonizing (bernerdschaefer)
+* Added support for `before_schedule` and `after_schedule` hooks (yaauie)
+* Added `remove_delayed_job_from_timestamp` to remove delayed jobs from
   a given timestamp.
 
 ### 2.0.0.e (2011-09-16)
 
-* Adding enqueue_at_with_queue/enqueue_in_with_queue support (niralisse)
+* Adding `enqueue_at_with_queue`/`enqueue_in_with_queue` support (niralisse)
 * Adding `Resque::Scheduler.poll_sleep_amount` to allow for configuring
   the sleep time b/w delayed queue polls.
 * Add a "Clear Delayed Jobs" button to the Delayed Jobs page (john-griffin)
@@ -41,6 +69,13 @@
 * Dynamic schedule support (brianjlandau, davidyang)
 * Now depends on redis >=1.3
 
+## 1.9.10 (2013-09-19)
+
+* Backported `#enqueue_at_with_queue`
+* Locking to resque &lt; 1.25.0
+* Mocha setup compatibility
+* Ruby 1.8 compatibility in scheduler tab when schedule keys are symbols
+
 ## 1.9.9 (2011-03-29)
 
 * Compatibility with resque 1.15.0
@@ -53,7 +88,7 @@
 ## 1.9.7 (2010-11-09)
 
 * Support for rufus-scheduler "every" syntax (fallwith)
-* Ability to pass a Time to handle_delayed_items for testing/staging (rcarver)
+* Ability to pass a Time to `handle_delayed_items` for testing/staging (rcarver)
 
 ## 1.9.6 (2010-10-08)
 

@@ -6,7 +6,7 @@ dir = File.dirname(File.expand_path(__FILE__))
 
 require 'rubygems'
 require 'test/unit'
-require 'mocha'
+require 'mocha/setup'
 require 'resque'
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque_scheduler'
@@ -57,7 +57,7 @@ def context(*args, &block)
     def self.teardown(&block) define_method(:teardown, &block) end
   end
   (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
-  klass.class_eval &block
+  klass.class_eval(&block)
 end
 
 class FakeCustomJobClass
@@ -82,4 +82,11 @@ class SomeRealClass
   def self.queue
     :some_real_queue
   end
+end
+
+def nullify_logger
+  Resque::Scheduler.mute    = nil
+  Resque::Scheduler.verbose = nil
+  Resque::Scheduler.logfile = nil
+  Resque::Scheduler.logger  = nil
 end

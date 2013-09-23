@@ -46,7 +46,7 @@ context "Resque::Scheduler" do
     Resque::Scheduler.load_schedule!
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
-    assert Resque::Scheduler.scheduled_jobs.include?(:some_ivar_job)
+    assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
   end
 
   test "can reload schedule" do
@@ -190,6 +190,17 @@ context "Resque::Scheduler" do
     }}
     assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/75"},
       Resque.decode(Resque.redis.hget(:schedules, "my_ivar_job")))
+  end
+
+  test "schedule= removes schedules not present in the given schedule argument" do
+    Resque::Scheduler.dynamic = true
+
+    Resque.schedule = {"old_job" => {'cron' => "* * * * *", 'class' => 'OldJob'}}
+    assert_equal({"old_job" => {'cron' => "* * * * *", 'class' => 'OldJob'}}, Resque.schedule)
+
+    Resque.schedule = {"new_job" => {'cron' => "* * * * *", 'class' => 'NewJob'}}
+    Resque.reload_schedule!
+    assert_equal({"new_job" => {'cron' => "* * * * *", 'class' => 'NewJob'}}, Resque.schedule)
   end
 
   test "schedule= uses job name as 'class' argument if it's missing" do
