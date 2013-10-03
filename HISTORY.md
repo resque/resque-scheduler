@@ -1,3 +1,13 @@
+## 2.2.0 (2013-10-13)
+
+* Locking rufus-scheduler dependency to `~> 2.0`
+* Updated redis dependency to `>= 3.0.0`
+* Add support for parameterized resque jobs.
+* Allowing prefix for `master_lock_key`.
+* Add `Resque.clean_schedules` method, which is useful when setting up the
+  scheduler for the first time.
+* Bug fixes related to first time schedule retrieval and missing schedules.
+
 ## 2.1.0 (2013-09-20)
 
 * Locking to resque &lt; 1.25.0 (for now)
