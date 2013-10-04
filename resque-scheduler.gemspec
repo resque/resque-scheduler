@@ -13,6 +13,7 @@ Gem::Specification.new do |spec|
   spec.description = %q{Light weight job scheduling on top of Resque.
     Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
     Also supports queueing jobs on a fixed, cron-like schedule.}
+  spec.license = 'MIT'
 
   spec.files        = `git ls-files`.split("\n")
   spec.executables  = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
