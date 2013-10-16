@@ -28,7 +28,7 @@ class RedisInstance
           RedisInstance.stop!
         end
       else
-        raise "Failed to start Redis on port #{port}."
+        fail "Failed to start Redis on port #{port}."
       end
 
       @running = true
