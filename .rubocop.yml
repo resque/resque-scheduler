@@ -17,6 +17,9 @@ CaseEquality:
 ClassVars:
   Enabled: false
 
+ClassLength:
+  Enabled: false
+
 CollectionMethods:
   Enabled: false
 

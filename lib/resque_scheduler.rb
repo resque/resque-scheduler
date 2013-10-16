@@ -132,7 +132,7 @@ module ResqueScheduler
   # for queueing.  Until timestamp is in the past, the job will
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
-    validate_job!(klass)
+    validate(klass)
     enqueue_at_with_queue(queue_from_class(klass), timestamp, klass, *args)
   end
 
@@ -330,16 +330,6 @@ module ResqueScheduler
       end
     end
 
-    def validate_job!(klass)
-      if klass.to_s.empty?
-        raise Resque::NoClassError.new("Jobs must be given a class.")
-      end
-
-      unless queue_from_class(klass)
-        raise Resque::NoQueueError.new("Jobs must be placed onto a queue.")
-      end
-    end
-
     def prepare_schedule(schedule_hash)
       prepared_hash = {}
       schedule_hash.each do |name, job_spec|
@@ -349,7 +339,6 @@ module ResqueScheduler
       end
       prepared_hash
     end
-
 end
 
 Resque.extend ResqueScheduler

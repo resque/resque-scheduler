@@ -99,8 +99,8 @@ context "POST /schedule/requeue_with_params" do
     log_level = 'error'
 
     job_config = Resque.schedule[job_name]
-    args = job_config['args'].merge({'log_level' => log_level})
-    job_config = job_config.merge({'args' => args})
+    args = job_config['args'].merge('log_level' => log_level)
+    job_config = job_config.merge('args' => args)
 
     Resque::Scheduler.stubs(:enqueue_from_config).once.with(job_config)
 
