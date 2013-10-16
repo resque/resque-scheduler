@@ -51,6 +51,7 @@ Resque Scheduler authors
 - Spring MC
 - Tim Liner
 - Tony Lewis
+- Vincent Zhu
 - V Sreekanth
 - andreas
 - bbauer

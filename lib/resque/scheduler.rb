@@ -220,7 +220,7 @@ module Resque
         args = job_config['args'] || job_config[:args]
 
         klass_name = job_config['class'] || job_config[:class]
-        klass = Resque.constantize(klass_name) rescue klass_name
+        klass = ResqueScheduler::Util.constantize(klass_name) rescue klass_name
 
         params = args.is_a?(Hash) ? [args] : Array(args)
         queue = job_config['queue'] || job_config[:queue] || Resque.queue_from_class(klass)
@@ -230,7 +230,7 @@ module Resque
           # job class can not be constantized (via a requeue call from the web perhaps), fall
           # back to enqueing normally via Resque::Job.create.
           begin
-            Resque.constantize(job_klass).scheduled(queue, klass_name, *params)
+            ResqueScheduler::Util.constantize(job_klass).scheduled(queue, klass_name, *params)
           rescue NameError
             # Note that the custom job class (job_config['custom_job_class']) is the one enqueued
             Resque::Job.create(queue, job_klass, *params)
