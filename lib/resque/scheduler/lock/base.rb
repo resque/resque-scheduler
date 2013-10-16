@@ -14,7 +14,7 @@ module Resque
 
         # Attempts to acquire the lock. Returns true if successfully acquired.
         def acquire!
-          raise NotImplementedError
+          fail NotImplementedError
         end
 
         def value
@@ -23,7 +23,7 @@ module Resque
 
         # Returns true if you currently hold the lock.
         def locked?
-          raise NotImplementedError
+          fail NotImplementedError
         end
 
         # Releases the lock.

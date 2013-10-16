@@ -50,7 +50,7 @@ module ResqueScheduler
           config_args = config_args.merge(submitted_args)
 
           # Insert the args hash into config and queue the resque job
-          config = config.merge({'args' => config_args})
+          config = config.merge('args' => config_args)
           Resque::Scheduler.enqueue_from_config(config)
           redirect u("/overview")
         end

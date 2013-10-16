@@ -9,7 +9,7 @@ context "DelayedQueue" do
 
   test "enqueue_at adds correct list and zset" do
     timestamp = Time.now + 1
-    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob)})
+    encoded_job =  Resque.encode(:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob))
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty to start")
@@ -37,7 +37,7 @@ context "DelayedQueue" do
 
   test "enqueue_at with queue adds correct list and zset and queue" do
     timestamp = Time.now + 1
-    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => 'critical'})
+    encoded_job =  Resque.encode(:class => SomeIvarJob.to_s, :args => ["path"], :queue => 'critical')
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty to start")
@@ -66,7 +66,7 @@ context "DelayedQueue" do
 
   test "a job in the future doesn't come out" do
     timestamp = Time.now + 600 # 10 minutes from now (in the future, shouldn't come out)
-    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob)})
+    encoded_job =  Resque.encode(:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob))
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i, "delayed queue should be empty to start")
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"), "job timestamps set should be empty to start")
@@ -95,7 +95,7 @@ context "DelayedQueue" do
 
   test "enqueue_at and enqueue_in are equivelent" do
     timestamp = Time.now + 60
-    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob)})
+    encoded_job =  Resque.encode(:class => SomeIvarJob.to_s, :args => ["path"], :queue => Resque.queue_from_class(SomeIvarJob))
 
     Resque.enqueue_at(timestamp, SomeIvarJob, "path")
     Resque.enqueue_in(timestamp - Time.now, SomeIvarJob, "path")
@@ -267,7 +267,7 @@ context "DelayedQueue" do
 
   test "remove_delayed removes job and returns the count" do
     t = Time.now + 120
-    encoded_job =  Resque.encode({:class => SomeIvarJob.to_s, :args => [], :queue => Resque.queue_from_class(SomeIvarJob)})
+    encoded_job =  Resque.encode(:class => SomeIvarJob.to_s, :args => [], :queue => Resque.queue_from_class(SomeIvarJob))
     Resque.enqueue_at(t, SomeIvarJob)
 
     assert_equal(1, Resque.remove_delayed(SomeIvarJob))

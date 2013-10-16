@@ -60,7 +60,7 @@ context "Resque::Scheduler" do
 
     Resque.redis.del(:schedules)
     Resque.redis.hset(:schedules, "some_ivar_job2", Resque.encode(
-      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"}
+      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"
     ))
 
     Resque::Scheduler.reload_schedule!
@@ -232,7 +232,7 @@ context "Resque::Scheduler" do
 
   test "get_schedule returns a schedule" do
     Resque.redis.hset(:schedules, "some_ivar_job2", Resque.encode(
-      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/33"}
+      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/33"
     ))
     assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/33"},
       Resque.get_schedule("some_ivar_job2"))
@@ -240,7 +240,7 @@ context "Resque::Scheduler" do
 
   test "remove_schedule removes a schedule" do
     Resque.redis.hset(:schedules, "some_ivar_job3", Resque.encode(
-      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44"}
+      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44"
     ))
     Resque.remove_schedule("some_ivar_job3")
     assert_equal nil, Resque.redis.hget(:schedules, "some_ivar_job3")
