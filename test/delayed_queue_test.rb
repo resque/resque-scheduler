@@ -358,9 +358,6 @@ context "DelayedQueue" do
   end
 
   test "invalid job class" do
-    assert_raise Resque::NoClassError do
-      Resque.enqueue_in(10, nil)
-    end
     assert_raise Resque::NoQueueError do
       Resque.enqueue_in(10, String) # string serves as invalid Job class
     end
