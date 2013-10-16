@@ -207,6 +207,11 @@ clear_leaderboards_moderator:
   description: "This job will check Daemon every 30 seconds after 120 seconds after start"
 ```
 
+IMPORTANT: Rufus `every` syntax will calculate jobs scheduling time starting from the moment of deploy,
+resulting in resetting schedule time on every deploy, so it's probably a good idea to use it only for
+frequent jobs (like every 10-30 minutes), otherwise - when you use something like `every 20h` and deploy once-twice per day -
+it will schedule the job for 20 hours from deploy, resulting in a job to never be run.
+
 NOTE: Six parameter cron's are also supported (as they supported by
 rufus-scheduler which powers the resque-scheduler process).  This allows you
 to schedule jobs per second (ie: `"30 * * * * *"` would fire a job every 30
