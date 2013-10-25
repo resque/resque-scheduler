@@ -1,6 +1,5 @@
 require 'resque_scheduler'
 require 'resque/server'
-
 # Extend Resque::Server to add tabs
 module ResqueScheduler
 
@@ -16,7 +15,7 @@ module ResqueScheduler
           end
 
           def queue_from_class_name(class_name)
-            Resque.queue_from_class(Resque.constantize(class_name))
+            Resque.queue_from_class(ResqueScheduler::Util.constantize(class_name))
           end
         end
 
