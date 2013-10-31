@@ -12,8 +12,22 @@ end
 context "on GET to /schedule with scheduled jobs" do
   setup do
     ENV['rails_env'] = 'production'
-    Resque.schedule = {'some_ivar_job' => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'production'},
-                       'some_other_job' => {'every' => ['5m'], 'queue' => 'high', 'class' => 'SomeOtherJob', 'args' => {'b' => 'blah'}}}
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'cron' => "* * * * *",
+        'class' => 'SomeIvarJob',
+        'args' => "/tmp",
+        'rails_env' => 'production'
+      },
+      'some_other_job' => {
+        'every' => ['5m'],
+        'queue' => 'high',
+        'class' => 'SomeOtherJob',
+        'args' => {
+          'b' => 'blah'
+        }
+      }
+    }
     Resque::Scheduler.load_schedule!
     get "/schedule"
   end
@@ -34,14 +48,18 @@ end
 def resque_schedule
   {
     'job_without_params' => {
-      'cron' => "* * * * *",
+      'cron' => '* * * * *',
       'class' => 'JobWithoutParams',
-      'args' => {"host" => 'localhost'},
+      'args' => {
+        'host' => 'localhost'
+      },
       'rails_env' => 'production'},
     'job_with_params' => {
-      'cron' => "* * * * *",
+      'cron' => '* * * * *',
       'class' => 'JobWithParams',
-      'args' => {"host" => 'localhost'},
+      'args' => {
+        'host' => 'localhost'
+      },
       'parameters' => {
         'log_level' => {
           'description' => 'The level of logging',

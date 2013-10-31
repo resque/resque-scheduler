@@ -84,6 +84,14 @@ class SomeRealClass
   end
 end
 
+class JobWithParams
+  def self.perform(*args)
+    @args = args
+  end
+end
+
+JobWithoutParams = Class.new(JobWithParams)
+
 def nullify_logger
   Resque::Scheduler.mute    = nil
   Resque::Scheduler.verbose = nil
