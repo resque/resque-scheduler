@@ -25,7 +25,7 @@ namespace :resque do
     Resque::Scheduler.dynamic           = true if ENV['DYNAMIC_SCHEDULE']
     Resque::Scheduler.verbose           = true if ENV['VERBOSE']
     Resque::Scheduler.logfile           = ENV['LOGFILE'] if ENV['LOGFILE']
-    Resque::Scheduler.poll_sleep_amount = Float(ENV['INTERVAL']) if ENV['INTERVAL']
+    Resque::Scheduler.poll_sleep_amount = Float(ENV['RESQUE_SCHEDULER_INTERVAL']) if ENV['RESQUE_SCHEDULER_INTERVAL']
     Resque::Scheduler.run
   end
 
