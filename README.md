@@ -416,10 +416,15 @@ Resque::Scheduler.logfile = nil # that means, all messages go to STDOUT
 
 ### Polling frequency
 
-You can pass an INTERVAL option which is a integer representing the polling frequency.
-The default is 5 seconds, but for a semi-active app you may want to use a smaller (integer) value.
+You can pass a `RESQUE_SCHEDULER_INTERVAL` option which is an integer or float
+representing the polling frequency. The default is 5 seconds, but for a
+semi-active app you may want to use a smaller value.
 
-    $ INTERVAL=1 rake resque:scheduler
+    $ RESQUE_SCHEDULER_INTERVAL=1 rake resque:scheduler
+
+**NOTE** This value was previously `INTERVAL` but was renamed to
+`RESQUE_SCHEDULER_INTERVAL` to avoid clashing with the interval Resque
+uses for its jobs.
 
 ### Plagiarism alert
 
