@@ -1,5 +1,6 @@
 require 'resque_scheduler'
 require 'resque/server'
+require 'base64'
 # Extend Resque::Server to add tabs
 module ResqueScheduler
 
@@ -57,6 +58,18 @@ module ResqueScheduler
         get "/delayed" do
           # Is there a better way to specify alternate template locations with sinatra?
           erb File.read(File.join(File.dirname(__FILE__), 'server/views/delayed.erb'))
+        end
+
+        get "/delayed/jobs/:klass" do
+          begin
+            klass = Object.const_get(params[:klass])
+            @args = params[:args]
+            @timestamps = Resque.scheduled_at(klass, *@args)
+          rescue => err
+            @timestamps = []
+          end
+
+          erb File.read(File.join(File.dirname(__FILE__), 'server/views/delayed_schedules.erb'))
         end
 
         get "/delayed/:timestamp" do

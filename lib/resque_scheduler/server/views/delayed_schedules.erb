@@ -1,0 +1,18 @@
+<h1>Delayed jobs scheduled for <%= params[:klass] %> (<%= @args %>)</h1>
+
+<table class='jobs'>
+<tr>
+  <th>Timestamp</th>
+</tr>
+
+<% @timestamps.each do |t| %>
+  <td>
+    <%= Time.at(t) %>
+  </td>
+<% end %>
+<% if @timestamps.empty? %>
+  <tr>
+    <td class='no-data'>There are no such job scheduled.</td>
+  </tr>
+<% end %>
+</table>
