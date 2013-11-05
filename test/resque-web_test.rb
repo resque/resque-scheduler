@@ -45,6 +45,12 @@ context "on GET to /delayed" do
   should_respond_with_success
 end
 
+context "on GET to /delayed/jobs/:klass" do
+  setup { get "/delayed/jobs/Foo?args[]=bar" }
+
+  should_respond_with_success
+end
+
 def resque_schedule
   {
     'job_without_params' => {
