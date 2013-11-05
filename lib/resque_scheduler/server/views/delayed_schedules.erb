@@ -6,9 +6,11 @@
 </tr>
 
 <% @timestamps.each do |t| %>
+<tr>
   <td>
     <%= Time.at(t) %>
   </td>
+</tr>
 <% end %>
 <% if @timestamps.empty? %>
   <tr>
