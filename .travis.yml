@@ -1,4 +1,3 @@
----
 language: ruby
 rvm:
 - ree
@@ -8,3 +7,11 @@ script: bundle exec rake rubocop test
 notifications:
   email:
     recipients: daniel.buch+resque-scheduler@gmail.com
+deploy:
+  provider: rubygems
+  api_key:
+    secure: dM97lL/jTu14mEHD2Ih/vQfZ8cWJWb+DQ8UKZjkD2JfYtvwEAlkPG9RrrDkSHb5qkYxG2VAhjyx/0MZJ0TsVL6wrLMC9gcJb3yomw2Sch2Noj68tEndiSUHnxrB9gKzbhHbjLQXDqYf4Hco9/PHHQp4piFPJhLzNZRehIuTJPcA=
+  gem: resque-scheduler
+  on:
+    tags: true
+    repo: resque/resque-scheduler
