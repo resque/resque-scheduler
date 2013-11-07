@@ -20,7 +20,7 @@ module Resque
           ).to_i == 1
         end
 
-      private
+        private
 
         def locked_sha(refresh = false)
           @locked_sha = nil if refresh

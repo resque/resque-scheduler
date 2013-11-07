@@ -47,7 +47,7 @@ class RedisInstance
       @running
     end
 
-  private
+    private
 
     def wait_for_redis_boot
       Timeout::timeout(10) do

@@ -2,22 +2,22 @@
 # The point is for the user to remove these configuration records
 # one by one as the offences are removed from the code base.
 
-AccessControl:
-  Enabled: false
-
 AlignParameters:
   Enabled: false
 
 AssignmentInCondition:
   Enabled: false
 
+BracesAroundHashParameters:
+  Enabled: false
+
 CaseEquality:
   Enabled: false
 
-ClassVars:
+ClassLength:
   Enabled: false
 
-ClassLength:
+ClassVars:
   Enabled: false
 
 CollectionMethods:
@@ -29,10 +29,16 @@ ColonMethodCall:
 CommentAnnotation:
   Enabled: false
 
+CyclomaticComplexity:
+  Enabled: false
+
 Documentation:
   Enabled: false
 
 EmptyLines:
+  Enabled: false
+
+EmptyLinesAroundBody:
   Enabled: false
 
 Encoding:

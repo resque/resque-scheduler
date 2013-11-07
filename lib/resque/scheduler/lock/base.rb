@@ -31,7 +31,7 @@ module Resque
           Resque.redis.del(key) == 1
         end
 
-      private
+        private
 
         # Extends the lock by `timeout` seconds.
         def extend_lock!

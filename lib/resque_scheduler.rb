@@ -6,7 +6,6 @@ require 'resque/scheduler'
 require 'resque_scheduler/plugin'
 
 module ResqueScheduler
-
   #
   # Accepts a new schedule configuration of the form:
   #
