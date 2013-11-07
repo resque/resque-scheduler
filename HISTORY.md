@@ -1,3 +1,13 @@
+## 2.3.0 (2013-11-07)
+
+* Fix re-introduced `ThreadError` on Ruby 2
+* **BREAKING CHANGE**: Added `RESQUE_SCHEDULER_INTERVAL` in place of `INTERVAL`
+* Use `Float()` instead of `Integer()` to calculate poll sleep amount
+* Upgraded dependence of Resque to support 1.25
+* Add rufus scheduler `every` notice to README
+* Use `Resque.validate` instead of custom `.validate_job!`
+* Specify MIT license in gemspec
+
 ## 2.2.0 (2013-10-13)
 
 * Locking rufus-scheduler dependency to `~> 2.0`
