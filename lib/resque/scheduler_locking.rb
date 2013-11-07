@@ -1,4 +1,3 @@
-
 # ### Locking the scheduler process
 #
 # There are two places in resque-scheduler that need to be synchonized
@@ -69,7 +68,7 @@ module Resque
       master_lock.release!
     end
 
-  private
+    private
 
     def build_master_lock
       if supports_lua?

@@ -25,7 +25,7 @@ end
 desc 'Run rubocop'
 task :rubocop do
   unless RUBY_VERSION < '1.9'
-    sh('rubocop --config .rubocop.yml --format simple') { |r, _| r || abort }
+    sh('rubocop --format simple') { |ok, _| ok || abort }
   end
 end
 
