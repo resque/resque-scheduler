@@ -110,6 +110,18 @@ any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
 to stdout.  `MUTE` does the opposite and silences all output. `MUTE`
 supersedes `VERBOSE`.
 
+### Resque Pool integration 
+
+For normal work with [resque-pool](https://github.com/nevans/resque-pool) gem add next lines in lib/rake/resque.rake
+
+```ruby
+task 'resque:pool:setup' do
+  Resque::Pool.after_prefork do |job|
+    Resque.redis.client.reconnect
+  end
+end
+```
+
 
 ### Delayed jobs
 
