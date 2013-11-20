@@ -88,4 +88,11 @@ class Resque::SchedulerTest < Test::Unit::TestCase
     end
   end
 
+  def test_enqueue_at_with_queue_validates
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    Resque.enqueue_at_with_queue('custom_queue', (Time.now + 15*60), FakeJob)
+    Resque::Scheduler.load_schedule!
+
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+  end
 end
