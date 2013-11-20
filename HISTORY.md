@@ -1,3 +1,7 @@
+## 2.3.1 (2013-11-20)
+
+* Correcting `require_paths` in gemspec
+
 ## 2.3.0 (2013-11-07)
 
 * Fix re-introduced `ThreadError` on Ruby 2
