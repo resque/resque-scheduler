@@ -154,6 +154,7 @@ module ResqueScheduler
   end
 
   private
+
     def job_to_hash(klass, args)
       {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
     end
@@ -172,11 +173,11 @@ module ResqueScheduler
 
     def validate_job!(klass, queue=nil)
       if klass.to_s.empty?
-        raise Resque::NoClassError.new("Jobs must be given a class.")
+        fail Resque::NoClassError, 'Jobs must be given a class.'
       end
 
       unless queue || queue_from_class(klass)
-        raise Resque::NoQueueError.new("Jobs must be placed onto a queue.")
+        fail Resque::NoQueueError, 'Jobs must be placed onto a queue.'
       end
     end
 
