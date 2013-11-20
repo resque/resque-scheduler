@@ -49,7 +49,7 @@ module ResqueScheduler
   # a queue in which the job will be placed after the
   # timestamp has passed.
   def enqueue_at_with_queue(queue, timestamp, klass, *args)
-    validate_job!(klass)
+    validate_job!(klass, queue)
     delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
   end
 
@@ -170,12 +170,12 @@ module ResqueScheduler
       end
     end
 
-    def validate_job!(klass)
+    def validate_job!(klass, queue=nil)
       if klass.to_s.empty?
         raise Resque::NoClassError.new("Jobs must be given a class.")
       end
 
-      unless queue_from_class(klass)
+      unless queue || queue_from_class(klass)
         raise Resque::NoQueueError.new("Jobs must be placed onto a queue.")
       end
     end

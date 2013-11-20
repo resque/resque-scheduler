@@ -28,5 +28,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'redis', '>= 2.0.1'
   spec.add_runtime_dependency 'resque', ['>= 1.8.0', '< 1.25.0']
-  spec.add_runtime_dependency 'rufus-scheduler', '>= 0'
+  spec.add_runtime_dependency 'rufus-scheduler', ['>= 0', '< 3.0']
 end
