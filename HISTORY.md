@@ -1,3 +1,8 @@
+## 1.9.11 (2013-11-20)
+
+* Fixed behavior of `#validate_job!` via `#enqueue_at_with_queue` #286
+* Correcting `require_paths` in gemspec #288
+
 ## 1.9.10 (2013-09-19)
 
 * Backported `#enqueue_at_with_queue`
