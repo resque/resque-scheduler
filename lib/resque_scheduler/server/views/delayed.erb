@@ -43,7 +43,7 @@
         <% end %>
       </td>
       <td><%= h(job['args'].inspect) if job && delayed_timestamp_size == 1 %></td>
-      <td><a href="<%=u "/delayed/jobs/#{job['class']}?" + job['args'].collect {|a| "args[]=#{a}"}.join('&') %>">All schedules</a></td>
+      <td><a href="<%=u URI("/delayed/jobs/#{job['class']}?args=" + URI.encode(job['args'].to_json)) %>">All schedules</a></td>
     </tr>
   <% end %>
 </table>

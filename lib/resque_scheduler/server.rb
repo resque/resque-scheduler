@@ -1,5 +1,6 @@
 require 'resque_scheduler'
 require 'resque/server'
+require 'json'
 # Extend Resque::Server to add tabs
 module ResqueScheduler
 
@@ -62,7 +63,7 @@ module ResqueScheduler
         get "/delayed/jobs/:klass" do
           begin
             klass = Object.const_get(params[:klass])
-            @args = params[:args]
+            @args = JSON.load(URI.decode(params[:args]))
             @timestamps = Resque.scheduled_at(klass, *@args)
           rescue => err
             @timestamps = []
