@@ -1,6 +1,5 @@
 require 'resque_scheduler'
 require 'resque/server'
-require 'base64'
 # Extend Resque::Server to add tabs
 module ResqueScheduler
 
