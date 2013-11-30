@@ -313,6 +313,75 @@ context "DelayedQueue" do
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
+  test "remove_delayed_selection removes multiple items matching arguments at same timestamp" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "llama")
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "monkey")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "platypus")
+    Resque.enqueue_at(t, SomeIvarJob, "baz")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "llama")
+    Resque.enqueue_at(t, SomeIvarJob, "bar", "llama")
+
+    assert_equal(5, Resque.remove_delayed_selection {|args| args[0] == 'bar'})
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
+  test "remove_delayed_selection removes single item matching arguments" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t + 1, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 2, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 3, SomeIvarJob, "baz")
+
+    assert_equal(1, Resque.remove_delayed_selection {|args| args[0] == 'foo'})
+    assert_equal(3, Resque.count_all_scheduled_jobs)
+  end
+
+  test "remove_delayed_selection removes multiple items matching arguments" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t + 1, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 2, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 3, SomeIvarJob, "baz")
+
+    assert_equal(2, Resque.remove_delayed_selection {|args| args[0] == 'bar'})
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
+  test "remove_delayed_selection removes multiple items matching arguments as hash" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, :foo => "foo")
+    Resque.enqueue_at(t + 1, SomeIvarJob, :foo => "bar")
+    Resque.enqueue_at(t + 2, SomeIvarJob, :foo => "bar")
+    Resque.enqueue_at(t + 3, SomeIvarJob, :foo => "baz")
+
+    assert_equal(2, Resque.remove_delayed_selection {|args| args[0]['foo'] == 'bar'})
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
+  test "remove_delayed_selection ignores jobs with no arguments" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t + 1, SomeIvarJob)
+    Resque.enqueue_at(t + 2, SomeIvarJob)
+    Resque.enqueue_at(t + 3, SomeIvarJob)
+
+    assert_equal(0, Resque.remove_delayed_selection {|args| args[0] == 'bar'})
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+  end
+
+  test "remove_delayed_selection doesn't remove items it shouldn't" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, "foo")
+    Resque.enqueue_at(t + 1, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 2, SomeIvarJob, "bar")
+    Resque.enqueue_at(t + 3, SomeIvarJob, "baz")
+
+    assert_equal(0, Resque.remove_delayed_selection {|args| args[0] == 'qux'})
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+  end
+
   test "remove_delayed_job_from_timestamp removes instances of jobs at a given timestamp" do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, "foo")
