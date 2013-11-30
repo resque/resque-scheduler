@@ -170,12 +170,14 @@ Resque.remove_delayed(SendFollowUpEmail, :user_id => current_user.id)
 
 If you need to cancel a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
 
-    # after you've enqueued a job like:
-    Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
-    # remove jobs matching just the account:
-    Resque.remove_delayed_selection { |args| args[0]['account_id'] == current_account.id }
-    # or remove jobs matching just the user:
-    Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
+``` ruby
+# after you've enqueued a job like:
+Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
+# remove jobs matching just the account:
+Resque.remove_delayed_selection { |args| args[0]['account_id'] == current_account.id }
+# or remove jobs matching just the user:
+Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
+```
 
 ### Scheduled Jobs (Recurring Jobs)
 
