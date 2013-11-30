@@ -351,10 +351,10 @@ context "DelayedQueue" do
 
   test "remove_delayed_selection removes multiple items matching arguments as hash" do
     t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, foo: "foo")
-    Resque.enqueue_at(t + 1, SomeIvarJob, foo: "bar")
-    Resque.enqueue_at(t + 2, SomeIvarJob, foo: "bar")
-    Resque.enqueue_at(t + 3, SomeIvarJob, foo: "baz")
+    Resque.enqueue_at(t, SomeIvarJob, :foo => "foo")
+    Resque.enqueue_at(t + 1, SomeIvarJob, :foo => "bar")
+    Resque.enqueue_at(t + 2, SomeIvarJob, :foo => "bar")
+    Resque.enqueue_at(t + 3, SomeIvarJob, :foo => "baz")
 
     assert_equal(2, Resque.remove_delayed_selection {|args| args[0]['foo'] == 'bar'})
     assert_equal(2, Resque.count_all_scheduled_jobs)
