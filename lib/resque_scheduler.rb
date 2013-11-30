@@ -276,7 +276,7 @@ module ResqueScheduler
   #
   # This allows for removal of delayed jobs that have arguments matching certain criteria
   def remove_delayed_selection
-    raise ArgumentError, "Please supply a block" unless block_given?
+    fail ArgumentError, "Please supply a block" unless block_given?
 
     destroyed = 0
     # There is no way to search Redis list entries for a partial match, so we query for all
