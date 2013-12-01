@@ -8,17 +8,14 @@ require 'rubygems'
 require 'test/unit'
 require 'mocha/setup'
 require 'resque'
+
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque_scheduler'
 require 'resque_scheduler/server'
 
-#
 # make sure we can run redis
-#
-
 if !system("which redis-server")
   puts '', "** can't find `redis-server` in your path"
-  puts "** try running `sudo rake install`"
   abort ''
 end
 
@@ -93,8 +90,19 @@ end
 JobWithoutParams = Class.new(JobWithParams)
 
 def nullify_logger
-  Resque::Scheduler.mute    = nil
-  Resque::Scheduler.verbose = nil
-  Resque::Scheduler.logfile = nil
-  Resque::Scheduler.logger  = nil
+  Resque::Scheduler.configure do |c|
+    c.mute    = nil
+    c.verbose = nil
+    c.logfile = nil
+    c.logger  = nil
+  end
+
+  ENV['LOGFILE'] = nil
 end
+
+def restore_devnull_logfile
+  nullify_logger
+  ENV['LOGFILE'] = '/dev/null'
+end
+
+restore_devnull_logfile

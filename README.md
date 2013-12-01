@@ -112,7 +112,10 @@ supersedes `VERBOSE`.
 
 ### Resque Pool integration 
 
-For normal work with [resque-pool](https://github.com/nevans/resque-pool) gem add next lines in lib/rake/resque.rake
+For normal work with the
+[resque-pool](https://github.com/nevans/resque-pool) gem, add the
+following task to wherever tasks are kept, such as
+`./lib/tasks/resque.rake`:
 
 ```ruby
 task 'resque:pool:setup' do
@@ -150,7 +153,7 @@ standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
 from scheduled jobs in that if your scheduler process is down or workers are
 down when a particular job is supposed to be queue, they will simply "catch up"
 once they are started again.  Jobs are guaranteed to run (provided they make it
-into the delayed queue) after their given queue_at time has passed.
+into the delayed queue) after their given `queue_at` time has passed.
 
 One other thing to note is that insertion into the delayed queue is O(log(n))
 since the jobs are stored in a redis sorted set (zset).  I can't imagine this
@@ -424,24 +427,29 @@ worker is started.
 There are several options to toggle the way scheduler logs its actions. They
 are toggled by environment variables:
 
-  - `MUTE` will stop logging anything. Completely silent;
-  - `VERBOSE` opposite to 'mute' will log even debug information;
-  - `LOGFILE` specifies the file to write logs to. Default is standard output.
+  - `MUTE` will stop logging anything. Completely silent.
+  - `VERBOSE` opposite of 'mute'; will log even debug information
+  - `LOGFILE` specifies the file to write logs to. (default standard output)
+  - `LOGFORMAT` specifies either "text" or "json" output format
+    (default "text")
 
-All those variables are non-mandatory and default values are
+All of these variables are optional and will be given the following default
+values:
 
 ```ruby
-Resque::Scheduler.mute    = false
-Resque::Scheduler.verbose = false
-Resque::Scheduler.logfile = nil # that means, all messages go to STDOUT
+Resque::Scheduler.configure do |c|
+  c.mute = false
+  c.verbose = false
+  c.logfile = nil # meaning all messages go to $stdout
+  c.logformat = 'text'
+end
 ```
-
 
 ### Polling frequency
 
-You can pass a `RESQUE_SCHEDULER_INTERVAL` option which is an integer or float
-representing the polling frequency. The default is 5 seconds, but for a
-semi-active app you may want to use a smaller value.
+You can pass a `RESQUE_SCHEDULER_INTERVAL` option which is an integer or
+float representing the polling frequency. The default is 5 seconds, but
+for a semi-active app you may want to use a smaller value.
 
     $ RESQUE_SCHEDULER_INTERVAL=1 rake resque:scheduler
 
@@ -451,10 +459,10 @@ uses for its jobs.
 
 ### Plagiarism alert
 
-This was intended to be an extension to resque and so resulted in a lot of the
-code looking very similar to resque, particularly in resque-web and the views. I
-wanted it to be similar enough that someone familiar with resque could easily
-work on resque-scheduler.
+This was intended to be an extension to resque and so resulted in a lot
+of the code looking very similar to resque, particularly in resque-web
+and the views. I wanted it to be similar enough that someone familiar
+with resque could easily work on resque-scheduler.
 
 
 ### Contributing
