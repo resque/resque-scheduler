@@ -3,42 +3,73 @@ require 'resque/scheduler_locking'
 require 'resque_scheduler/logger_builder'
 
 module Resque
-
   class Scheduler
-
     extend Resque::SchedulerLocking
 
     class << self
+      # Allows for block-style configuration
+      def configure
+        yield self
+      end
 
       # If true, logs more stuff...
-      attr_accessor :verbose
+      attr_writer :verbose
+
+      def verbose
+        @verbose ||= !!ENV['VERBOSE']
+      end
 
       # If set, produces no output
-      attr_accessor :mute
+      attr_writer :mute
+
+      def mute
+        @mute ||= !!ENV['MUTE']
+      end
 
       # If set, will write messages to the file
-      attr_accessor :logfile
+      attr_writer :logfile
+
+      def logfile
+        @logfile ||= ENV['LOGFILE']
+      end
+
+      # Sets whether to log in 'text' or 'json'
+      attr_writer :logformat
+
+      def logformat
+        @logformat ||= ENV['LOGFORMAT']
+      end
 
       # If set, will try to update the schedule in the loop
-      attr_accessor :dynamic
+      attr_writer :dynamic
+
+      def dynamic
+        @dynamic ||= !!ENV['DYNAMIC_SCHEDULE']
+      end
 
       # Amount of time in seconds to sleep between polls of the delayed
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
 
+      def poll_sleep_amount
+        @poll_sleep_amount ||=
+          Float(ENV.fetch('RESQUE_SCHEDULER_INTERVAL', '5'))
+      end
+
       attr_writer :logger
+
+      def logger
+        @logger ||= ResqueScheduler::LoggerBuilder.new(
+          :mute => mute,
+          :verbose => verbose,
+          :log_dev => logfile,
+          :format => logformat
+        ).build
+      end
 
       # the Rufus::Scheduler jobs that are scheduled
       def scheduled_jobs
         @@scheduled_jobs
-      end
-
-      def poll_sleep_amount
-        @poll_sleep_amount ||= 5 # seconds
-      end
-
-      def logger
-        @logger ||= ResqueScheduler::LoggerBuilder.new(:mute => mute, :verbose => verbose, :log_dev => logfile).build
       end
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
@@ -77,7 +108,6 @@ module Resque
 
         # never gets here.
       end
-
 
       # For all signals, set the shutdown flag and wait for current
       # poll/enqueing to finish (should be almost istant).  In the
@@ -310,6 +340,7 @@ module Resque
 
       # Sets the shutdown flag, clean schedules and exits if sleeping
       def shutdown
+        log!('Shutting down')
         @shutdown = true
 
         if @sleeping
@@ -323,20 +354,17 @@ module Resque
       end
 
       def log!(msg)
-        logger.info msg
+        logger.info { msg }
       end
 
       def log(msg)
-        logger.debug msg
+        logger.debug { msg }
       end
 
       def procline(string)
         log! string
         $0 = "resque-scheduler-#{ResqueScheduler::VERSION}: #{string}"
       end
-
     end
-
   end
-
 end
