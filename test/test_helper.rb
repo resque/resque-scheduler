@@ -57,6 +57,14 @@ def context(*args, &block)
   klass.class_eval(&block)
 end
 
+unless defined?(Rails)
+  module Rails
+    class << self
+      attr_accessor :env
+    end
+  end
+end
+
 class FakeCustomJobClass
   def self.scheduled(queue, klass, *args); end
 end

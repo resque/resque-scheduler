@@ -10,32 +10,44 @@ context "Resque::Scheduler" do
     Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
   end
 
-  test "enqueue constantizes" do
-    # The job should be loaded, since a missing rails_env means ALL envs.
-    ENV['RAILS_ENV'] = 'production'
-    config = {'cron' => "* * * * *", 'class' => 'SomeRealClass', 'args' => "/tmp"}
-    Resque::Job.expects(:create).with(SomeRealClass.queue, SomeRealClass, '/tmp')
+  test 'enqueue constantizes' do
+    Resque::Scheduler.env = 'production'
+    config = {
+      'cron' => '* * * * *',
+      'class' => 'SomeRealClass',
+      'args' => '/tmp'
+    }
+    Resque::Job.expects(:create).with(
+      SomeRealClass.queue, SomeRealClass, '/tmp'
+    )
     Resque::Scheduler.enqueue_from_config(config)
   end
 
-  test "enqueue runs hooks" do
-    # The job should be loaded, since a missing rails_env means ALL envs.
-    ENV['RAILS_ENV'] = 'production'
-    config = {'cron' => "* * * * *", 'class' => 'SomeRealClass', 'args' => "/tmp"}
+  test 'enqueue runs hooks' do
+    Resque::Scheduler.env = 'production'
+    config = {
+      'cron' => '* * * * *',
+      'class' => 'SomeRealClass',
+      'args' => '/tmp'
+    }
 
-    Resque::Job.expects(:create).with(SomeRealClass.queue, SomeRealClass, '/tmp')
-    SomeRealClass.expects(:before_delayed_enqueue_example).with("/tmp")
-    SomeRealClass.expects(:before_enqueue_example).with("/tmp")
-    SomeRealClass.expects(:after_enqueue_example).with("/tmp")
+    Resque::Job.expects(:create).with(
+      SomeRealClass.queue, SomeRealClass, '/tmp'
+    )
+    SomeRealClass.expects(:before_delayed_enqueue_example).with('/tmp')
+    SomeRealClass.expects(:before_enqueue_example).with('/tmp')
+    SomeRealClass.expects(:after_enqueue_example).with('/tmp')
 
     Resque::Scheduler.enqueue_from_config(config)
   end
 
-  test "enqueue_from_config respects queue params" do
-    config = {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'queue' => 'high'}
-
+  test 'enqueue_from_config respects queue params' do
+    config = {
+      'cron' => '* * * * *',
+      'class' => 'SomeIvarJob',
+      'queue' => 'high'
+    }
     Resque.expects(:enqueue_to).with('high', SomeIvarJob)
-
     Resque::Scheduler.enqueue_from_config(config)
   end
 
@@ -71,46 +83,77 @@ context "Resque::Scheduler" do
     assert Resque::Scheduler.scheduled_jobs.include?("some_ivar_job2")
   end
 
-  test "load_schedule_job loads a schedule" do
-    Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+  test 'load_schedule_job loads a schedule' do
+    Resque::Scheduler.load_schedule_job(
+      'some_ivar_job', {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp'
+      }
+    )
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
-    assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+    assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
-  test "load_schedule_job with every with options" do
-    Resque::Scheduler.load_schedule_job("some_ivar_job", {'every' => ['30s', {'first_in' => '60s'}], 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+  test 'load_schedule_job with every with options' do
+    Resque::Scheduler.load_schedule_job(
+      'some_ivar_job', {
+        'every' => ['30s', { 'first_in' => '60s' }],
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp'
+      }
+    )
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
-    assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
-    assert Resque::Scheduler.scheduled_jobs["some_ivar_job"].params.keys.include?(:first_in)
+    assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
+    job = Resque::Scheduler.scheduled_jobs['some_ivar_job']
+    assert job.params.keys.include?(:first_in)
   end
 
-  test "load_schedule_job with cron with options" do
-    Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => ['* * * * *', {'allow_overlapping' => 'true'}], 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+  test 'load_schedule_job with cron with options' do
+    Resque::Scheduler.load_schedule_job(
+      'some_ivar_job', {
+        'cron' => ['* * * * *', { 'allow_overlapping' => 'true' }],
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp'
+      }
+    )
 
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
-    assert Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
-    assert Resque::Scheduler.scheduled_jobs["some_ivar_job"].params.keys.include?(:allow_overlapping)
+    assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
+    job = Resque::Scheduler.scheduled_jobs['some_ivar_job']
+    assert job.params.keys.include?(:allow_overlapping)
   end
 
-  test "load_schedule_job without cron" do
-    Resque::Scheduler.load_schedule_job("some_ivar_job", {'class' => 'SomeIvarJob', 'args' => "/tmp"})
+  test 'load_schedule_job without cron' do
+    Resque::Scheduler.load_schedule_job(
+      'some_ivar_job', {
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp'
+      }
+    )
 
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
     assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
-    assert !Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+    assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
-  test "load_schedule_job with an empty cron" do
-    Resque::Scheduler.load_schedule_job("some_ivar_job", {'cron' => '', 'class' => 'SomeIvarJob', 'args' => "/tmp"})
+  test 'load_schedule_job with an empty cron' do
+    Resque::Scheduler.load_schedule_job(
+      'some_ivar_job', {
+        'cron' => '',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp'
+      }
+    )
 
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
     assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
-    assert !Resque::Scheduler.scheduled_jobs.keys.include?("some_ivar_job")
+    assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
   test "update_schedule" do

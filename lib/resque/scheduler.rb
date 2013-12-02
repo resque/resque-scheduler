@@ -12,6 +12,16 @@ module Resque
         yield self
       end
 
+      # Used in `#load_schedule_job`
+      attr_writer :env
+
+      def env
+        return @env if @env
+        @env ||= Rails.env if defined?(Rails)
+        @env ||= ENV['RAILS_ENV']
+        @env
+      end
+
       # If true, logs more stuff...
       attr_writer :verbose
 
@@ -169,13 +179,17 @@ module Resque
         args
       end
 
-      # Loads a job schedule into the Rufus::Scheduler and stores it in @@scheduled_jobs
+      # Loads a job schedule into the Rufus::Scheduler and stores it in
+      # @@scheduled_jobs
       def load_schedule_job(name, config)
-        # If rails_env is set in the config, enforce ENV['RAILS_ENV'] as
-        # required for the jobs to be scheduled.  If rails_env is missing, the
-        # job should be scheduled regardless of what ENV['RAILS_ENV'] is set
-        # to.
-        if config['rails_env'].nil? || rails_env_matches?(config)
+        # If `rails_env` or `env` is set in the config, load jobs only if they
+        # are meant to be loaded in `Resque::Scheduler.env`.  If `rails_env` or
+        # `env` is missing, the job should be scheduled regardless of the value
+        # of `Resque::Scheduler.env`.
+
+        configured_env = config['rails_env'] || config['env']
+
+        if configured_env.nil? || env_matches?(configured_env)
           log! "Scheduling #{name} "
           interval_defined = false
           interval_types = %w{cron every}
@@ -195,13 +209,25 @@ module Resque
           unless interval_defined
             log! "no #{interval_types.join(' / ')} found for #{config['class']} (#{name}) - skipping"
           end
+        else
+          log "Skipping schedule of #{name} because configured " <<
+              "env #{configured_env.inspect} does not match current " <<
+              "env #{env.inspect}"
         end
       end
 
-      # Returns true if the given schedule config hash matches the current
-      # ENV['RAILS_ENV']
+      # Returns true if the given schedule config hash matches the current env
       def rails_env_matches?(config)
-        config['rails_env'] && ENV['RAILS_ENV'] && config['rails_env'].gsub(/\s/,'').split(',').include?(ENV['RAILS_ENV'])
+        warn '`Resque::Scheduler.rails_env_matches?` is deprecated. ' <<
+             'Please use `Resque::Scheduler.env_matches?` instead.'
+        config['rails_env'] && env &&
+          config['rails_env'].split(/[\s,]+/).include?(env)
+      end
+
+      # Returns true if the current env is non-nil and the configured env
+      # (which is a comma-split string) includes the current env.
+      def env_matches?(configured_env)
+        env && configured_env.split(/[\s,]+/).include?(env)
       end
 
       # Handles queueing delayed items
