@@ -24,6 +24,32 @@ context "Resque::Scheduler" do
     assert_equal(Resque::Scheduler.mute, true)
   end
 
+  context 'when getting the env' do
+    def wipe
+      Resque::Scheduler.env = nil
+      Rails.env = nil
+      ENV['RAILS_ENV'] = nil
+    end
+
+    setup { wipe }
+    teardown { wipe }
+
+    test 'uses the value if set' do
+      Resque::Scheduler.env = 'foo'
+      assert_equal('foo', Resque::Scheduler.env)
+    end
+
+    test 'uses Rails.env if present' do
+      Rails.env = 'bar'
+      assert_equal('bar', Resque::Scheduler.env)
+    end
+
+    test 'uses $RAILS_ENV if present' do
+      ENV['RAILS_ENV'] = 'baz'
+      assert_equal('baz', Resque::Scheduler.env)
+    end
+  end
+
   context 'logger default settings' do
     setup { nullify_logger }
     teardown { restore_devnull_logfile }

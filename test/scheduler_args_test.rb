@@ -28,40 +28,74 @@ context "scheduling jobs with arguments" do
     Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'custom_job_class' => 'FakeCustomJobClass', 'args' => "/tmp")
   end
 
-  test "enqueue_from_config puts stuff in resquewhen rails_env matches" do
-    # The job should be loaded : its rails_env config matches the RAILS_ENV variable:
-    ENV['RAILS_ENV'] = 'production'
+  test 'enqueue_from_config puts stuff in resque when env matches' do
+    Resque::Scheduler.env = 'production'
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
 
-    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'production'}}
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp',
+        'rails_env' => 'production'
+      }
+    }
+
     Resque::Scheduler.load_schedule!
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
 
-    # we allow multiple rails_env definition, it should work also:
-    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'staging, production'}}
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp',
+        'env' => 'staging, production'
+      }
+    }
+
     Resque::Scheduler.load_schedule!
     assert_equal(2, Resque::Scheduler.rufus_scheduler.all_jobs.size)
   end
 
-  test "enqueue_from_config  doesnt put stuff in resque when rails_env doesnt match" do
-    # RAILS_ENV is not set:
+  test 'enqueue_from_config does not enqueue when env does not match' do
+    Resque::Scheduler.env = nil
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
-    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'staging'}}
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp',
+        'rails_env' => 'staging'
+      }
+    }
+
     Resque::Scheduler.load_schedule!
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
 
-    # SET RAILS_ENV to a common value:
-    ENV['RAILS_ENV'] = 'production'
-    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp", 'rails_env' => 'staging'}}
+    Resque::Scheduler.env = 'production'
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp',
+        'env' => 'staging'
+      }
+    }
     Resque::Scheduler.load_schedule!
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
   end
 
-  test "enqueue_from_config when rails env arg is not set" do
-    # The job should be loaded, since a missing rails_env means ALL envs.
-    ENV['RAILS_ENV'] = 'production'
+  test 'enqueue_from_config when env env arg is not set' do
+    Resque::Scheduler.env = 'production'
     assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
-    Resque.schedule = {:some_ivar_job => {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp"}}
+
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp'
+      }
+    }
     Resque::Scheduler.load_schedule!
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
   end
