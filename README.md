@@ -45,7 +45,7 @@ To install:
 If you use a Gemfile, you may want to specify the `:require` explicitly:
 
 ```ruby
-gem 'resque-scheduler', :require => 'resque_scheduler'
+gem 'resque-scheduler'
 ```
 
 Adding the resque:scheduler rake task:
@@ -71,7 +71,6 @@ namespace :resque do
   task :setup do
     require 'resque'
     require 'resque_scheduler'
-    require 'resque/scheduler'
 
     # you probably already have this somewhere
     Resque.redis = 'localhost:6379'
