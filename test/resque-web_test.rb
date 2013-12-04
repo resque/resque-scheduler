@@ -46,9 +46,17 @@ context "on GET to /delayed" do
 end
 
 context "on GET to /delayed/jobs/:klass" do
-  setup { get "/delayed/jobs/Foo?args[]=bar" }
+  setup {
+    @t = Time.now + 3600
+    Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
+    get URI("/delayed/jobs/SomeIvarJob?args=" + URI.encode(['foo', 'bar'].to_json)).to_s
+  }
 
   should_respond_with_success
+
+  test 'see the scheduled job' do
+    assert last_response.body.include?(@t.to_s)
+  end
 end
 
 def resque_schedule
