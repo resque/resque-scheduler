@@ -47,6 +47,8 @@ module Resque
           load_schedule!
         end
 
+        @th = Thread.current
+
         # Now start the scheduling part of the loop.
         loop do
           if is_master?
@@ -62,7 +64,6 @@ module Resque
 
         # never gets here.
       end
-     
 
       # For all signals, set the shutdown flag and wait for current
       # poll/enqueing to finish (should be almost istant).  In the
@@ -288,7 +289,13 @@ module Resque
       # Sleeps and returns true
       def poll_sleep
         @sleeping = true
-        handle_shutdown { sleep poll_sleep_amount }
+        handle_shutdown do
+          begin
+            sleep poll_sleep_amount
+          rescue Interrupt
+            release_master_lock! if @shutdown
+          end
+        end
         @sleeping = false
         true
       end
@@ -297,8 +304,7 @@ module Resque
       def shutdown
         @shutdown = true
         if @sleeping
-          release_master_lock!
-          exit
+          @th.raise Interrupt
         end
       end
 
