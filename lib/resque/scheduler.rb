@@ -288,24 +288,27 @@ module Resque
 
       # Sleeps and returns true
       def poll_sleep
-        @sleeping = true
         handle_shutdown do
           begin
-            sleep poll_sleep_amount
-          rescue Interrupt
-            release_master_lock! if @shutdown
+            begin
+              @sleeping = true
+              sleep poll_sleep_amount
+              @sleeping = false
+            rescue Interrupt
+              release_master_lock! if @shutdown
+            end
+          ensure
+            @sleeping = false
           end
         end
-        @sleeping = false
         true
       end
 
       # Sets the shutdown flag, exits if sleeping
       def shutdown
+        return if @shutdown
         @shutdown = true
-        if @sleeping
-          @th.raise Interrupt
-        end
+        @th.raise Interrupt if @sleeping
       end
 
       def log!(msg)

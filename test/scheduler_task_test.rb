@@ -7,6 +7,7 @@ context "Resque::Scheduler" do
     Resque::Scheduler.mute = true
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
+    Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
   end
 
   test "shutdown raises Interrupt when sleeping" do

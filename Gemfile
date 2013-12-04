@@ -6,5 +6,4 @@ group :test do
   gem "rack-test"
   gem "yajl-ruby", "~>0.8.2", :platforms => :mri
   gem "mocha"
-  gem "debugger"
 end
