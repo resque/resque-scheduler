@@ -57,6 +57,21 @@ context "on GET to /delayed/jobs/:klass" do
   test 'see the scheduled job' do
     assert last_response.body.include?(@t.to_s)
   end
+
+  context 'with a namespaced class' do
+    setup do
+      @t = Time.now + 3600
+      module Foo
+        class Bar
+          def self.queue
+            'bar'
+          end
+        end
+      end
+      Resque.enqueue_at(@t, Foo::Bar, 'foo', 'bar')
+      get URI("/delayed/jobs/Foo::Bar?args=" + URI.encode(%w{foo bar}.to_json)).to_s
+    end
+  end
 end
 
 def resque_schedule

@@ -62,7 +62,7 @@ module ResqueScheduler
 
         get "/delayed/jobs/:klass" do
           begin
-            klass = Object.const_get(params[:klass])
+            klass = ResqueScheduler::Util::constantize(params[:klass])
             @args = JSON.load(URI.decode(params[:args]))
             @timestamps = Resque.scheduled_at(klass, *@args)
           rescue => err
