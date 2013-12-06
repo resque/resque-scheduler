@@ -71,6 +71,12 @@ context "on GET to /delayed/jobs/:klass" do
       Resque.enqueue_at(@t, Foo::Bar, 'foo', 'bar')
       get URI("/delayed/jobs/Foo::Bar?args=" + URI.encode(%w{foo bar}.to_json)).to_s
     end
+
+    should_respond_with_success
+
+    test 'see the scheduled job' do
+      assert last_response.body.include?(@t.to_s)
+    end
   end
 end
 
