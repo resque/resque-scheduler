@@ -45,6 +45,41 @@ context "on GET to /delayed" do
   should_respond_with_success
 end
 
+context "on GET to /delayed/jobs/:klass" do
+  setup do
+    @t = Time.now + 3600
+    Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
+    get URI("/delayed/jobs/SomeIvarJob?args=" + URI.encode(%w{foo bar}.to_json)).to_s
+  end
+
+  should_respond_with_success
+
+  test 'see the scheduled job' do
+    assert last_response.body.include?(@t.to_s)
+  end
+
+  context 'with a namespaced class' do
+    setup do
+      @t = Time.now + 3600
+      module Foo
+        class Bar
+          def self.queue
+            'bar'
+          end
+        end
+      end
+      Resque.enqueue_at(@t, Foo::Bar, 'foo', 'bar')
+      get URI("/delayed/jobs/Foo::Bar?args=" + URI.encode(%w{foo bar}.to_json)).to_s
+    end
+
+    should_respond_with_success
+
+    test 'see the scheduled job' do
+      assert last_response.body.include?(@t.to_s)
+    end
+  end
+end
+
 def resque_schedule
   {
     'job_without_params' => {
