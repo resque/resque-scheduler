@@ -6,6 +6,68 @@ module LockTestHelper
   end
 end
 
+context '#master_lock_key' do
+  setup do
+    @subject = Class.new { extend Resque::SchedulerLocking }
+  end
+
+  teardown do
+    Resque.redis.del(@subject.master_lock.key)
+  end
+
+  test 'it should have resque prefix' do
+    assert_equal @subject.master_lock.key, 'resque:resque_scheduler_master_lock'
+  end
+
+  context 'with a prefix set via ENV' do
+    setup do
+      ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = 'my.prefix'
+      @subject = Class.new { extend Resque::SchedulerLocking }
+    end
+
+    teardown do
+      Resque.redis.del(@subject.master_lock.key)
+    end
+
+    test 'it should have ENV prefix' do
+      assert_equal @subject.master_lock.key, 'resque:my.prefix:resque_scheduler_master_lock'
+    end
+  end
+
+  context 'with a namespace set for resque' do
+    setup do
+      Resque.redis.namespace = 'my.namespace'
+      @subject = Class.new { extend Resque::SchedulerLocking }
+    end
+
+    teardown do
+      Resque.redis.namespace = 'resque'
+      Resque.redis.del(@subject.master_lock.key)
+    end
+
+    test 'it should have resque prefix' do
+      assert_equal @subject.master_lock.key, 'my.namespace:resque_scheduler_master_lock'
+    end
+
+    context 'with a prefix set via ENV' do
+      setup do
+        Resque.redis.namespace = 'my.namespace'
+        ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = 'my.prefix'
+        @subject = Class.new { extend Resque::SchedulerLocking }
+      end
+
+      teardown do
+        Resque.redis.namespace = 'resque'
+        Resque.redis.del(@subject.master_lock.key)
+      end
+
+      test 'it should have ENV prefix' do
+        assert_equal @subject.master_lock.key, 'my.namespace:my.prefix:resque_scheduler_master_lock'
+      end
+    end
+  end
+end
+
 context 'Resque::SchedulerLocking' do
   setup do
     @subject = Class.new { extend Resque::SchedulerLocking }
