@@ -35,11 +35,9 @@ namespace :resque do
       c.verbose = !!ENV['VERBOSE']
       c.logfile = ENV['LOGFILE']
       c.poll_sleep_amount = Float(ENV.fetch('RESQUE_SCHEDULER_INTERVAL', '5'))
+      c.app_name = ENV['APP_NAME']
     end
 
-    Resque::Scheduler.dynamic = true if ENV['DYNAMIC_SCHEDULE']
-    Resque::Scheduler.verbose = true if ENV['VERBOSE']
-    Resque::Scheduler.app_name = ENV['APP_NAME'] if ENV['APP_NAME']
     Resque::Scheduler.run
   end
 
