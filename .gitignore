@@ -1,4 +1,6 @@
 .bundle/
+.idea/
+
 doc/
 pkg
 nbproject
