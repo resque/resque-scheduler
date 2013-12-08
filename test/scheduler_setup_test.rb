@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque::Scheduler" do
   setup do
+    ENV['VERBOSE'] = nil
     nullify_logger
     Resque::Scheduler.dynamic = false
     Resque.redis.flushall

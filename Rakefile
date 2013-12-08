@@ -18,9 +18,10 @@ task :test do
     ARGV += %W(--seed #{ENV['SEED']})
   end
 
-  $LOAD_PATH.unshift(File.expand_path('../test', __FILE__))
+  ARGV << '--verbose' if ENV['VERBOSE']
+  ARGV << '--name' << ENV['PATTERN'] if ENV['PATTERN']
 
-  Dir.glob('test/*_test.rb') do |f|
+  Dir['test/*_test.rb'].each do |f|
     require File.expand_path(f)
   end
 end
