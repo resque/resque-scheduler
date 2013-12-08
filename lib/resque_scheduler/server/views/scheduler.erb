@@ -27,16 +27,8 @@
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= if config['every']
-                                           h('every: ' + (config['every'].is_a?(Array) ? "#{config['every'][0]}, first in:  #{config['every'][1]}" : config['every']))
-                                         elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron'].to_s)
-                                         else
-                                           'Not currently scheduled'
-                                         end %></td>
-      <td><%= (config['class'].nil? && !config['custom_job_class'].nil?) ?
-              h(config['custom_job_class']) :
-              h(config['class']) %></td>
+      <td style="white-space:nowrap"><%= h schedule_interval(config) %></td>
+      <td><%= h schedule_class(config) %></td>
       <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
       <td><%= h config['args'].inspect %></td>
     </tr>

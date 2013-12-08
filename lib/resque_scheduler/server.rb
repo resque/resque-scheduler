@@ -1,14 +1,11 @@
 require 'resque_scheduler'
 require 'resque/server'
+
 # Extend Resque::Server to add tabs
 module ResqueScheduler
-
   module Server
-
     def self.included(base)
-
       base.class_eval do
-
         helpers do
           def format_time(t)
             t.strftime("%Y-%m-%d %H:%M:%S %z")
@@ -16,6 +13,41 @@ module ResqueScheduler
 
           def queue_from_class_name(class_name)
             Resque.queue_from_class(ResqueScheduler::Util.constantize(class_name))
+          end
+
+          def schedule_interval(config)
+            if config['every']
+              schedule_interval_every(config['every'])
+            elsif config['cron']
+              'cron: ' + config['cron'].to_s
+            else
+              'Not currently scheduled'
+            end
+          end
+
+          def schedule_interval_every(every)
+            s = 'every: '
+            if every.respond_to?(:first)
+              s << every.first
+            else
+              s << every
+            end
+
+            return s unless every.respond_to?(:length) && every.length > 1
+
+            s << ' ('
+            meta = every.last.map do |key, value|
+              "#{key.to_s.gsub(/_/, ' ')} #{value}"
+            end
+            s << meta.join(', ') << ')'
+          end
+
+          def schedule_class(config)
+            if config['class'].nil? && !config['custom_job_class'].nil?
+              config['custom_job_class']
+            else
+              config['class']
+            end
           end
         end
 
@@ -74,17 +106,13 @@ module ResqueScheduler
           Resque.reset_delayed_queue
           redirect u('delayed')
         end
-
       end
-
     end
-
-    Resque::Server.tabs << 'Schedule'
-    Resque::Server.tabs << 'Delayed'
-
   end
-
 end
+
+Resque::Server.tabs << 'Schedule'
+Resque::Server.tabs << 'Delayed'
 
 Resque::Server.class_eval do
   include ResqueScheduler::Server
