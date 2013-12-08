@@ -226,7 +226,7 @@ You can provide options to "every" or "cron" via Array:
 clear_leaderboards_moderator:
   every:
     - "30s"
-    - :first_in: "120s"
+    - :first_in: '120s'
   class: CheckDaemon
   queue: daemons
   description: "This job will check Daemon every 30 seconds after 120 seconds after start"
