@@ -185,6 +185,20 @@ class Resque::DelayedQueueTest < Test::Unit::TestCase
     assert_equal(0, Resque.delayed_timestamp_peek(t, 0, 3).length)
   end
 
+  def test_enqueue_delayed_items_for_timestamp_handles_failure
+    t = Time.now + 60
+
+    Resque.enqueue_at(t, SomeIvarJob)
+
+    # raise
+    Resque::Job.expects(:create).raises
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
+
+    # delayed queue for timestamp should be empty
+    assert_equal(0, Resque.delayed_timestamp_peek(t, 0, 3).length)
+  end
+
   def test_works_with_out_specifying_queue__upgrade_case
     t = Time.now - 60
     Resque.delayed_push(t, :class => 'SomeIvarJob')
