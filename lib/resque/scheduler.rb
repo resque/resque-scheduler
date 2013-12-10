@@ -114,7 +114,7 @@ module Resque
                   Resque::Job.create(queue, item['class'], *item['args'])
                 end
               rescue
-                log! "Failed to enqueue #{klass_name}:\n #{$!}"
+                log! "Failed to enqueue #{item['class']}:\n #{$!}"
               end
             end
           end
