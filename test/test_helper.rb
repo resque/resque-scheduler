@@ -13,17 +13,12 @@ $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque_scheduler'
 require 'resque_scheduler/server'
 
-# make sure we can run redis
-if !system("which redis-server")
-  puts '', "** can't find `redis-server` in your path"
-  abort ''
+unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
+  # Start our own Redis when the tests start. RedisInstance will take care of
+  # starting and stopping.
+  require File.expand_path('../support/redis_instance', __FILE__)
+  RedisInstance.run!
 end
-
-
-# Start our own Redis when the tests start. RedisInstance will take care of
-# starting and stopping.
-require File.dirname(__FILE__) + '/support/redis_instance'
-RedisInstance.run!
 
 at_exit do
   next if $!
