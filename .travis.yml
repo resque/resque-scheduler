@@ -4,7 +4,12 @@ rvm:
 - ree
 - 1.9.3
 - 2.0.0
+env:
+  global:
+  - RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER=1
 script: bundle exec rake rubocop test
+services:
+- redis-server
 notifications:
   email:
     recipients: daniel.buch+resque-scheduler@gmail.com

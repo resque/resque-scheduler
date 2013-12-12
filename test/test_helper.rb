@@ -11,22 +11,12 @@ require 'resque'
 require File.join(dir, '../lib/resque_scheduler')
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 
-
-#
-# make sure we can run redis
-#
-
-if !system("which redis-server")
-  puts '', "** can't find `redis-server` in your path"
-  puts "** try running `sudo rake install`"
-  abort ''
+unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
+  # Start our own Redis when the tests start. RedisInstance will take care of
+  # starting and stopping.
+  require File.expand_path('../support/redis_instance', __FILE__)
+  RedisInstance.run!
 end
-
-
-#
-# start our own redis when the tests start,
-# kill it when they end
-#
 
 at_exit do
   next if $!
