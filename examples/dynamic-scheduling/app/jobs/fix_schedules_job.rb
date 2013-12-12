@@ -35,7 +35,7 @@ class FixSchedulesJob
       # get schedule for the user
       schedule = Resque.get_schedule "send_email_#{user.id}"
       # if a user has no schedule, add it to the array
-      if schedule == nil
+      if schedule.nil?
         users_unscheduled << user
       end
     end
