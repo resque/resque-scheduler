@@ -13,6 +13,7 @@ class RedisInstance
     end
 
     def run!
+      ensure_redis_server_present!
       ensure_pid_directory
       reassign_redis_clients
       start_redis_server
@@ -24,9 +25,7 @@ class RedisInstance
         wait_for_redis_boot
 
         # Ensure we tear down Redis on Ctrl+C / test failure.
-        at_exit do
-          RedisInstance.stop!
-        end
+        at_exit { stop! }
       else
         fail "Failed to start Redis on port #{port}."
       end
@@ -48,6 +47,12 @@ class RedisInstance
     end
 
     private
+
+    def ensure_redis_server_present!
+      if !system('redis-server -v')
+        fail "** can't find `redis-server` in your path"
+      end
+    end
 
     def wait_for_redis_boot
       Timeout::timeout(10) do
