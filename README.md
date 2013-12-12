@@ -272,12 +272,9 @@ Resque::Scheduler.dynamic = true
 ```
 
 Dynamic schedules allow for greater flexibility than static schedules as they can be set,
-unset or changed without having to restart `resque-scheduler`. However they have a drawback:
-
-**Very important -** dynamic schedules are lost when `resque-scheduler` is stopped. If you
- need your schedules to survive a restart of `resque-scheduler` you will have to use static
- schedules instead (see above) or programmatically set your dynamic schedules again when restarting
- `resque-scheduler`.
+unset or changed without having to restart `resque-scheduler`. You can specify, if the schedule
+must survive a resque-scheduler restart or not. This is done by setting the `persist` configuration
+for the schedule: it is a boolean value, if set the schedule will persist a restart.
 
 The job to be scheduled must be a valid Resque job class.
 
@@ -291,6 +288,7 @@ config = {}
 config[:class] = 'SendEmail'
 config[:args] = 'POC email subject'
 config[:every] = ['1h', {first_in: 5.minutes}]
+config[:persist] = true
 Resque.set_schedule(name, config)
 ```
 
