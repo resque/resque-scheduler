@@ -184,12 +184,24 @@ Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
 ### Scheduled Jobs (Recurring Jobs)
 
 Scheduled (or recurring) jobs are logically no different than a standard cron
-job.  They are jobs that run based on a fixed schedule which is set at
-startup.
+job.  They are jobs that run based on a schedule which can be static or dynamic.
 
-The schedule is a list of Resque worker classes with arguments and a
+#### Static schedules
+
+Static schedules are set when `resque-scheduler` starts by passing a schedule file
+to `resque-scheduler` initialization like this (see *Installation* above for a more complete example):
+
+```ruby
+Resque.schedule = YAML.load_file('your_resque_schedule.yml')
+```
+
+If a static schedule is not set `resque-scheduler` will issue a "Schedule empty!" warning on
+startup, but despite that warning setting a static schedule is totally optional. It is possible
+to use only dynamic schedules (see below).
+
+The schedule file is a list of Resque job classes with arguments and a
 schedule frequency (in crontab syntax).  The schedule is just a hash, but
-is most likely stored in a YAML like so:
+is usually stored in a YAML like this:
 
 ```yaml
 CancelAbandonedOrders:
@@ -245,6 +257,61 @@ seconds past the minute).
 A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler)
 for handling the heavy lifting of the actual scheduling engine.
 
+#### Dynamic schedules
+
+Dynamic schedules are programmatically set on a running `resque-scheduler`.
+All [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
+when setting schedules.
+
+Dynamic schedules are not enabled by default. To be able to dynamically set schedules, you
+must pass the following to `resque-scheduler` initialization (see *Installation* above for a more complete example):
+
+```ruby
+Resque::Scheduler.dynamic = true
+```
+
+Dynamic schedules allow for greater flexibility than static schedules as they can be set,
+unset or changed without having to restart `resque-scheduler`. However they have a drawback:
+
+**Very important -** dynamic schedules are lost when `resque-scheduler` is stopped. If you
+ need your schedules to survive a restart of `resque-scheduler` you will have to use static
+ schedules instead (see above) or programmatically set your dynamic schedules again when restarting
+ `resque-scheduler`.
+
+The job to be scheduled must be a valid Resque job class.
+
+For example, suppose you have a SendEmail job which sends emails. The `perform` method of the
+job receives a string argument with the email subject. To run the SendEmail job every hour
+starting five minutes from now, you can do:
+
+```ruby
+name = 'send_emails'
+config = {}
+config[:class] = 'SendEmail'
+config[:args] = 'POC email subject'
+config[:every] = ['1h', {first_in: 5.minutes}]
+Resque.set_schedule(name, config)
+```
+
+Schedules can later be removed by passing their name to the `remove_schedule` method:
+
+```ruby
+name = 'send_emails'
+Resque.remove_schedule(name)
+```
+
+Schedule names are unique; i.e. two dynamic schedules cannot have the same name. If `set_schedule` is
+passed the name of an existing schedule, that schedule is updated. E.g. if after setting the above schedule
+ we want the job to run every day instead of every hour from now on, we can do:
+
+```ruby
+name = 'send_emails'
+config = {}
+config[:class] = 'SendEmail'
+config[:args] = 'POC email subject'
+config[:every] = '1d'
+Resque.set_schedule(name, config)
+```
 
 #### Time zones
 
