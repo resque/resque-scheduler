@@ -91,7 +91,7 @@ module ResqueScheduler
   def clean_schedules
     if redis.exists(:schedules)
       redis.hkeys(:schedules).each do |key|
-        remove_schedule(key)
+        remove_schedule(key) if !schedule_persisted?(key)
       end
     end
     @schedule = nil
@@ -109,9 +109,15 @@ module ResqueScheduler
   #                                     :args => '/tmp/poop'})
   def set_schedule(name, config)
     existing_config = get_schedule(name)
+    persist = config.delete(:persist) || config.delete('persist')
     unless existing_config && existing_config == config
-      redis.hset(:schedules, name, encode(config))
-      redis.sadd(:schedules_changed, name)
+      redis.pipelined do
+        redis.hset(:schedules, name, encode(config))
+        redis.sadd(:schedules_changed, name)
+        if persist
+          redis.sadd(:persisted_schedules, name)
+        end
+      end
     end
     config
   end
@@ -121,10 +127,17 @@ module ResqueScheduler
     decode(redis.hget(:schedules, name))
   end
 
+  def schedule_persisted?(name)
+    redis.sismember(:persisted_schedules, name)
+  end
+
   # remove a given schedule by name
   def remove_schedule(name)
-    redis.hdel(:schedules, name)
-    redis.sadd(:schedules_changed, name)
+    redis.pipelined do
+      redis.hdel(:schedules, name)
+      redis.srem(:schedules_changed, name)
+      redis.sadd(:schedules_changed, name)
+    end
   end
 
   # This method is nearly identical to +enqueue+ only it also
