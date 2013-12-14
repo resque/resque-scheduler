@@ -79,7 +79,9 @@ module Resque
     end
 
     def master_lock_key
-      "#{ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] || ''}resque_scheduler_master_lock".to_sym
+      lock_prefix = ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] || ''
+      lock_prefix += ':' if lock_prefix != ''
+      "#{Resque.redis.namespace}:#{lock_prefix}resque_scheduler_master_lock"
     end
 
     def redis_master_version
