@@ -282,12 +282,17 @@ context "Resque::Scheduler" do
   end
 
   test "remove_schedule removes a schedule" do
-    Resque.redis.hset(:schedules, "some_ivar_job3", Resque.encode(
-      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44"
-    ))
+    Resque.set_schedule("some_ivar_job3",
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44", 'persist' => true}
+    )
+    Resque::Scheduler.load_schedule!
+    # Resque.redis.hset(:schedules, , Resque.encode(
+    #   'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44", 'persist' => true
+    # ))
     Resque.remove_schedule("some_ivar_job3")
     assert_equal nil, Resque.redis.hget(:schedules, "some_ivar_job3")
     assert Resque.redis.sismember(:schedules_changed, "some_ivar_job3")
+    assert_equal [], Resque.redis.smembers(:persisted_schedules)
   end
 
   test "persisted schedules" do
