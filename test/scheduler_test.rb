@@ -286,9 +286,6 @@ context "Resque::Scheduler" do
       {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44", 'persist' => true}
     )
     Resque::Scheduler.load_schedule!
-    # Resque.redis.hset(:schedules, , Resque.encode(
-    #   'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44", 'persist' => true
-    # ))
     Resque.remove_schedule("some_ivar_job3")
     assert_equal nil, Resque.redis.hget(:schedules, "some_ivar_job3")
     assert Resque.redis.sismember(:schedules_changed, "some_ivar_job3")
