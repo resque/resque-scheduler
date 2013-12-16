@@ -135,7 +135,7 @@ module ResqueScheduler
   def remove_schedule(name)
     redis.pipelined do
       redis.hdel(:schedules, name)
-      redis.srem(:schedules_changed, name)
+      redis.srem(:persisted_schedules, name)
       redis.sadd(:schedules_changed, name)
     end
   end
