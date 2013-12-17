@@ -282,12 +282,32 @@ context "Resque::Scheduler" do
   end
 
   test "remove_schedule removes a schedule" do
-    Resque.redis.hset(:schedules, "some_ivar_job3", Resque.encode(
-      'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44"
-    ))
+    Resque.set_schedule("some_ivar_job3",
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/44", 'persist' => true}
+    )
+    Resque::Scheduler.load_schedule!
     Resque.remove_schedule("some_ivar_job3")
     assert_equal nil, Resque.redis.hget(:schedules, "some_ivar_job3")
     assert Resque.redis.sismember(:schedules_changed, "some_ivar_job3")
+    assert_equal [], Resque.redis.smembers(:persisted_schedules)
+  end
+
+  test "persisted schedules" do
+    Resque.set_schedule("some_ivar_job",
+      {'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2", 'persist' => true}
+    )
+    Resque.set_schedule("new_ivar_job",
+      {'cron' => "* * * * *", 'class' => 'SomeJob', 'args' => "/tmp/3"}
+    )
+
+    Resque.schedule=({
+      'a_schedule' => {'cron' => "* * * * *", 'class' => 'SomeOtherJob', 'args' => '/tmp'}
+    })
+    Resque::Scheduler.load_schedule!
+
+    assert_equal({'cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp/2"},
+      Resque.schedule['some_ivar_job'])
+    assert_equal(nil, Resque.schedule['some_job'])
   end
 
   test "adheres to lint" do
