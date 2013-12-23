@@ -13,13 +13,16 @@ module ResqueScheduler
       results.all? { |result| result != false }
     end
 
-    def method_missing(method_name, *args, &block)
-      if method_name.to_s =~ /^run_(.*)_hooks$/
-        job = args.shift
-        run_hooks job, $1, *args
-      else
-        super
-      end
+    def run_before_delayed_enqueue_hooks(klass, *args)
+      run_hooks(klass, 'before_delayed_enqueue', *args)
+    end
+
+    def run_before_schedule_hooks(klass, *args)
+      run_hooks(klass, 'before_schedule', *args)
+    end
+
+    def run_after_schedule_hooks(klass, *args)
+      run_hooks(klass, 'after_schedule', *args)
     end
   end
 end
