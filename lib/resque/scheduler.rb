@@ -57,6 +57,13 @@ module Resque
         @dynamic ||= !!ENV['DYNAMIC_SCHEDULE']
       end
 
+      # If set, will append the app name to procline
+      attr_writer :app_name
+
+      def app_name
+        @app_name ||= ENV['APP_NAME']
+      end
+
       # Amount of time in seconds to sleep between polls of the delayed
       # queue.  Defaults to 5
       attr_writer :poll_sleep_amount
@@ -397,7 +404,23 @@ module Resque
 
       def procline(string)
         log! string
-        $0 = "resque-scheduler-#{ResqueScheduler::VERSION}: #{string}"
+        argv0 = build_procline(string)
+        log "Setting procline #{argv0.inspect}"
+        $0 = argv0
+      end
+
+      private
+
+      def app_str
+        app_name ? "[#{app_name}]" : ''
+      end
+
+      def build_procline(string)
+        "#{internal_name}#{app_str}: #{string}"
+      end
+
+      def internal_name
+        "resque-scheduler-#{ResqueScheduler::VERSION}"
       end
     end
   end

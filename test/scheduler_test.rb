@@ -316,4 +316,15 @@ context "Resque::Scheduler" do
       Resque::Plugin.lint(ResqueScheduler)
     end
   end
+
+  test 'procline contains app_name when present' do
+    Resque::Scheduler.app_name = 'foo'
+    assert Resque::Scheduler.send(:build_procline, 'bar') =~ /\[foo\]:/
+  end
+
+  test 'procline omits app_name when not present' do
+    Resque::Scheduler.app_name = nil
+    assert Resque::Scheduler.send(:build_procline, 'bar') =~
+      /#{Resque::Scheduler.send(:internal_name)}: bar/
+  end
 end
