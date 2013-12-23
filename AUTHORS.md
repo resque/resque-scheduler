@@ -45,6 +45,7 @@ Resque Scheduler authors
 - Olivier Brisse
 - Petteri Räty
 - Phil Cohen
+- Rob Olson
 - Russell Branca
 - Ryan Biesemeyer
 - Ryan Carver
