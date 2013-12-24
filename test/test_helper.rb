@@ -11,22 +11,12 @@ require 'resque'
 require File.join(dir, '../lib/resque_scheduler')
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 
-
-#
-# make sure we can run redis
-#
-
-if !system("which redis-server")
-  puts '', "** can't find `redis-server` in your path"
-  puts "** try running `sudo rake install`"
-  abort ''
+unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
+  # Start our own Redis when the tests start. RedisInstance will take care of
+  # starting and stopping.
+  require File.expand_path('../support/redis_instance', __FILE__)
+  RedisInstance.run!
 end
-
-
-#
-# start our own redis when the tests start,
-# kill it when they end
-#
 
 at_exit do
   next if $!
@@ -37,16 +27,8 @@ at_exit do
     exit_code = Test::Unit::AutoRunner.run
   end
 
-  pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
-  puts "Killing test redis server..."
-  Process.kill("KILL", pid.to_i)
   exit exit_code
 end
-
-`rm -f #{dir}/dump.rdb`
-puts "Starting redis for testing at localhost:9736..."
-`redis-server #{dir}/redis-test.conf`
-Resque.redis = 'localhost:9736'
 
 ##
 # test/spec/mini 3
