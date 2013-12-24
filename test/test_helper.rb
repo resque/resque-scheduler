@@ -27,16 +27,8 @@ at_exit do
     exit_code = Test::Unit::AutoRunner.run
   end
 
-  pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
-  puts "Killing test redis server..."
-  Process.kill("KILL", pid.to_i)
   exit exit_code
 end
-
-`rm -f #{dir}/dump.rdb`
-puts "Starting redis for testing at localhost:9736..."
-`redis-server #{dir}/redis-test.conf`
-Resque.redis = 'localhost:9736'
 
 ##
 # test/spec/mini 3
