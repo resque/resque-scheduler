@@ -8,3 +8,4 @@ Gemfile.lock
 .rvmrc
 *.swp
 
+/coverage/

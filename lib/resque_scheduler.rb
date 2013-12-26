@@ -6,6 +6,8 @@ require 'resque/scheduler'
 require 'resque_scheduler/plugin'
 
 module ResqueScheduler
+  autoload :Cli, 'resque_scheduler/cli'
+
   #
   # Accepts a new schedule configuration of the form:
   #
