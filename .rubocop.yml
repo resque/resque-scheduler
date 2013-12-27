@@ -2,6 +2,9 @@
 # The point is for the user to remove these configuration records
 # one by one as the offences are removed from the code base.
 
+AccessorMethodName:
+  Enabled: false
+
 AlignParameters:
   Enabled: false
 
@@ -15,7 +18,7 @@ CaseEquality:
   Enabled: false
 
 ClassLength:
-  Enabled: false
+  Max: 297
 
 ClassVars:
   Enabled: false
@@ -30,15 +33,9 @@ CommentAnnotation:
   Enabled: false
 
 CyclomaticComplexity:
-  Enabled: false
+  Max: 18
 
 Documentation:
-  Enabled: false
-
-EmptyLines:
-  Enabled: false
-
-EmptyLinesAroundBody:
   Enabled: false
 
 Encoding:
@@ -59,8 +56,11 @@ HashSyntax:
 IfUnlessModifier:
   Enabled: false
 
-LineLength:
+IndentationWidth:
   Enabled: false
+
+LineLength:
+  Max: 152
 
 Loop:
   Enabled: false
@@ -69,7 +69,7 @@ MethodCallParentheses:
   Enabled: false
 
 MethodLength:
-  Enabled: false
+  Max: 90
 
 ModuleFunction:
   Enabled: false
@@ -80,7 +80,7 @@ NumericLiterals:
 ParenthesesAroundCondition:
   Enabled: false
 
-PerlBackrefs:
+PredicateName:
   Enabled: false
 
 RedundantBegin:
