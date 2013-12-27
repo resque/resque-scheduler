@@ -20,14 +20,8 @@ task :test do
 
   $LOAD_PATH.unshift(File.expand_path('../test', __FILE__))
 
-  if ENV['TEST']
-    ENV['TEST'].split.each do |f|
-      require File.expand_path(f)
-    end
-  else
-    Dir.glob('test/*_test.rb') do |f|
-      require File.expand_path(f)
-    end
+  Dir.glob('test/*_test.rb') do |f|
+    require File.expand_path(f)
   end
 end
 
