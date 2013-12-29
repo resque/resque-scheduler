@@ -352,6 +352,14 @@ module ResqueScheduler
     end
   end
 
+  def set_last_run(job_name, date)
+    redis.hset('delayed:last_run', job_name, date)
+  end
+
+  def get_last_run(job_name)
+    redis.hget('delayed:last_run', job_name)
+  end
+
   private
 
   def job_to_hash(klass, args)
