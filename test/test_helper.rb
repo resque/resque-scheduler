@@ -1,10 +1,13 @@
-
 # Pretty much copied this file from the resque test_helper since we want
 # to do all the same stuff
 
 dir = File.dirname(File.expand_path(__FILE__))
 
 require 'rubygems'
+require 'bundler/setup'
+
+require 'simplecov' unless RUBY_VERSION < '1.9'
+
 require 'test/unit'
 require 'mocha/setup'
 require 'resque'
