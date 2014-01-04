@@ -5,7 +5,7 @@
   a job immediately.
   Server local time: <%= Time.now %>
 </p>
-<div style="overflow-y: auto; width:100%;padding: 0px 5px;">
+<div style="overflow-y: auto; width:100%; padding: 0px 5px;">
 <table>
   <tr>
     <th></th>
@@ -29,7 +29,7 @@
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
       <td style="white-space:nowrap"><%= h schedule_interval(config) %></td>
-      <td ><%= h schedule_class(config) %></td>
+      <td><%= h schedule_class(config) %></td>
       <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
       <td><%= h config['args'].inspect %></td>
       <td><%= h Resque.get_last_run(name) || 'Never' %></td>
