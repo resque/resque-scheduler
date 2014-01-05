@@ -51,6 +51,31 @@ context 'Cli' do
     assert_equal(true, cli.send(:options)[:background])
   end
 
+  test 'daemonizes when background is true' do
+    Process.expects(:daemon)
+    cli = new_cli(%w(--background))
+    cli.pre_run
+  end
+
+  test 'reconnects redis when background is true' do
+    Process.stubs(:daemon)
+    mock_redis_client = mock('redis_client')
+    mock_redis = mock('redis')
+    mock_redis.expects(:client).returns(mock_redis_client)
+    mock_redis_client.expects(:reconnect)
+    Resque.expects(:redis).returns(mock_redis)
+    cli = new_cli(%w(--background))
+    cli.pre_run
+  end
+
+  test 'aborts when background is given and Process does not support daemon' do
+    Process.stubs(:daemon)
+    Process.expects(:respond_to?).with('daemon').returns(false)
+    cli = new_cli(%w(--background))
+    cli.expects(:abort)
+    cli.pre_run
+  end
+
   test 'initializes pidfile from the env' do
     cli = new_cli([], { 'PIDFILE' => 'bar' })
     assert_equal('bar', cli.send(:options)[:pidfile])
@@ -72,6 +97,35 @@ context 'Cli' do
     assert_equal('foo', cli.send(:options)[:pidfile])
   end
 
+  test 'writes pid to pidfile when given' do
+    mock_pidfile = mock('pidfile')
+    mock_pidfile.expects(:puts)
+    File.expects(:open).with('derp.pid', 'w').yields(mock_pidfile)
+    cli = new_cli(%w(--pidfile derp.pid))
+    cli.pre_run
+  end
+
+  test 'initializes dynamic from the env' do
+    cli = new_cli([], { 'DYNAMIC_SCHEDULE' => '1' })
+    assert_equal('flurb', cli.send(:options)[:dynamic])
+  end
+
+  test 'defaults to nil dynamic' do
+    assert_equal(nil, new_cli.send(:options)[:dynamic])
+  end
+
+  test 'accepts dynamic via -D' do
+    cli = new_cli(%w(-D))
+    cli.parse_options
+    assert_equal(true, cli.send(:options)[:dynamic])
+  end
+
+  test 'accepts dynamic via --dynamic-schedule' do
+    cli = new_cli(%w(--dynamic-schedule))
+    cli.parse_options
+    assert_equal(true, cli.send(:options)[:dynamic])
+  end
+
   test 'initializes env from the env' do
     cli = new_cli([], { 'RAILS_ENV' => 'flurb' })
     assert_equal('flurb', cli.send(:options)[:env])
@@ -91,6 +145,33 @@ context 'Cli' do
     cli = new_cli(%w(--environment hork))
     cli.parse_options
     assert_equal('hork', cli.send(:options)[:env])
+  end
+
+  test 'initializes initializer_path from the env' do
+    cli = new_cli([], { 'INITIALIZER_PATH' => 'herp.rb' })
+    assert_equal('herp.rb', cli.send(:options)[:initializer_path])
+  end
+
+  test 'defaults to nil initializer_path' do
+    assert_equal(nil, new_cli.send(:options)[:initializer_path])
+  end
+
+  test 'accepts initializer_path via -I' do
+    cli = new_cli(%w(-I hambone.rb))
+    cli.parse_options
+    assert_equal('hambone.rb', cli.send(:options)[:initializer_path])
+  end
+
+  test 'accepts initializer_path via --initalizer-path' do
+    cli = new_cli(%w(--initializer-path cookies.rb))
+    cli.parse_options
+    assert_equal('cookies.rb', cli.send(:options)[:initializer_path])
+  end
+
+  test 'loads given initilalizer_path' do
+    cli = new_cli(%w(--initializer-path fuzzbert.rb))
+    cli.expects(:load).with('fuzzbert.rb')
+    cli.pre_run
   end
 
   test 'initializes mute/quiet from the env' do
@@ -196,5 +277,10 @@ context 'Cli' do
     cli = new_cli(%w(--app-name flimsy))
     cli.parse_options
     assert_equal('flimsy', cli.send(:options)[:app_name])
+  end
+
+  test 'runs Resque::Scheduler' do
+    Resque::Scheduler.expects(:run)
+    ResqueScheduler::Cli.run!([], {})
   end
 end

@@ -4,26 +4,39 @@ require 'optparse'
 
 module ResqueScheduler
   class Cli
+    BANNER = <<-EOF.gsub(/ {6}/, '')
+      Usage: resque-scheduler [options]
+
+      Runs a resque scheduler process directly (rather than via rake).
+
+    EOF
     OPTIONS = [
       {
-        args: ['-v', '--verbose', 'Run with verbose output'],
-        callback: ->(options) { ->(v) { options[:verbose] = v } }
+        args: ['-n', '--app-name [APP_NAME]', 'Application name for procline'],
+        callback: ->(options) { ->(n) { options[:app_name] = n } }
       },
       {
-        args: ['-B', '--background', 'Run in the background'],
+        args: ['-B', '--background', 'Run in the background [BACKGROUND]'],
         callback: ->(options) { ->(b) { options[:background] = b  } }
       },
       {
-        args: ['-P', '--pidfile [PIDFILE]', 'PID file name'],
-        callback: ->(options) { ->(p) { options[:pidfile] = p } }
+        args: ['-D', '--dynamic-schedule',
+               'Enable dynamic scheduling [DYNAMIC_SCHEDULE]'],
+        callback: ->(options) { ->(d) { options[:dynamic] = d } }
       },
       {
         args: ['-E', '--environment [RAILS_ENV]', 'Environment name'],
         callback: ->(options) { ->(e) { options[:env] = e } }
       },
       {
-        args: ['-q', '--quiet', 'Run with minimal output'],
-        callback: ->(options) { ->(q) { options[:mute] = q } }
+        args: ['-I', '--initializer-path [INITIALIZER_PATH]',
+               'Path to optional initializer ruby file'],
+        callback: ->(options) { ->(i) { options[:initializer_path] = i } }
+      },
+      {
+        args: ['-i', '--interval [RESQUE_SCHEDULER_INTERVAL]',
+               'Interval for checking if a scheduled job must run'],
+        callback: ->(options) { ->(i) { options[:poll_sleep_amount] = i } }
       },
       {
         args: ['-l', '--logfile [LOGFILE]', 'Log file name'],
@@ -34,12 +47,16 @@ module ResqueScheduler
         callback: ->(options) { ->(f) { options[:logformat] = f } }
       },
       {
-        args: ['-D', '--dynamic-schedule', 'Enable dynamic scheduling'],
-        callback: ->(options) { ->(d) { options[:dynamic] = d } }
+        args: ['-P', '--pidfile [PIDFILE]', 'PID file name'],
+        callback: ->(options) { ->(p) { options[:pidfile] = p } }
       },
       {
-        args: ['-n', '--app-name [APP_NAME]', 'Application name for procline'],
-        callback: ->(options) { ->(n) { options[:app_name] = n } }
+        args: ['-q', '--quiet', 'Run with minimal output [QUIET] (or [MUTE])'],
+        callback: ->(options) { ->(q) { options[:mute] = q } }
+      },
+      {
+        args: ['-v', '--verbose', 'Run with verbose output [VERBOSE]'],
+        callback: ->(options) { ->(v) { options[:verbose] = v } }
       },
     ].freeze
 
@@ -53,15 +70,19 @@ module ResqueScheduler
     end
 
     def run!
+      pre_run
+      run_forever
+    end
+
+    def pre_run
       parse_options
       pre_setup
       setup_env
-      run_forever
     end
 
     def parse_options
       OptionParser.new do |opts|
-        opts.banner = 'Usage: resque-scheduler [options]'
+        opts.banner = BANNER
         OPTIONS.each do |opt|
           opts.on(*opt[:args], &(opt[:callback].call(options)))
         end
@@ -102,11 +123,13 @@ module ResqueScheduler
         # in the attr reader methods.  They are left here for clarity and
         # to serve as an example of how to use `.configure`.
 
-        c.dynamic = !!options[:dynamic]
-        c.verbose = !!options[:verbose]
-        c.logfile = options[:logfile]
-        c.poll_sleep_amount = Float(options[:poll_sleep_amount] || '5')
         c.app_name = options[:app_name]
+        c.dynamic = !!options[:dynamic]
+        c.env = options[:env]
+        c.logfile = options[:logfile]
+        c.logformat = options[:logformat]
+        c.poll_sleep_amount = Float(options[:poll_sleep_amount] || '5')
+        c.verbose = !!options[:verbose]
       end
     end
 
@@ -120,17 +143,17 @@ module ResqueScheduler
 
     def options
       @options ||= {
-        verbose: env['VERBOSE'],
+        app_name: env['APP_NAME'],
         background: env['BACKGROUND'],
-        pidfile: env['PIDFILE'],
+        dynamic: env['DYNAMIC_SCHEDULE'],
         env: env['RAILS_ENV'],
-        mute: env['MUTE'] || env['QUIET'],
+        initializer_path: env['INITIALIZER_PATH'],
         logfile: env['LOGFILE'],
         logformat: env['LOGFORMAT'],
-        dynamic: env['DYNAMIC_SCHEDULE'],
-        app_name: env['APP_NAME'],
+        mute: env['MUTE'] || env['QUIET'],
+        pidfile: env['PIDFILE'],
         poll_sleep_amount: env['RESQUE_SCHEDULER_INTERVAL'],
-        initializer_path: env['INITIALIZER_PATH'],
+        verbose: env['VERBOSE'],
       }
     end
   end
