@@ -215,17 +215,17 @@ CancelAbandonedOrders:
 queue_documents_for_indexing:
   cron: "0 0 * * *"
   # you can use rufus-scheduler "every" syntax in place of cron if you prefer
-  # every: 1hr
+  # every: 1h
   # By default the job name (hash key) will be taken as worker class name.
   # If you want to have a different job name and class name, provide the 'class' option
-  class: QueueDocuments
+  class: "QueueDocuments"
   queue: high
   args:
   description: "This job queues all content for indexing in solr"
 
 clear_leaderboards_contributors:
   cron: "30 6 * * 1"
-  class: ClearLeaderboards
+  class: "ClearLeaderboards"
   queue: low
   args: contributors
   description: "This job resets the weekly leaderboard for contributions"
@@ -244,7 +244,7 @@ clear_leaderboards_moderator:
   every:
     - "30s"
     - :first_in: '120s'
-  class: CheckDaemon
+  class: "CheckDaemon"
   queue: daemons
   description: "This job will check Daemon every 30 seconds after 120 seconds after start"
 ```
@@ -379,7 +379,7 @@ And then a schedule:
 create_fake_leaderboards:
   cron: "30 6 * * 1"
   queue: scoring
-  custom_job_class: FakeLeaderboard
+  custom_job_class: "FakeLeaderboard"
   args:
   rails_env: demo
   description: "This job will auto-create leaderboards for our online demo and the status will update as the worker makes progress"
