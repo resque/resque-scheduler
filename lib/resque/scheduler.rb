@@ -415,8 +415,12 @@ module Resque
         app_name ? "[#{app_name}]" : ''
       end
 
+      def env_str
+        env ? "[#{env}]" : ''
+      end
+
       def build_procline(string)
-        "#{internal_name}#{app_str}: #{string}"
+        "#{internal_name}#{app_str}#{env_str}: #{string}"
       end
 
       def internal_name
