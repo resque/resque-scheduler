@@ -3,9 +3,13 @@ require File.dirname(__FILE__) + '/test_helper'
 context "Resque::Scheduler" do
 
   setup do
-    Resque::Scheduler.dynamic = false
+    Resque::Scheduler.configure do |c|
+      c.dynamic = false
+      c.mute = true
+      c.env = nil
+      c.app_name = nil
+    end
     Resque.redis.flushall
-    Resque::Scheduler.mute = true
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:class_variable_set, :@@scheduled_jobs, {})
   end
@@ -318,13 +322,11 @@ context "Resque::Scheduler" do
   end
 
   test 'procline contains app_name when present' do
-    Resque::Scheduler.env = nil
     Resque::Scheduler.app_name = 'foo'
     assert Resque::Scheduler.send(:build_procline, 'bar') =~ /\[foo\]:/
   end
 
   test 'procline omits app_name when absent' do
-    Resque::Scheduler.env = nil
     Resque::Scheduler.app_name = nil
     assert Resque::Scheduler.send(:build_procline, 'bar') =~
       /#{Resque::Scheduler.send(:internal_name)}: bar/
@@ -337,7 +339,6 @@ context "Resque::Scheduler" do
 
   test 'procline omits env when absent' do
     Resque::Scheduler.env = nil
-    Resque::Scheduler.app_name = nil
     assert Resque::Scheduler.send(:build_procline, 'cage') =~
       /#{Resque::Scheduler.send(:internal_name)}: cage/
   end
