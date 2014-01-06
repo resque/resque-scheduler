@@ -318,13 +318,27 @@ context "Resque::Scheduler" do
   end
 
   test 'procline contains app_name when present' do
+    Resque::Scheduler.env = nil
     Resque::Scheduler.app_name = 'foo'
     assert Resque::Scheduler.send(:build_procline, 'bar') =~ /\[foo\]:/
   end
 
-  test 'procline omits app_name when not present' do
+  test 'procline omits app_name when absent' do
+    Resque::Scheduler.env = nil
     Resque::Scheduler.app_name = nil
     assert Resque::Scheduler.send(:build_procline, 'bar') =~
       /#{Resque::Scheduler.send(:internal_name)}: bar/
+  end
+
+  test 'procline contains env when present' do
+    Resque::Scheduler.env = 'derp'
+    assert Resque::Scheduler.send(:build_procline, 'cage') =~ /\[derp\]: cage/
+  end
+
+  test 'procline omits env when absent' do
+    Resque::Scheduler.env = nil
+    Resque::Scheduler.app_name = nil
+    assert Resque::Scheduler.send(:build_procline, 'cage') =~
+      /#{Resque::Scheduler.send(:internal_name)}: cage/
   end
 end
