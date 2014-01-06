@@ -49,6 +49,7 @@ Resque Scheduler authors
 - Russell Branca
 - Ryan Biesemeyer
 - Ryan Carver
+- Sameer Siruguri
 - Scott Francis
 - Sebastian Kippe
 - Spring MC
