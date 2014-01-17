@@ -95,6 +95,19 @@ end
 
 JobWithoutParams = Class.new(JobWithParams)
 
+%w(
+  APP_NAME
+  DYNAMIC_SCHEDULE
+  LOGFILE
+  LOGFORMAT
+  MUTE
+  RAILS_ENV
+  RESQUE_SCHEDULER_INTERVAL
+  VERBOSE
+).each do |envvar|
+  ENV[envvar] = nil
+end
+
 def nullify_logger
   Resque::Scheduler.configure do |c|
     c.mute    = nil
