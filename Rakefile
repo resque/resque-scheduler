@@ -1,28 +1,13 @@
 require 'bundler/gem_tasks'
+require 'rake/testtask'
 
-$LOAD_PATH.unshift 'lib'
+task default: [:rubocop, :test]
 
-task :default => :test
-
-desc 'Run tests'
-task :test do
-  if RUBY_VERSION =~ /^1\.8/
-    unless ENV['SEED']
-      srand
-      ENV['SEED'] = (srand % 0xFFFF).to_s
-    end
-
-    $stdout.puts "Running with SEED=#{ENV['SEED']}"
-    srand Integer(ENV['SEED'])
-  elsif ENV['SEED']
-    ARGV += %W(--seed #{ENV['SEED']})
-  end
-
-  $LOAD_PATH.unshift(File.expand_path('../test', __FILE__))
-
-  Dir.glob('test/*_test.rb') do |f|
-    require File.expand_path(f)
-  end
+Rake::TestTask.new do |t|
+  t.libs << 'test'
+  t.pattern = ENV['PATTERN'] || 'test/*_test.rb'
+  t.verbose = !!ENV['VERBOSE']
+  t.options = "--seed #{ENV['SEED']}" if ENV['SEED']
 end
 
 desc 'Run rubocop'

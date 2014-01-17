@@ -32,7 +32,7 @@ at_exit do
     exit_code = Test::Unit::AutoRunner.run
   end
 
-  exit exit_code
+  exit(exit_code || 0)
 end
 
 ##

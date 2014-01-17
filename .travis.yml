@@ -5,7 +5,6 @@ rvm:
 env:
   global:
   - RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER=1
-script: bundle exec rake rubocop test
 services:
 - redis-server
 notifications:
