@@ -1,5 +1,5 @@
 # vim:fileencoding=utf-8
 
 module ResqueScheduler
-  VERSION = '2.3.1'
+  VERSION = '3.0.0'
 end
