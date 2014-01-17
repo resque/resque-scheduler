@@ -34,7 +34,7 @@ module ResqueScheduler
               s << every
             end
 
-            return s unless every.respond_to?(:length) && every.length > 1
+            return s unless every.respond_to?(:last) && every.length > 1
 
             s << ' ('
             meta = every.last.map do |key, value|
