@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 class User < ActiveRecord::Base
   after_create :schedule_send_email
   
@@ -9,6 +11,6 @@ class User < ActiveRecord::Base
     config[:class] = 'SendEmailJob'
     config[:args] = id
     config[:every] = '1d'
-    Resque.set_schedule name, config
+    Resque.set_schedule(name, config)
   end
 end
