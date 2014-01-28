@@ -1,3 +1,20 @@
+## 2.4.0 (2013-01-14)
+
+* Including optional env name in procline
+* Fixing an explosion regarding `every` in the views
+* Bumping the copyright year
+* Corrected doc for syntax of class and every keys
+* Adding a standalone executable
+* **POSSIBLE BREAKING CHANGE**: Dropping support for ree
+* Add support for persistence of dynamic schedules
+* Fix unsafe shutdown in Ruby 2
+* Adding `.configure` convenience method for block-style configuration
+* Add `.remove_delayed_selection` method to remove based on result of a block
+* Add support for viewing all schedules for a job in web UI
+* Use resque redis namespace in the master lock key
+* Including optional app name in procline
+* Various test improvements, :bug: fixes, and documentation updates!
+
 ## 2.3.1 (2013-11-20)
 
 * Correcting `require_paths` in gemspec

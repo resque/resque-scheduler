@@ -57,7 +57,7 @@ module ResqueScheduler
       {
         args: ['-v', '--verbose', 'Run with verbose output [VERBOSE]'],
         callback: ->(options) { ->(v) { options[:verbose] = v } }
-      },
+      }
     ].freeze
 
     def self.run!(argv = ARGV, env = ENV)
@@ -153,7 +153,7 @@ module ResqueScheduler
         mute: env['MUTE'] || env['QUIET'],
         pidfile: env['PIDFILE'],
         poll_sleep_amount: env['RESQUE_SCHEDULER_INTERVAL'],
-        verbose: env['VERBOSE'],
+        verbose: env['VERBOSE']
       }
     end
   end
