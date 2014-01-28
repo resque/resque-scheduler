@@ -1,4 +1,6 @@
-## 2.4.0 (2013-01-14)
+# Resque Scheduler History / ChangeLog / Release Notes
+
+## 2.4.0 (2014-01-14)
 
 * Including optional env name in procline
 * Fixing an explosion regarding `every` in the views
