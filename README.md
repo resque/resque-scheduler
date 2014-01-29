@@ -12,7 +12,7 @@ that adds support for queueing items in the future.
 
 This table explains the version requirements for redis
 
-| resque-scheduler version | required redis version|
+| resque-scheduler version | required redis gem version|
 |:-------------------------|----------------------:|
 | ~> 2.0                   | >= 3.0.0              |
 | >= 0.0.1                 | ~> 1.3                |
