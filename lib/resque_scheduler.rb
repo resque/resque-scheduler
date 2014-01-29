@@ -348,39 +348,39 @@ module ResqueScheduler
 
   private
 
-    def job_to_hash(klass, args)
-      {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
-    end
+  def job_to_hash(klass, args)
+    {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
+  end
 
-    def job_to_hash_with_queue(queue, klass, args)
-      {:class => klass.to_s, :args => args, :queue => queue}
-    end
+  def job_to_hash_with_queue(queue, klass, args)
+    {:class => klass.to_s, :args => args, :queue => queue}
+  end
 
-    def clean_up_timestamp(key, timestamp)
-      # If the list is empty, remove it.
+  def clean_up_timestamp(key, timestamp)
+    # If the list is empty, remove it.
 
-      # Use a watch here to ensure nobody adds jobs to this delayed
-      # queue while we're removing it.
-      redis.watch key
-      if 0 == redis.llen(key).to_i
-        redis.multi do
-          redis.del key
-          redis.zrem :delayed_queue_schedule, timestamp.to_i
-        end
-      else
-        redis.unwatch
+    # Use a watch here to ensure nobody adds jobs to this delayed
+    # queue while we're removing it.
+    redis.watch key
+    if 0 == redis.llen(key).to_i
+      redis.multi do
+        redis.del key
+        redis.zrem :delayed_queue_schedule, timestamp.to_i
       end
+    else
+      redis.unwatch
     end
+  end
 
-    def prepare_schedule(schedule_hash)
-      prepared_hash = {}
-      schedule_hash.each do |name, job_spec|
-        job_spec = job_spec.dup
-        job_spec['class'] = name unless job_spec.key?('class') || job_spec.key?(:class)
-        prepared_hash[name] = job_spec
-      end
-      prepared_hash
+  def prepare_schedule(schedule_hash)
+    prepared_hash = {}
+    schedule_hash.each do |name, job_spec|
+      job_spec = job_spec.dup
+      job_spec['class'] = name unless job_spec.key?('class') || job_spec.key?(:class)
+      prepared_hash[name] = job_spec
     end
+    prepared_hash
+  end
 end
 
 Resque.extend ResqueScheduler

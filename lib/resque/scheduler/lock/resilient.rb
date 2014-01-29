@@ -3,7 +3,7 @@ require 'resque/scheduler/lock/base'
 module Resque
   class Scheduler
     module Lock
-      class Resilient < Base
+      class Resilient < Base # rubocop:disable TrailingComma
         def acquire!
           Resque.redis.evalsha(
             acquire_sha,
