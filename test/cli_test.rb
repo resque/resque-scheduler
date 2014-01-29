@@ -1,4 +1,4 @@
-require 'test_helper'
+require_relative 'test_helper'
 
 context 'Cli' do
   def new_cli(argv = [], env = {})
