@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require_relative 'test_helper'
 
 module LockTestHelper
   def lock_is_not_held(lock)
