@@ -23,8 +23,9 @@ module ResqueScheduler
             # Check working jobs
             working = Resque.working
             working = [working] unless working.is_a?(Array)
-            work = working.select { |w| w.job and w.job["payload"] and
-                w.job['payload']['class'].downcase.include? worker }
+            work = working.select do |w|
+              w.job && w.job["payload"] && w.job['payload']['class'].downcase.include?(worker)
+            end
             work.each do |w|
               results += [w.job['payload'].merge({'queue' => w.job['queue'], 'where_at' => 'working'})]
             end
@@ -36,15 +37,17 @@ module ResqueScheduler
                 dels << j.merge!({'timestamp' => d})
               end
             end
-            results += dels.select { |j| j['class'].downcase.include? worker and
-                j.merge!({'where_at' => 'delayed'}) }
+            results += dels.select do |j|
+              j['class'].downcase.include?(worker) && j.merge!({'where_at' => 'delayed'})
+            end
 
             # Check Queues
             Resque.queues.each do |queue|
                 queued = Resque.peek(queue, 0, Resque.size(queue))
                 queued = [queued] unless queued.is_a?(Array)
-                results += queued.select { |j| j['class'].downcase.include? worker and
-                    j.merge!({'queue' => queue, 'where_at' => 'queued'}) }
+                results += queued.select do |j|
+                  j['class'].downcase.include?(worker) && j.merge!({'queue' => queue, 'where_at' => 'queued'})
+                end
             end
             results
           end
