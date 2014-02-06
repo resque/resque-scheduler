@@ -33,7 +33,7 @@ CommentAnnotation:
   Enabled: false
 
 CyclomaticComplexity:
-  Max: 18
+  Max: 28
 
 Documentation:
   Enabled: false
@@ -69,7 +69,7 @@ MethodCallParentheses:
   Enabled: false
 
 MethodLength:
-  Max: 90
+  Max: 180
 
 ModuleFunction:
   Enabled: false

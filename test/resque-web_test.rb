@@ -1,4 +1,4 @@
-require_relative 'test_helper'
+require File.dirname(__FILE__) + '/test_helper'
 
 # Pull in the server test_helper from resque
 require 'resque/server/test_helper.rb'
@@ -166,4 +166,34 @@ context "POST /schedule/requeue_with_params" do
 
     assert last_response.ok?, last_response.errors
   end
+end
+
+context "on POST to /delayed/search" do
+  setup do
+    t = Time.now + 60
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue(SomeQuickJob)
+  end
+
+  test 'should find matching scheduled job' do
+    post "/delayed/search" , 'search' => 'ivar'
+    assert last_response.status == 200
+    assert last_response.body.include?('SomeIvarJob')
+  end
+
+  test 'should find matching queued job' do
+    post "/delayed/search" , 'search' => 'quick'
+    assert last_response.status == 200
+    assert last_response.body.include?('SomeQuickJob')
+  end
+end
+
+context "on POST to /delayed/cancel_now" do
+  setup { post "/delayed/cancel_now" }
+
+  test 'redirects to overview' do
+    assert last_response.status == 302
+    assert last_response.header['Location'].include? '/delayed'
+  end
+
 end
