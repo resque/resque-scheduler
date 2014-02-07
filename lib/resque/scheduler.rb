@@ -276,7 +276,7 @@ module Resque
         begin
           yield
         rescue Exception => e
-          log! "#{e.class.name}: #{e.message}"
+          log_error "#{e.class.name}: #{e.message}"
         end
       end
 
@@ -396,6 +396,10 @@ module Resque
 
       def log!(msg)
         logger.info { msg }
+      end
+
+      def log_error(msg)
+        logger.error { msg }
       end
 
       def log(msg)
