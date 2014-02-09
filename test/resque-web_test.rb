@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-# Pull in the server test_helper from resque
-require 'resque/server/test_helper.rb'
+require 'resque/server/test_helper'
 
 context "on GET to /schedule" do
   setup { get "/schedule" }

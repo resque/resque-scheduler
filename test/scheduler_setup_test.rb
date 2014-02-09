@@ -92,4 +92,38 @@ context "Resque::Scheduler" do
       assert Resque::Scheduler.logger.level == Logger::FATAL
     end
   end
+
+  context 'logger with json formatter' do
+    setup do
+      nullify_logger
+      Resque::Scheduler.logformat = 'json'
+      $stdout = StringIO.new
+    end
+
+    teardown do
+      $stdout = STDOUT
+    end
+
+    test 'logs with json' do
+      Resque::Scheduler.log! 'whatever'
+      assert $stdout.string =~ /"msg":"whatever"/
+    end
+  end
+
+  context 'logger with text formatter' do
+    setup do
+      nullify_logger
+      Resque::Scheduler.logformat = 'text'
+      $stdout = StringIO.new
+    end
+
+    teardown do
+      $stdout = STDOUT
+    end
+
+    test 'logs with text' do
+      Resque::Scheduler.log! 'another thing'
+      assert $stdout.string =~ /: another thing/
+    end
+  end
 end

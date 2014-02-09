@@ -107,7 +107,7 @@ context 'Cli' do
 
   test 'initializes dynamic from the env' do
     cli = new_cli([], { 'DYNAMIC_SCHEDULE' => '1' })
-    assert_equal('flurb', cli.send(:options)[:dynamic])
+    assert_equal('1', cli.send(:options)[:dynamic])
   end
 
   test 'defaults to nil dynamic' do
@@ -237,25 +237,8 @@ context 'Cli' do
     assert_equal('flimsy', cli.send(:options)[:logformat])
   end
 
-  test 'initializes dynamic from the env' do
-    cli = new_cli([], { 'DYNAMIC_SCHEDULE' => '1' })
-    assert_equal('1', cli.send(:options)[:dynamic])
-  end
-
   test 'defaults to dynamic=false' do
     assert_equal(false, !!new_cli.send(:options)[:dynamic])
-  end
-
-  test 'accepts dynamic via -D' do
-    cli = new_cli(%w(-D))
-    cli.parse_options
-    assert_equal(true, cli.send(:options)[:dynamic])
-  end
-
-  test 'accepts dynamic via --dynamic-schedule' do
-    cli = new_cli(%w(--dynamic-schedule))
-    cli.parse_options
-    assert_equal(true, cli.send(:options)[:dynamic])
   end
 
   test 'initializes app_name from the env' do
