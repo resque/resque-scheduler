@@ -21,8 +21,7 @@ module ResqueScheduler
             results = Array.new
 
             # Check working jobs
-            working = Resque.working
-            working = [working] unless working.is_a?(Array)
+            working = [*Resque.working]
             work = working.select do |w|
               w.job && w.job["payload"] && w.job['payload']['class'].downcase.include?(worker)
             end
@@ -133,7 +132,7 @@ module ResqueScheduler
             klass = ResqueScheduler::Util::constantize(params[:klass])
             @args = JSON.load(URI.decode(params[:args]))
             @timestamps = Resque.scheduled_at(klass, *@args)
-          rescue => err
+          rescue
             @timestamps = []
           end
 
