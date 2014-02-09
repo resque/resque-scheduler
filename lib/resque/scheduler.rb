@@ -208,6 +208,7 @@ module Resque
               @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, *args) do
                 if is_master?
                   log! "queueing #{config['class']} (#{name})"
+                  Resque.set_last_run name, DateTime.now.to_s
                   handle_errors { enqueue_from_config(config) }
                 end
               end

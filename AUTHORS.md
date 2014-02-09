@@ -57,6 +57,7 @@ Resque Scheduler authors
 - Tim Liner
 - Tony Lewis
 - Vincent Zhu
+- Vladislav Shub
 - V Sreekanth
 - andreas
 - bbauer
