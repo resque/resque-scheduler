@@ -1,5 +1,10 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 2.5.0 (2014-02-09)
+* Use `logger.error` when logging errors from `handle_errors`
+* Added search feature to the Delayed tab in Resque Web
+* Fix confusion with redis version requirements in `README.md`
+
 ## 2.4.0 (2014-01-14)
 
 * Including optional env name in procline
