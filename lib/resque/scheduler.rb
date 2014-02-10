@@ -12,6 +12,12 @@ module Resque
         yield self
       end
 
+      attr_writer :signal_queue
+
+      def signal_queue
+        @signal_queue ||= []
+      end
+
       # Used in `#load_schedule_job`
       attr_writer :env
 
@@ -110,37 +116,47 @@ module Resque
           load_schedule!
         end
 
-        @th = Thread.current
+        begin
+          @th = Thread.current
 
-        # Now start the scheduling part of the loop.
-        loop do
-          if is_master?
-            begin
-              handle_delayed_items
-              update_schedule if dynamic
-            rescue Errno::EAGAIN, Errno::ECONNRESET => e
-              warn e.message
+          # Now start the scheduling part of the loop.
+          loop do
+            if is_master?
+              begin
+                handle_delayed_items
+                update_schedule if dynamic
+              rescue Errno::EAGAIN, Errno::ECONNRESET => e
+                log! e.message
+              end
             end
+            handle_signals
+            poll_sleep
           end
-          poll_sleep
-        end
 
-        # never gets here.
+        rescue Interrupt
+          log 'Exiting'
+        end
       end
 
       # For all signals, set the shutdown flag and wait for current
-      # poll/enqueing to finish (should be almost istant).  In the
+      # poll/enqueing to finish (should be almost instant).  In the
       # case of sleeping, exit immediately.
       def register_signal_handlers
-        trap("TERM") { shutdown }
-        trap("INT") { shutdown }
+        %w(INT TERM USR1 USR2 QUIT).each do |sig|
+          trap(sig) { signal_queue << sig }
+        end
+      end
 
-        begin
-          trap('QUIT') { shutdown }
-          trap('USR1') { print_schedule }
-          trap('USR2') { reload_schedule! }
-        rescue ArgumentError
-          warn "Signals QUIT and USR1 and USR2 not supported."
+      def handle_signals
+        loop do
+          sig = signal_queue.shift
+          break unless sig
+          log! "Got #{sig} signal"
+          case sig
+          when 'INT', 'TERM', 'QUIT' then shutdown
+          when 'USR1' then print_schedule
+          when 'USR2' then reload_schedule!
+          end
         end
       end
 

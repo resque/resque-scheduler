@@ -1,5 +1,8 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 2.5.1 (2014-02-09)
+* Make signal handling (really) Ruby 2 compatible
+
 ## 2.5.0 (2014-02-09)
 * Use `logger.error` when logging errors from `handle_errors`
 * Added search feature to the Delayed tab in Resque Web

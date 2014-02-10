@@ -18,7 +18,7 @@ CaseEquality:
   Enabled: false
 
 ClassLength:
-  Max: 303
+  Max: 318
 
 ClassVars:
   Enabled: false
