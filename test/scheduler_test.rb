@@ -341,4 +341,19 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.send(:build_procline, 'cage') =~
       /#{Resque::Scheduler.send(:internal_name)}: cage/
   end
+
+  context 'printing schedule' do
+    setup do
+      Resque::Scheduler.expects(:log!).at_least_once
+    end
+
+    test 'prints schedule' do
+      fake_rufus_scheduler = mock()
+      fake_rufus_scheduler.expects(:all_jobs).at_least_once
+        .returns({ foo: OpenStruct.new(t: nil, last: nil) })
+      Resque::Scheduler.expects(:rufus_scheduler).at_least_once
+        .returns(fake_rufus_scheduler)
+      Resque::Scheduler.print_schedule
+    end
+  end
 end

@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-# Pull in the server test_helper from resque
-require 'resque/server/test_helper.rb'
+require 'resque/server/test_helper'
 
 context "on GET to /schedule" do
   setup { get "/schedule" }
@@ -20,9 +19,9 @@ context "on GET to /schedule with scheduled jobs" do
         'rails_env' => 'production'
       },
       'some_other_job' => {
-        'every' => ['5m'],
+        'every' => ['1m', ['1h']],
         'queue' => 'high',
-        'class' => 'SomeOtherJob',
+        'custom_job_class' => 'SomeOtherJob',
         'args' => {
           'b' => 'blah'
         }
@@ -90,7 +89,7 @@ def resque_schedule
       },
       'rails_env' => 'production'},
     'job_with_params' => {
-      'cron' => '* * * * *',
+      'every' => '1m',
       'class' => 'JobWithParams',
       'args' => {
         'host' => 'localhost'
@@ -196,4 +195,30 @@ context "on POST to /delayed/cancel_now" do
     assert last_response.header['Location'].include? '/delayed'
   end
 
+end
+
+context 'on POST to /delayed/clear' do
+  setup { post '/delayed/clear' }
+
+  test 'redirects to delayed' do
+    assert last_response.status == 302
+    assert last_response.header['Location'].include? '/delayed'
+  end
+end
+
+context 'on POST to /delayed/queue_now' do
+  setup { post '/delayed/queue_now' }
+
+  test 'redirects to overview' do
+    assert last_response.status == 302
+    assert last_response.header['Location'].include? '/overview'
+  end
+end
+
+context 'on GET to /delayed/:timestamp' do
+  setup { get '/delayed/1234567890' }
+
+  test 'shows delayed_timestamp view' do
+    assert last_response.status == 200
+  end
 end
