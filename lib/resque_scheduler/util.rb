@@ -1,8 +1,8 @@
 module ResqueScheduler
   class Util
-    # In order to upgrade to resque(1.25) which has deprecated following methods ,
-    # we just added these usefull helpers back to use in Resque Scheduler.
-    # refer to: https://github.com/resque/resque-scheduler/pull/273
+    # In order to upgrade to resque(1.25) which has deprecated following
+    # methods, we just added these usefull helpers back to use in Resque
+    # Scheduler.  refer to: https://github.com/resque/resque-scheduler/pull/273
 
     def self.constantize(camel_cased_word)
       camel_cased_word = camel_cased_word.to_s

@@ -2,9 +2,9 @@
 
 class User < ActiveRecord::Base
   after_create :schedule_send_email
-  
+
   private
-  
+
   def schedule_send_email
     name = "send_email_#{id}"
     config = {}

@@ -40,7 +40,9 @@ module Resque
 
         def hostname
           local_hostname = Socket.gethostname
-          Socket.gethostbyname(local_hostname).first rescue local_hostname
+          Socket.gethostbyname(local_hostname).first
+        rescue
+          local_hostname
         end
 
         def process_id

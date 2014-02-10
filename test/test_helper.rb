@@ -1,15 +1,8 @@
-# Pretty much copied this file from the resque test_helper since we want
-# to do all the same stuff
-
-dir = File.dirname(File.expand_path(__FILE__))
-
-require 'rubygems'
-require 'bundler/setup'
-
-require 'simplecov' unless RUBY_VERSION < '1.9'
+require 'simplecov'
 
 require 'test/unit'
 require 'mocha/setup'
+require 'rack/test'
 require 'resque'
 
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
@@ -23,35 +16,32 @@ unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   RedisInstance.run!
 end
 
-at_exit do
-  next if $!
-
-  if defined?(MiniTest)
-    exit_code = MiniTest::Unit.new.run(ARGV)
-  else
-    exit_code = Test::Unit::AutoRunner.run
-  end
-
-  exit(exit_code || 0)
-end
+at_exit { exit MiniTest::Unit.new.run(ARGV) || 0 }
 
 ##
 # test/spec/mini 3
-# http://gist.github.com/25455
-# chris@ozmm.org
+# original work: http://gist.github.com/25455
+# forked and modified: https://gist.github.com/meatballhat/8906709
 #
 def context(*args, &block)
   return super unless (name = args.first) && block
   require 'test/unit'
-  klass = Class.new(defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase) do
+  klass = Class.new(Test::Unit::TestCase) do
     def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
+      define_method("test_#{name.gsub(/\W/, '_')}", &block) if block
     end
-    def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup, &block) end
-    def self.teardown(&block) define_method(:teardown, &block) end
+    def self.xtest(*args)
+    end
+    def self.setup(&block)
+      define_method(:setup, &block)
+    end
+    def self.teardown(&block)
+      define_method(:teardown, &block)
+    end
   end
-  (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
+  (class << klass; self end).send(:define_method, :name) do
+    name.gsub(/\W/, '_')
+  end
   klass.class_eval(&block)
 end
 

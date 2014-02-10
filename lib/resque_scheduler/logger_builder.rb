@@ -19,7 +19,7 @@ module ResqueScheduler
     #   LoggerBuilder.new(
     #     :mute => false, :verbose => true, :log_dev => 'log/scheduler.log'
     #   )
-    def initialize(opts={})
+    def initialize(opts = {})
       @muted = !!opts[:mute]
       @verbose = !!opts[:verbose]
       @log_dev = opts[:log_dev] || $stdout
@@ -56,13 +56,13 @@ module ResqueScheduler
       proc do |severity, datetime, progname, msg|
         require 'json'
         JSON.dump(
-          {
-            :name => 'resque-scheduler',
-            :progname => progname,
-            :level => severity,
-            :timestamp => datetime.iso8601,
-            :msg => msg
-          }
+
+            name: 'resque-scheduler',
+            progname: progname,
+            level: severity,
+            timestamp: datetime.iso8601,
+            msg: msg
+
         ) + "\n"
       end
     end
