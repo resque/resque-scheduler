@@ -8,7 +8,7 @@ context 'DelayedQueue' do
 
   test 'enqueue_at adds correct list and zset' do
     timestamp = Time.now + 1
-    encoded_job =  Resque.encode(
+    encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
       queue: Resque.queue_from_class(SomeIvarJob)
@@ -49,7 +49,7 @@ context 'DelayedQueue' do
 
   test 'enqueue_at with queue adds correct list and zset and queue' do
     timestamp = Time.now + 1
-    encoded_job =  Resque.encode(
+    encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
       queue: 'critical'
@@ -92,7 +92,7 @@ context 'DelayedQueue' do
 
   test "a job in the future doesn't come out" do
     timestamp = Time.now + 600
-    encoded_job =  Resque.encode(
+    encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
       queue: Resque.queue_from_class(SomeIvarJob)
@@ -132,7 +132,7 @@ context 'DelayedQueue' do
 
   test 'enqueue_at and enqueue_in are equivelent' do
     timestamp = Time.now + 60
-    encoded_job =  Resque.encode(
+    encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
       queue: Resque.queue_from_class(SomeIvarJob)
@@ -160,7 +160,7 @@ context 'DelayedQueue' do
     end
 
     expected_timestamps.each do |timestamp|
-      Resque.delayed_push(timestamp,  class: SomeIvarJob, args: 'blah1 ')
+      Resque.delayed_push(timestamp, class: SomeIvarJob, args: 'blah1 ')
     end
 
     timestamps = Resque.delayed_queue_peek(1, 2)
@@ -246,7 +246,7 @@ context 'DelayedQueue' do
   test 'calls klass#scheduled when enqueuing jobs if it exists' do
     t = Time.now - 60
     FakeCustomJobClassEnqueueAt.expects(:scheduled)
-      .once.with(:test, FakeCustomJobClassEnqueueAt.to_s,  foo: 'bar')
+      .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
     Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
   end
 
@@ -257,7 +257,7 @@ context 'DelayedQueue' do
       Resque.inline = true
       t = Time.now - 60
       FakeCustomJobClassEnqueueAt.expects(:scheduled)
-        .once.with(:test, FakeCustomJobClassEnqueueAt.to_s,  foo: 'bar')
+        .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
       Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
     ensure
       Resque.inline = old_val

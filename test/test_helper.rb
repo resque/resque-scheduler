@@ -104,10 +104,10 @@ end
 
 def nullify_logger
   Resque::Scheduler.configure do |c|
-    c.mute    = nil
+    c.mute = nil
     c.verbose = nil
     c.logfile = nil
-    c.logger  = nil
+    c.logger = nil
   end
 
   ENV['LOGFILE'] = nil

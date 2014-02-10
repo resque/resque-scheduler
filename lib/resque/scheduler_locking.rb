@@ -56,7 +56,7 @@ module Resque
     end
 
     def supports_lua?
-      redmaster_version >= 2.5
+      redis_master_version >= 2.5
     end
 
     def master?
@@ -83,7 +83,7 @@ module Resque
       "#{Resque.redis.namespace}:#{lock_prefix}resque_scheduler_master_lock"
     end
 
-    def redmaster_version
+    def redis_master_version
       Resque.redis.info['redis_version'].to_f
     end
   end

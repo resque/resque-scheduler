@@ -123,7 +123,7 @@ context 'POST /schedule/requeue' do
     Resque::Scheduler.stubs(:enqueue_from_config)
       .once.with(Resque.schedule[job_name])
 
-    post '/schedule/requeue',  'job_name' => job_name
+    post '/schedule/requeue', 'job_name' => job_name
     follow_redirect!
     assert_equal 'http://example.org/overview', last_request.url
     assert last_response.ok?
@@ -133,7 +133,7 @@ context 'POST /schedule/requeue' do
     # If a job has params defined,
     # it should render the template with a form for the job params
     job_name = 'job_with_params'
-    post '/schedule/requeue',  'job_name' => job_name
+    post '/schedule/requeue', 'job_name' => job_name
 
     assert last_response.ok?, last_response.errors
     assert last_response.body.include?('This job requires parameters')
