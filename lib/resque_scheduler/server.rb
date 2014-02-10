@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'resque_scheduler'
 require 'resque/server'
 require 'json'

@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 module Resque
   class Scheduler
     module Lock

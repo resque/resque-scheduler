@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'socket'
 require 'timeout'
 require 'fileutils'

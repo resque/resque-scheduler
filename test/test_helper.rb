@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'simplecov'
 
 require 'test/unit'

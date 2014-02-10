@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 module ResqueScheduler
   module Plugin
     def self.hooks(job, pattern)

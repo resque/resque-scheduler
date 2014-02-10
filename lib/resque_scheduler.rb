@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'rubygems'
 require 'resque'
 require 'resque_scheduler/version'

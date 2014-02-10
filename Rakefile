@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'bundler/gem_tasks'
 require 'rake/testtask'
 require 'rubocop/rake_task'

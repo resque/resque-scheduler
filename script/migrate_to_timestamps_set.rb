@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 require 'redis'
 require 'resque'
 

@@ -4,20 +4,20 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'resque_scheduler/version'
 
 Gem::Specification.new do |spec|
-  spec.name        = 'resque-scheduler'
-  spec.version     = ResqueScheduler::VERSION
-  spec.authors     = ['Ben VandenBos']
-  spec.email       = ['bvandenbos@gmail.com']
-  spec.homepage    = 'http://github.com/resque/resque-scheduler'
-  spec.summary     = 'Light weight job scheduling on top of Resque'
+  spec.name = 'resque-scheduler'
+  spec.version = ResqueScheduler::VERSION
+  spec.authors = ['Ben VandenBos']
+  spec.email = ['bvandenbos@gmail.com']
+  spec.homepage = 'http://github.com/resque/resque-scheduler'
+  spec.summary = 'Light weight job scheduling on top of Resque'
   spec.description = %q{Light weight job scheduling on top of Resque.
     Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
     Also supports queueing jobs on a fixed, cron-like schedule.}
   spec.license = 'MIT'
 
-  spec.files         = `git ls-files`.split("\n")
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = spec.files.grep(%r{^test/})
+  spec.files = `git ls-files`.split("\n")
+  spec.executables = spec.files.grep(/^bin\//) { |f| File.basename(f) }
+  spec.test_files = spec.files.grep(/^test\//)
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'bundler', '~> 1.5'

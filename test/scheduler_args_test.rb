@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 require_relative 'test_helper'
 
 context 'scheduling jobs with arguments' do

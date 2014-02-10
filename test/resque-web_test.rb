@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require_relative 'test_helper'
 
 require 'resque/server/test_helper'

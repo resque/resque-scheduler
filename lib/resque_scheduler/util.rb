@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 module ResqueScheduler
   class Util
     # In order to upgrade to resque(1.25) which has deprecated following

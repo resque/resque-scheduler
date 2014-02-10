@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'rufus/scheduler'
 require 'resque/scheduler_locking'
 require 'resque_scheduler/logger_builder'

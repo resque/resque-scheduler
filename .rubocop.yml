@@ -5,6 +5,13 @@
 # Note that changes in the inspected code, or installation of new
 # versions of RuboCop, may require this file to be generated again.
 
+AllCops:
+  Includes:
+  - Gemfile
+  - Rakefile
+  - '*.gemspec'
+  - 'bin/*'
+
 # Offence count: 1
 CaseEquality:
   Enabled: false
@@ -12,7 +19,7 @@ CaseEquality:
 # Offence count: 1
 # Configuration parameters: CountComments.
 ClassLength:
-  Max: 318
+  Max: 319
 
 # Offence count: 4
 CyclomaticComplexity:

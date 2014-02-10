@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'resque/scheduler/lock/base'
 
 module Resque

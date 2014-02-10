@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 # ### Locking the scheduler process
 #
 # There are two places in resque-scheduler that need to be synchonized in order
