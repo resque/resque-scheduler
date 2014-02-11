@@ -106,25 +106,8 @@ context 'Cli' do
     cli.pre_run
   end
 
-  test 'initializes dynamic from the env' do
-    cli = new_cli([], 'DYNAMIC_SCHEDULE' => '1')
-    assert_equal('1', cli.send(:options)[:dynamic])
-  end
-
   test 'defaults to nil dynamic' do
     assert_equal(nil, new_cli.send(:options)[:dynamic])
-  end
-
-  test 'accepts dynamic via -D' do
-    cli = new_cli(%w(-D))
-    cli.parse_options
-    assert_equal(true, cli.send(:options)[:dynamic])
-  end
-
-  test 'accepts dynamic via --dynamic-schedule' do
-    cli = new_cli(%w(--dynamic-schedule))
-    cli.parse_options
-    assert_equal(true, cli.send(:options)[:dynamic])
   end
 
   test 'initializes env from the env' do
