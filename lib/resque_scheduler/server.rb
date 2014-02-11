@@ -74,14 +74,10 @@ module ResqueScheduler
           end
 
           def schedule_interval_every(every)
-            s = 'every: '
-            if every.respond_to?(:first)
-              s << every.first
-            else
-              s << every
-            end
+            every = [*every]
+            s = 'every: ' << every.first
 
-            return s unless every.respond_to?(:last) && every.length > 1
+            return s unless every.length > 1
 
             s << ' ('
             meta = every.last.map do |key, value|
