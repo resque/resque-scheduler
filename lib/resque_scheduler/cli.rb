@@ -17,7 +17,7 @@ module ResqueScheduler
       },
       {
         args: ['-B', '--background', 'Run in the background [BACKGROUND]'],
-        callback: ->(options) { ->(b) { options[:background] = b  } }
+        callback: ->(options) { ->(b) { options[:background] = b } }
       },
       {
         args: ['-D', '--dynamic-schedule',

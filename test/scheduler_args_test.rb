@@ -1,31 +1,55 @@
+# vim:fileencoding=utf-8
+
 require_relative 'test_helper'
 
-context "scheduling jobs with arguments" do
-
+context 'scheduling jobs with arguments' do
   setup do
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.dynamic = false
     Resque::Scheduler.mute = true
   end
 
-  test "enqueue_from_config puts stuff in resque without class loaded" do
-    Resque::Job.stubs(:create).once.returns(true).with('joes_queue', 'UndefinedJob', '/tmp')
-    Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'UndefinedJob', 'args' => "/tmp", 'queue' => 'joes_queue')
+  test 'enqueue_from_config puts stuff in resque without class loaded' do
+    Resque::Job.stubs(:create).once.returns(true)
+      .with('joes_queue', 'UndefinedJob', '/tmp')
+    Resque::Scheduler.enqueue_from_config(
+      'cron' => '* * * * *',
+      'class' => 'UndefinedJob',
+      'args' => '/tmp',
+      'queue' => 'joes_queue'
+    )
   end
 
-  test "enqueue_from_config with_every_syntax" do
-    Resque::Job.stubs(:create).once.returns(true).with('james_queue', 'JamesJob', '/tmp')
-    Resque::Scheduler.enqueue_from_config('every' => '1m', 'class' => 'JamesJob', 'args' => '/tmp', 'queue' => 'james_queue')
+  test 'enqueue_from_config with_every_syntax' do
+    Resque::Job.stubs(:create).once.returns(true)
+      .with('james_queue', 'JamesJob', '/tmp')
+    Resque::Scheduler.enqueue_from_config(
+      'every' => '1m',
+      'class' => 'JamesJob',
+      'args' => '/tmp',
+      'queue' => 'james_queue'
+    )
   end
 
-  test "enqueue_from_config puts jobs in the resque queue" do
-    Resque::Job.stubs(:create).once.returns(true).with(:ivar, SomeIvarJob, '/tmp')
-    Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'args' => "/tmp")
+  test 'enqueue_from_config puts jobs in the resque queue' do
+    Resque::Job.stubs(:create).once.returns(true)
+      .with(:ivar, SomeIvarJob, '/tmp')
+    Resque::Scheduler.enqueue_from_config(
+      'cron' => '* * * * *',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
   end
 
-  test "enqueue_from_config with custom_class_job in resque" do
-    FakeCustomJobClass.stubs(:scheduled).once.returns(true).with(:ivar, 'SomeIvarJob', '/tmp')
-    Resque::Scheduler.enqueue_from_config('cron' => "* * * * *", 'class' => 'SomeIvarJob', 'custom_job_class' => 'FakeCustomJobClass', 'args' => "/tmp")
+  test 'enqueue_from_config with custom_class_job in resque' do
+    FakeCustomJobClass.stubs(:scheduled).once.returns(true)
+      .with(:ivar, 'SomeIvarJob', '/tmp')
+    Resque::Scheduler.enqueue_from_config(
+      'cron' => '* * * * *',
+      'class' => 'SomeIvarJob',
+      'custom_job_class' => 'FakeCustomJobClass',
+      'args' => '/tmp'
+    )
   end
 
   test 'enqueue_from_config puts stuff in resque when env matches' do
@@ -100,24 +124,26 @@ context "scheduling jobs with arguments" do
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
   end
 
-  test "calls the worker without arguments when 'args' is missing from the config" do
+  test "calls the worker without arguments when 'args' is missing " <<
+       'from the config' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
     YAML
-    SomeIvarJob.expects(:perform).once.with()
+    SomeIvarJob.expects(:perform).once.with
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker without arguments when 'args' is blank in the config" do
+  test "calls the worker without arguments when 'args' is blank " <<
+       'in the config' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
     YAML
-    SomeIvarJob.expects(:perform).once.with()
+    SomeIvarJob.expects(:perform).once.with
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with a string when the config lists a string" do
+  test 'calls the worker with a string when the config lists a string' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args: string
@@ -126,7 +152,7 @@ context "scheduling jobs with arguments" do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with a Fixnum when the config lists an integer" do
+  test 'calls the worker with a Fixnum when the config lists an integer' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args: 1
@@ -135,7 +161,8 @@ context "scheduling jobs with arguments" do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with multiple arguments when the config lists an array" do
+  test 'calls the worker with multiple arguments when the config ' <<
+       'lists an array' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
@@ -146,7 +173,8 @@ context "scheduling jobs with arguments" do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with an array when the config lists a nested array" do
+  test 'calls the worker with an array when the config lists ' <<
+       'a nested array' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
@@ -157,7 +185,7 @@ context "scheduling jobs with arguments" do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with a hash when the config lists a hash" do
+  test 'calls the worker with a hash when the config lists a hash' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
@@ -167,24 +195,25 @@ context "scheduling jobs with arguments" do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker with a nested hash when the config lists a nested hash" do
+  test 'calls the worker with a nested hash when the config lists ' <<
+       'a nested hash' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
         first_key:
           second_key: value
     YAML
-    SomeIvarJob.expects(:perform).once.with('first_key' => {'second_key' => 'value'})
+    SomeIvarJob.expects(:perform).once
+      .with('first_key' => { 'second_key' => 'value' })
     Resque.reserve('ivar').perform
   end
-  
-  test "poll_sleep_amount defaults to 5" do
+
+  test 'poll_sleep_amount defaults to 5' do
     assert_equal 5, Resque::Scheduler.poll_sleep_amount
   end
-  
-  test "poll_sleep_amount is settable" do
+
+  test 'poll_sleep_amount is settable' do
     Resque::Scheduler.poll_sleep_amount = 1
-    assert_equal 1, Resque::Scheduler.poll_sleep_amount    
+    assert_equal 1, Resque::Scheduler.poll_sleep_amount
   end
-  
 end

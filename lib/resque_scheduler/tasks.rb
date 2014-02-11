@@ -21,8 +21,6 @@ namespace :resque do
 
   task :scheduler_setup do
     scheduler_cli.parse_options
-    unless scheduler_cli.pre_setup
-      Rake::Task['resque:setup'].invoke
-    end
+    Rake::Task['resque:setup'].invoke unless scheduler_cli.pre_setup
   end
 end

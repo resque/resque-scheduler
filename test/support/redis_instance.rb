@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'socket'
 require 'timeout'
 require 'fileutils'
@@ -7,9 +8,10 @@ class RedisInstance
     @running = false
     @port = nil
     @pid = nil
+    @waiting = false
 
     def run_if_needed!
-      run! unless running?
+      run! unless @running
     end
 
     def run!
@@ -17,18 +19,7 @@ class RedisInstance
       ensure_pid_directory
       reassign_redis_clients
       start_redis_server
-
-      if $?.success?
-        wait_for_pid
-        puts "Booted isolated Redis on port #{port} with PID #{pid}."
-
-        wait_for_redis_boot
-
-        # Ensure we tear down Redis on Ctrl+C / test failure.
-        at_exit { stop! }
-      else
-        fail "Failed to start Redis on port #{port}."
-      end
+      post_boot_waiting_and_such
 
       @running = true
     end
@@ -42,26 +33,34 @@ class RedisInstance
       @pid = nil
     end
 
-    def running?
-      @running
-    end
-
     private
 
+    def post_boot_waiting_and_such
+      wait_for_pid
+      puts "Booted isolated Redis on #{port} with PID #{pid}."
+
+      wait_for_redis_boot
+
+      # Ensure we tear down Redis on Ctrl+C / test failure.
+      at_exit { stop! }
+    end
+
     def ensure_redis_server_present!
-      if !system('redis-server -v')
+      unless system('redis-server -v')
         fail "** can't find `redis-server` in your path"
       end
     end
 
     def wait_for_redis_boot
-      Timeout::timeout(10) do
-        begin
-          while Resque.redis.ping != 'PONG'
+      Timeout.timeout(10) do
+        loop do
+          begin
+            break if Resque.redis.ping == 'PONG'
+          rescue Redis::CannotConnectError
+            @waiting = true
           end
-        rescue
-          # silence all errors
         end
+        @waiting = false
       end
     end
 
@@ -70,11 +69,13 @@ class RedisInstance
     end
 
     def reassign_redis_clients
-      Resque.redis = Redis.new(:hostname => '127.0.0.1', :port => port, :thread_safe => true)
+      Resque.redis = Redis.new(
+        hostname: '127.0.0.1', port: port, thread_safe: true
+      )
     end
 
     def start_redis_server
-      IO.popen("redis-server -", "w+") do |server|
+      IO.popen('redis-server -', 'w+') do |server|
         server.write(config)
         server.close_write
       end
@@ -85,9 +86,8 @@ class RedisInstance
     end
 
     def wait_for_pid
-      Timeout::timeout(10) do
-        while !File.exist?(pid_file)
-        end
+      Timeout.timeout(10) do
+        loop { break if File.exist?(pid_file) }
       end
     end
 
@@ -96,7 +96,7 @@ class RedisInstance
     end
 
     def pid_file
-      "/tmp/redis-scheduler-test.pid"
+      '/tmp/redis-scheduler-test.pid'
     end
 
     def config
@@ -109,7 +109,7 @@ class RedisInstance
 
     # Returns a random port in the upper (10000-65535) range.
     def random_port
-      ports = (10000..65535).to_a
+      ports = (10_000..65_535).to_a
 
       loop do
         port = ports[rand(ports.size)]
@@ -117,8 +117,8 @@ class RedisInstance
       end
     end
 
-    def port_available?(ip, port, seconds=1)
-      Timeout::timeout(seconds) do
+    def port_available?(ip, port, seconds = 1)
+      Timeout.timeout(seconds) do
         begin
           TCPSocket.new(ip, port).close
           false
@@ -131,4 +131,3 @@ class RedisInstance
     end
   end
 end
-

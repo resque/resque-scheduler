@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 context 'Util' do
   def util
     ResqueScheduler::Util

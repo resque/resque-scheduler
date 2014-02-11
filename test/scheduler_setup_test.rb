@@ -1,6 +1,7 @@
+# vim:fileencoding=utf-8
 require_relative 'test_helper'
 
-context "Resque::Scheduler" do
+context 'Resque::Scheduler' do
   setup do
     ENV['VERBOSE'] = nil
     nullify_logger

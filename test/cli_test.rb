@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require_relative 'test_helper'
 
 context 'Cli' do
@@ -10,7 +11,7 @@ context 'Cli' do
   end
 
   test 'initializes verbose from the env' do
-    cli = new_cli([], { 'VERBOSE' => 'foo' })
+    cli = new_cli([], 'VERBOSE' => 'foo')
     assert_equal('foo', cli.send(:options)[:verbose])
   end
 
@@ -31,7 +32,7 @@ context 'Cli' do
   end
 
   test 'initializes background from the env' do
-    cli = new_cli([], { 'BACKGROUND' => '1' })
+    cli = new_cli([], 'BACKGROUND' => '1')
     assert_equal('1', cli.send(:options)[:background])
   end
 
@@ -77,7 +78,7 @@ context 'Cli' do
   end
 
   test 'initializes pidfile from the env' do
-    cli = new_cli([], { 'PIDFILE' => 'bar' })
+    cli = new_cli([], 'PIDFILE' => 'bar')
     assert_equal('bar', cli.send(:options)[:pidfile])
   end
 
@@ -106,7 +107,7 @@ context 'Cli' do
   end
 
   test 'initializes dynamic from the env' do
-    cli = new_cli([], { 'DYNAMIC_SCHEDULE' => '1' })
+    cli = new_cli([], 'DYNAMIC_SCHEDULE' => '1')
     assert_equal('1', cli.send(:options)[:dynamic])
   end
 
@@ -127,7 +128,7 @@ context 'Cli' do
   end
 
   test 'initializes env from the env' do
-    cli = new_cli([], { 'RAILS_ENV' => 'flurb' })
+    cli = new_cli([], 'RAILS_ENV' => 'flurb')
     assert_equal('flurb', cli.send(:options)[:env])
   end
 
@@ -148,7 +149,7 @@ context 'Cli' do
   end
 
   test 'initializes initializer_path from the env' do
-    cli = new_cli([], { 'INITIALIZER_PATH' => 'herp.rb' })
+    cli = new_cli([], 'INITIALIZER_PATH' => 'herp.rb')
     assert_equal('herp.rb', cli.send(:options)[:initializer_path])
   end
 
@@ -175,7 +176,7 @@ context 'Cli' do
   end
 
   test 'initializes mute/quiet from the env' do
-    cli = new_cli([], { 'QUIET' => '1' })
+    cli = new_cli([], 'QUIET' => '1')
     assert_equal('1', cli.send(:options)[:mute])
   end
 
@@ -196,7 +197,7 @@ context 'Cli' do
   end
 
   test 'initializes logfile from the env' do
-    cli = new_cli([], { 'LOGFILE' => 'derp.log' })
+    cli = new_cli([], 'LOGFILE' => 'derp.log')
     assert_equal('derp.log', cli.send(:options)[:logfile])
   end
 
@@ -217,7 +218,7 @@ context 'Cli' do
   end
 
   test 'initializes logformat from the env' do
-    cli = new_cli([], { 'LOGFORMAT' => 'fancy' })
+    cli = new_cli([], 'LOGFORMAT' => 'fancy')
     assert_equal('fancy', cli.send(:options)[:logformat])
   end
 
@@ -242,7 +243,7 @@ context 'Cli' do
   end
 
   test 'initializes app_name from the env' do
-    cli = new_cli([], { 'APP_NAME' => 'sprocket' })
+    cli = new_cli([], 'APP_NAME' => 'sprocket')
     assert_equal('sprocket', cli.send(:options)[:app_name])
   end
 
