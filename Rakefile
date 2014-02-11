@@ -10,6 +10,8 @@ Rubocop::RakeTask.new
 Rake::TestTask.new do |t|
   t.libs << 'test'
   t.pattern = ENV['PATTERN'] || 'test/*_test.rb'
-  t.verbose = !!ENV['VERBOSE']
-  t.options = "--seed #{ENV['SEED']}" if ENV['SEED']
+  t.options = ''.tap do |o|
+    o << "--seed #{ENV['SEED']} " if ENV['SEED']
+    o << '--verbose ' if ENV['VERBOSE']
+  end
 end
