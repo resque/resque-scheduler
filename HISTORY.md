@@ -1,5 +1,8 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 2.5.2 (2014-02-11)
+* Pinning down dependency versions more tightly
+
 ## 2.5.1 (2014-02-09)
 * Make signal handling (really) Ruby 2 compatible
 
