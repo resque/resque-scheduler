@@ -410,9 +410,9 @@ context 'Resque::Scheduler' do
     end
 
     test 'prints schedule' do
-      fake_rufus_scheduler = mock()
+      fake_rufus_scheduler = mock
       fake_rufus_scheduler.expects(:all_jobs).at_least_once
-        .returns({ foo: OpenStruct.new(t: nil, last: nil) })
+        .returns(foo: OpenStruct.new(t: nil, last: nil))
       Resque::Scheduler.expects(:rufus_scheduler).at_least_once
         .returns(fake_rufus_scheduler)
       Resque::Scheduler.print_schedule
