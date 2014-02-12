@@ -129,7 +129,6 @@ module Resque
                 log! e.message
               end
             end
-            handle_signals
             poll_sleep
           end
 
@@ -385,21 +384,30 @@ module Resque
       def poll_sleep
         handle_shutdown do
           begin
-            begin
-              @sleeping = true
-              sleep poll_sleep_amount
-              @sleeping = false
-            rescue Interrupt
-              if @shutdown
-                Resque.clean_schedules
-                release_master_lock!
-              end
-            end
+            poll_sleep_loop
           ensure
             @sleeping = false
           end
         end
         true
+      end
+
+      def poll_sleep_loop
+        @sleeping = true
+        start = Time.now
+        loop do
+          break if (Time.now - start) >= poll_sleep_amount
+          begin
+            sleep 0.01
+            handle_signals
+          rescue Interrupt
+            if @shutdown
+              Resque.clean_schedules
+              release_master_lock!
+            end
+            break
+          end
+        end
       end
 
       # Sets the shutdown flag, clean schedules and exits if sleeping
