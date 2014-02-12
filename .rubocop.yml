@@ -19,7 +19,7 @@ CaseEquality:
 # Offence count: 1
 # Configuration parameters: CountComments.
 ClassLength:
-  Max: 334
+  Max: 341
 
 # Offence count: 4
 CyclomaticComplexity:
