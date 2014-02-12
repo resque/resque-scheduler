@@ -39,8 +39,12 @@ v2.6.0
 TODO for v3.0.0
 ===============
 
-- Clean up all RuboCop offences, breaking the API if necessary
-- Get to at least 95% test coverage
+- [x] Clean up all RuboCop offences, breaking the API if necessary
+- [x] Get to at least 95% test coverage
+- [x] Collapse `lib/resque_scheduler` into `lib/resque/scheduler`
+- [ ] Reduce public API on `Resque::Scheduler::Extension` to fewer than 10 methods
+- [ ] Reduce public API on `Resque::Scheduler` to fewer than 10 methods
+- [ ] Anything else?
 
 TODO for v3.1.0
 ===============
