@@ -1,8 +1,8 @@
 # vim:fileencoding=utf-8
-require 'resque/scheduler/lock/base'
+require_relative 'base'
 
 module Resque
-  class Scheduler
+  module Scheduler
     module Lock
       class Resilient < Base
         def acquire!

@@ -1,7 +1,7 @@
 # vim:fileencoding=utf-8
 
 module Resque
-  class Scheduler
+  module Scheduler
     module Lock
       class Base
         attr_reader :key

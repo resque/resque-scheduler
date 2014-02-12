@@ -2,13 +2,13 @@
 
 require 'English'
 require 'resque/tasks'
-require 'resque_scheduler'
+require 'resque-scheduler'
 
 namespace :resque do
   task :setup
 
   def scheduler_cli
-    @scheduler_cli ||= ResqueScheduler::Cli.new(
+    @scheduler_cli ||= Resque::Scheduler::Cli.new(
       %W(#{ENV['RESQUE_SCHEDULER_OPTIONS']})
     )
   end

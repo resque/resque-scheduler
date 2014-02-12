@@ -53,7 +53,7 @@ gem 'resque-scheduler'
 Adding the resque:scheduler rake task:
 
 ```ruby
-require 'resque_scheduler/tasks'
+require 'resque/scheduler/tasks'
 ```
 
 ### Rake integration
@@ -66,12 +66,12 @@ everything `resque` needs to know.
 ```ruby
 # Resque tasks
 require 'resque/tasks'
-require 'resque_scheduler/tasks'
+require 'resque/scheduler/tasks'
 
 namespace :resque do
   task :setup do
     require 'resque'
-    require 'resque_scheduler'
+    require 'resque-scheduler'
 
     # you probably already have this somewhere
     Resque.redis = 'localhost:6379'
@@ -448,7 +448,7 @@ redis instance and schedule.  The scheduler processes will use redis to
 elect a master process and detect failover when the master dies.  Precautions are
 taken to prevent jobs from potentially being queued twice during failover even
 when the clocks of the scheduler machines are slightly out of sync (or load affects
-scheduled job firing time).  If you want the gory details, look at Resque::SchedulerLocking.
+scheduled job firing time).  If you want the gory details, look at Resque::Scheduler::Locking.
 
 If the scheduler process(es) goes down for whatever reason, the delayed items
 that should have fired during the outage will fire once the scheduler process
@@ -495,8 +495,8 @@ Now, you want to add the following:
 
 ```ruby
 # This will make the tabs show up.
-require 'resque_scheduler'
-require 'resque_scheduler/server'
+require 'resque-scheduler'
+require 'resque/scheduler/server'
 ```
 
 That should make the scheduler tabs show up in `resque-web`.

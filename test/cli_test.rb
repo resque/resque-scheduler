@@ -3,7 +3,7 @@ require_relative 'test_helper'
 
 context 'Cli' do
   def new_cli(argv = [], env = {})
-    ResqueScheduler::Cli.new(argv, env)
+    Resque::Scheduler::Cli.new(argv, env)
   end
 
   test 'does not require any positional arguments' do
@@ -248,6 +248,6 @@ context 'Cli' do
 
   test 'runs Resque::Scheduler' do
     Resque::Scheduler.expects(:run)
-    ResqueScheduler::Cli.run!([], {})
+    Resque::Scheduler::Cli.run!([], {})
   end
 end

@@ -2,10 +2,10 @@
 
 context 'Util' do
   def util
-    ResqueScheduler::Util
+    Resque::Scheduler::Util
   end
 
   test 'constantizing' do
-    assert util.constantize('resque-scheduler') == ResqueScheduler
+    assert util.constantize('Resque::Scheduler') == Resque::Scheduler
   end
 end

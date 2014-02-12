@@ -1,2 +1,4 @@
 # vim:fileencoding=utf-8
-require File.expand_path('../resque_scheduler', __FILE__)
+require_relative 'resque/scheduler'
+
+Resque.extend Resque::Scheduler::Extension

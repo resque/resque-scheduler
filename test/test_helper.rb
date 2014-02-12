@@ -7,8 +7,8 @@ require 'rack/test'
 require 'resque'
 
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
-require 'resque_scheduler'
-require 'resque_scheduler/server'
+require 'resque-scheduler'
+require 'resque/scheduler/server'
 
 unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   # Start our own Redis when the tests start. RedisInstance will take care of

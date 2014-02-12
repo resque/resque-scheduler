@@ -3,7 +3,10 @@ require_relative 'test_helper'
 
 context 'Resque::Scheduler' do
   setup do
-    Resque::Scheduler.dynamic = false
+    Resque::Scheduler.configure do |c|
+      c.dynamic = false
+      c.poll_sleep_amount = 0.1
+    end
     Resque.redis.flushall
     Resque::Scheduler.mute = true
     Resque::Scheduler.clear_schedule!
@@ -21,7 +24,7 @@ context 'Resque::Scheduler' do
   test 'sending TERM to scheduler breaks out of poll_sleep' do
     Resque::Scheduler.expects(:release_master_lock!)
     fork do
-      sleep(0.5)
+      sleep(0.05)
       system("kill -TERM #{Process.ppid}")
       exit!
     end

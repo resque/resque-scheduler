@@ -49,44 +49,46 @@
 # you stop cron, no jobs fire while it's stopped and it doesn't fire jobs that
 # were missed when it starts up again.
 
-require 'resque/scheduler/lock'
+require_relative 'lock'
 
 module Resque
-  module SchedulerLocking
-    def master_lock
-      @master_lock ||= build_master_lock
-    end
-
-    def supports_lua?
-      redis_master_version >= 2.5
-    end
-
-    def master?
-      master_lock.acquire! || master_lock.locked?
-    end
-
-    def release_master_lock!
-      master_lock.release!
-    end
-
-    private
-
-    def build_master_lock
-      if supports_lua?
-        Resque::Scheduler::Lock::Resilient.new(master_lock_key)
-      else
-        Resque::Scheduler::Lock::Basic.new(master_lock_key)
+  module Scheduler
+    module Locking
+      def master_lock
+        @master_lock ||= build_master_lock
       end
-    end
 
-    def master_lock_key
-      lock_prefix = ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] || ''
-      lock_prefix += ':' if lock_prefix != ''
-      "#{Resque.redis.namespace}:#{lock_prefix}resque_scheduler_master_lock"
-    end
+      def supports_lua?
+        redis_master_version >= 2.5
+      end
 
-    def redis_master_version
-      Resque.redis.info['redis_version'].to_f
+      def master?
+        master_lock.acquire! || master_lock.locked?
+      end
+
+      def release_master_lock!
+        master_lock.release!
+      end
+
+      private
+
+      def build_master_lock
+        if supports_lua?
+          Resque::Scheduler::Lock::Resilient.new(master_lock_key)
+        else
+          Resque::Scheduler::Lock::Basic.new(master_lock_key)
+        end
+      end
+
+      def master_lock_key
+        lock_prefix = ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] || ''
+        lock_prefix += ':' if lock_prefix != ''
+        "#{Resque.redis.namespace}:#{lock_prefix}resque_scheduler_master_lock"
+      end
+
+      def redis_master_version
+        Resque.redis.info['redis_version'].to_f
+      end
     end
   end
 end

@@ -1,11 +1,11 @@
 # vim:fileencoding=utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'resque_scheduler/version'
+require 'resque/scheduler/version'
 
 Gem::Specification.new do |spec|
   spec.name = 'resque-scheduler'
-  spec.version = ResqueScheduler::VERSION
+  spec.version = Resque::Scheduler::VERSION
   spec.authors = ['Ben VandenBos']
   spec.email = ['bvandenbos@gmail.com']
   spec.homepage = 'http://github.com/resque/resque-scheduler'
@@ -26,8 +26,10 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'redcarpet'
   spec.add_development_dependency 'rubocop'
   spec.add_development_dependency 'simplecov'
+  spec.add_development_dependency 'yard'
 
   spec.add_runtime_dependency 'redis', '~> 3.0'
   spec.add_runtime_dependency 'resque', '~> 1.25'

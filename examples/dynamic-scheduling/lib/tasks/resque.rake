@@ -1,13 +1,13 @@
 # vim:fileencoding=utf-8
 
 require 'resque/tasks'
-require 'resque_scheduler/tasks'
+require 'resque/scheduler/tasks'
 require 'yaml'
 
 namespace :resque do
   task :setup do
     require 'resque'
-    require 'resque_scheduler'
+    require 'resque-scheduler'
 
     rails_root = ENV['RAILS_ROOT'] || File.expand_path('../../../', __FILE__)
     rails_env = ENV['RAILS_ENV'] || 'development'

@@ -1,11 +1,14 @@
 # vim:fileencoding=utf-8
 require 'rufus/scheduler'
-require 'resque/scheduler_locking'
-require 'resque_scheduler/logger_builder'
+require_relative 'scheduler/locking'
+require_relative 'scheduler/logger_builder'
 
 module Resque
-  class Scheduler
-    extend Resque::SchedulerLocking
+  module Scheduler
+    autoload :Cli, 'resque/scheduler/cli'
+    autoload :Extension, 'resque/scheduler/extension'
+
+    extend Resque::Scheduler::Locking
 
     class << self
       # Allows for block-style configuration
@@ -83,7 +86,7 @@ module Resque
       attr_writer :logger
 
       def logger
-        @logger ||= ResqueScheduler::LoggerBuilder.new(
+        @logger ||= Resque::Scheduler::LoggerBuilder.new(
           mute: mute,
           verbose: verbose,
           log_dev: logfile,
@@ -202,8 +205,8 @@ module Resque
         args
       end
 
-      # Loads a job schedule into the Rufus::Scheduler and stores it in
-      # @scheduled_jobs
+      # Loads a job schedule into the Rufus::Scheduler and stores it
+      # in @scheduled_jobs
       def load_schedule_job(name, config)
         # If `rails_env` or `env` is set in the config, load jobs only if they
         # are meant to be loaded in `Resque::Scheduler.env`.  If `rails_env` or
@@ -306,7 +309,7 @@ module Resque
 
         klass_name = job_config['class'] || job_config[:class]
         begin
-          klass = ResqueScheduler::Util.constantize(klass_name)
+          klass = Resque::Scheduler::Util.constantize(klass_name)
         rescue NameError
           klass = klass_name
         end
@@ -324,7 +327,7 @@ module Resque
           # from the web perhaps), fall back to enqueing normally via
           # Resque::Job.create.
           begin
-            ResqueScheduler::Util.constantize(job_klass).scheduled(
+            Resque::Scheduler::Util.constantize(job_klass).scheduled(
               queue, klass_name, *params
             )
           rescue NameError
@@ -337,7 +340,7 @@ module Resque
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another.
           if Class === klass
-            ResqueScheduler::Plugin.run_before_delayed_enqueue_hooks(
+            Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(
               klass, *params
             )
 
@@ -474,7 +477,7 @@ module Resque
       end
 
       def internal_name
-        "resque-scheduler-#{ResqueScheduler::VERSION}"
+        "resque-scheduler-#{Resque::Scheduler::VERSION}"
       end
     end
   end
