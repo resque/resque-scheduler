@@ -55,13 +55,12 @@ Adding the resque:scheduler rake task:
 require 'resque_scheduler/tasks'
 ```
 
-There are three things `resque-scheduler` needs to know about in order to do
-it's jobs: the schedule, where redis lives, and which queues to use.  The
-easiest way to configure these things is via the rake task.  By default,
-`resque-scheduler` depends on the "resque:setup" rake task.  Since you
-probably already have this task, lets just put our configuration there.
-`resque-scheduler` pretty much needs to know everything `resque` needs
-to know.
+### Rake integration
+
+By default, `resque-scheduler` depends on the "resque:setup" rake task.
+Since you probably already have this task, lets just put our
+configuration there.  `resque-scheduler` pretty much needs to know
+everything `resque` needs to know.
 
 ```ruby
 # Resque tasks
@@ -82,7 +81,7 @@ namespace :resque do
     # When dynamic is set to true, the scheduler process looks for
     # schedule changes and applies them on the fly.
     # Note: This feature is only available in >=2.0.0.
-    #Resque::Scheduler.dynamic = true
+    # Resque::Scheduler.dynamic = true
 
     # The schedule doesn't need to be stored in a YAML, it just needs to
     # be a hash.  YAML is usually the easiest.
@@ -98,21 +97,58 @@ namespace :resque do
 end
 ```
 
-The scheduler process is just a rake task which is responsible for both
-queueing items from the schedule and polling the delayed queue for items
-ready to be pushed on to the work queues.  For obvious reasons, this process
-never exits.
+The scheduler rake task is responsible for both queueing items from the
+schedule and polling the delayed queue for items ready to be pushed on
+to the work queues.  For obvious reasons, this process never exits.
 
-    $ rake resque:scheduler
+``` bash
+rake resque:scheduler
+```
 
 or, if you want to load the environment first:
 
-    $ rake environment resque:scheduler
+``` bash
+rake environment resque:scheduler
+```
 
-Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
-any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
-to stdout.  `MUTE` does the opposite and silences all output. `MUTE`
-supersedes `VERBOSE`.
+
+### Standalone Executable
+
+The scheduler may also be run via a standalone `resque-scheduler`
+executable, which will be available once the gem is installed.
+
+``` bash
+# Get some help
+resque-scheduler --help
+```
+
+The executable accepts options via option flags as well as via
+[environment variables](#environment-variables).
+
+### Environment Variables
+
+Both the Rake task and standalone executable support the following
+environment variables:
+
+* `APP_NAME` - Application name used in procline (`$0`) (default empty)
+* `BACKGROUND` - [Run in the background](#running-in-the-background) if
+non-empty (via `Process.daemon`, if supported) (default `false`)
+* `DYNAMIC_SCHEDULE` - Enables [dynamic scheduling](#dynamic-schedules)
+if non-empty (default `false`)
+* `RAILS_ENV` - Environment to use in procline (`$0`) (default empty)
+* `INITIALIZER_PATH` - Path to a Ruby file that will be loaded *before*
+requiring `resque` and `resque/scheduler` (default empty).
+* `RESQUE_SCHEDULER_INTERVAL` - Interval in seconds for checking if a
+scheduled job must run (coerced with `Kernel#Float()`) (default `5`)
+* `LOGFILE` - Log file name (default empty, meaning `$stdout`)
+* `LOGFORMAT` - Log output format to use (either `'text'` or `'json'`,
+default `'text'`)
+* `PIDFILE` - If non-empty, write process PID to file (default empty)
+* `QUIET` or `MUTE` - Silence most output if non-empty (equivalent to
+a level of `Logger::FATAL`, default `false`)
+* `VERBOSE` - Maximize log verbosity if non-empty (equivalent to a level
+of `Logger::DEBUG`, default `false`)
+
 
 ### Resque Pool integration 
 
