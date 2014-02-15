@@ -1,10 +1,7 @@
 #!bash
 
-[[ -f ~/.profile ]] && source ~/.profile
-
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 
-if [[ $PS1 ]] ; then
+if [[ "$PS1" ]] ; then
   cd /vagrant
-  byobu
 fi
