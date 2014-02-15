@@ -4,6 +4,7 @@ resque-scheduler
 [![Dependency Status](https://gemnasium.com/resque/resque-scheduler.png)](https://gemnasium.com/resque/resque-scheduler)
 [![Gem Version](https://badge.fury.io/rb/resque-scheduler.png)](http://badge.fury.io/rb/resque-scheduler)
 [![Build Status](https://travis-ci.org/resque/resque-scheduler.png?branch=master)](https://travis-ci.org/resque/resque-scheduler)
+[![Code Climate](https://codeclimate.com/github/resque/resque-scheduler.png)](https://codeclimate.com/github/resque/resque-scheduler)
 
 ### Description
 
