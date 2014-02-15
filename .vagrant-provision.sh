@@ -8,7 +8,10 @@ set -e
 set -x
 
 apt-get update -yq
-apt-get install -yq \
+apt-get install --no-install-suggests -yq python-software-properties
+add-apt-repository -y ppa:chris-lea/redis-server
+apt-get update -yq
+apt-get install --no-install-suggests -yq \
   build-essential \
   byobu \
   curl \
