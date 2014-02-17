@@ -348,8 +348,7 @@ module ResqueScheduler
   # Examples
   #   Resque.delayed? MyJob
   #   Resque.delayed? MyJob, id: 1
-  #   
-  # Returns true if the job has been delayed 
+  # Returns true if the job has been delayed
   def delayed?(klass, *args)
     search = encode(job_to_hash(klass, args))
     !find_delayed(search).nil?
@@ -359,14 +358,13 @@ module ResqueScheduler
   # Examples
   #   Resque.next_delayed_schedule MyJob
   #   Resque.next_delayed_schedule MyJob, id: 1
-  #   
   # Returns the timestamp or nil if does not exists any delayed
-  # scheduled for the job 
+  # scheduled for the job
   def next_delayed_schedule(klass, *args)
     search = encode(job_to_hash(klass, args))
     find_delayed(search)
   end
-  
+
   # Returns delayed jobs schedule timestamp for +klass+, +args+.
   def scheduled_at(klass, *args)
     search = encode(job_to_hash(klass, args))
@@ -376,19 +374,19 @@ module ResqueScheduler
   end
 
   private
-  
-    # This can be slow if Redis has lots of delayed jobs...
-    # Returns the timestamp of the searched job
-    def find_delayed(search)
-      Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
-        key = "delayed:#{timestamp}"
-        (0...redis.llen(key)).each do |i|
-          job = redis.lindex(key, i)
-          return timestamp if (job == search)
-        end
+
+  # This can be slow if Redis has lots of delayed jobs...
+  # Returns the timestamp of the searched job
+  def find_delayed(search)
+    Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
+      key = "delayed:#{timestamp}"
+      (0...redis.llen(key)).each do |i|
+        job = redis.lindex(key, i)
+        return timestamp if job == search
       end
-      nil
     end
+    nil
+  end
 
   def job_to_hash(klass, args)
     { class: klass.to_s, args: args, queue: queue_from_class(klass) }
