@@ -350,7 +350,6 @@ module ResqueScheduler
   #   Resque.delayed? MyJob, id: 1
   # Returns true if the job has been delayed
   def delayed?(klass, *args)
-    search = encode(job_to_hash(klass, args))
     !scheduled_at(klass, *args).empty?
   end
 
@@ -363,6 +362,7 @@ module ResqueScheduler
   end
 
   private
+
   def job_to_hash(klass, args)
     { class: klass.to_s, args: args, queue: queue_from_class(klass) }
   end
