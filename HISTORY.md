@@ -1,5 +1,8 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 2.5.4 (2014-02-17)
+* Documentation updates
+
 ## 2.5.3 (2014-02-12)
 * Handling signals during poll sleep
 
