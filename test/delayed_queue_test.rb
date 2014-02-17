@@ -529,4 +529,28 @@ context 'DelayedQueue' do
       Resque.inline = false
     end
   end
+
+  test '.delayed?' do
+    Resque.enqueue_at Time.now + 1, SomeIvarJob
+    Resque.enqueue_at Time.now + 1, SomeIvarJob, id: 1
+
+    assert(Resque.delayed?(SomeIvarJob))
+    assert(Resque.delayed?(SomeIvarJob, id: 1))
+    assert(!Resque.delayed?(SomeIvarJob, id: 2))
+    assert(!Resque.delayed?(SomeJob))
+  end
+
+  test '.next_delayed_schedule' do
+    ts_1 = Time.now + 1
+    ts_2 = Time.now + 2
+    Resque.enqueue_at ts_1, SomeIvarJob
+    Resque.enqueue_at ts_2, SomeIvarJob, id: 1
+
+    assert_equal(Resque.next_delayed_schedule(SomeIvarJob).to_i, ts_1.to_i)
+    assert_equal(
+      Resque.next_delayed_schedule(SomeIvarJob, id: 1).to_i, ts_2.to_i
+    )
+    assert_equal(Resque.next_delayed_schedule(SomeJob), nil)
+  end
+
 end
