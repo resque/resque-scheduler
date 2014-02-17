@@ -19,24 +19,16 @@
   <% Resque.schedule.keys.sort.each do |name| %>
     <% config = Resque.schedule[name] %>
     <tr>
-      <td>
-        <form action="<%= u "/schedule/requeue" %>" method="post">
+      <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
+        <form action="<%= u "/schedule/requeue" %>" method="post" style="margin-left: 0">
           <input type="hidden" name="job_name" value="<%= h name %>">
           <input type="submit" value="Queue now">
         </form>
       </td>
       <td><%= h name %></td>
       <td><%= h config['description'] %></td>
-      <td style="white-space:nowrap"><%= if !config['every'].nil?
-                                           h('every: ' + (config['every'].is_a?(Array) ? config['every'].join(", ") : config['every'].to_s ))
-                                         elsif !config['cron'].nil?
-                                           h('cron: ' + config['cron'].to_s)
-                                         else
-                                           'Not currently scheduled'
-                                         end %></td>
-      <td><%= (config['class'].nil? && !config['custom_job_class'].nil?) ?
-              h(config['custom_job_class']) :
-              h(config['class']) %></td>
+      <td style="white-space:nowrap"><%= h schedule_interval(config) %></td>
+      <td><%= h schedule_class(config) %></td>
       <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
       <td><%= h config['args'].inspect %></td>
     </tr>

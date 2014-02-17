@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 require 'resque/scheduler/lock/base'
 
 module Resque
@@ -15,9 +16,7 @@ module Resque
           if Resque.redis.get(key) == value
             extend_lock!
 
-            if Resque.redis.get(key) == value
-              return true
-            end
+            return true if Resque.redis.get(key) == value
           end
 
           false

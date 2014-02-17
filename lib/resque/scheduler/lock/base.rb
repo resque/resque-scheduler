@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 module Resque
   class Scheduler
     module Lock
@@ -14,7 +16,7 @@ module Resque
 
         # Attempts to acquire the lock. Returns true if successfully acquired.
         def acquire!
-          raise NotImplementedError
+          fail NotImplementedError
         end
 
         def value
@@ -23,7 +25,7 @@ module Resque
 
         # Returns true if you currently hold the lock.
         def locked?
-          raise NotImplementedError
+          fail NotImplementedError
         end
 
         # Releases the lock.
@@ -31,7 +33,7 @@ module Resque
           Resque.redis.del(key) == 1
         end
 
-      private
+        private
 
         # Extends the lock by `timeout` seconds.
         def extend_lock!
@@ -40,7 +42,9 @@ module Resque
 
         def hostname
           local_hostname = Socket.gethostname
-          Socket.gethostbyname(local_hostname).first rescue local_hostname
+          Socket.gethostbyname(local_hostname).first
+        rescue
+          local_hostname
         end
 
         def process_id

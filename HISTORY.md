@@ -1,3 +1,57 @@
+# Resque Scheduler History / ChangeLog / Release Notes
+
+## 2.5.2 (2014-02-11)
+* Pinning down dependency versions more tightly
+
+## 2.5.1 (2014-02-09)
+* Make signal handling (really) Ruby 2 compatible
+
+## 2.5.0 (2014-02-09)
+* Use `logger.error` when logging errors from `handle_errors`
+* Added search feature to the Delayed tab in Resque Web
+* Fix confusion with redis version requirements in `README.md`
+
+## 2.4.0 (2014-01-14)
+
+* Including optional env name in procline
+* Fixing an explosion regarding `every` in the views
+* Bumping the copyright year
+* Corrected doc for syntax of class and every keys
+* Adding a standalone executable
+* **POSSIBLE BREAKING CHANGE**: Dropping support for ree
+* Add support for persistence of dynamic schedules
+* Fix unsafe shutdown in Ruby 2
+* Adding `.configure` convenience method for block-style configuration
+* Add `.remove_delayed_selection` method to remove based on result of a block
+* Add support for viewing all schedules for a job in web UI
+* Use resque redis namespace in the master lock key
+* Including optional app name in procline
+* Various test improvements, :bug: fixes, and documentation updates!
+
+## 2.3.1 (2013-11-20)
+
+* Correcting `require_paths` in gemspec
+
+## 2.3.0 (2013-11-07)
+
+* Fix re-introduced `ThreadError` on Ruby 2
+* **BREAKING CHANGE**: Added `RESQUE_SCHEDULER_INTERVAL` in place of `INTERVAL`
+* Use `Float()` instead of `Integer()` to calculate poll sleep amount
+* Upgraded dependence of Resque to support 1.25
+* Add rufus scheduler `every` notice to README
+* Use `Resque.validate` instead of custom `.validate_job!`
+* Specify MIT license in gemspec
+
+## 2.2.0 (2013-10-13)
+
+* Locking rufus-scheduler dependency to `~> 2.0`
+* Updated redis dependency to `>= 3.0.0`
+* Add support for parameterized resque jobs.
+* Allowing prefix for `master_lock_key`.
+* Add `Resque.clean_schedules` method, which is useful when setting up the
+  scheduler for the first time.
+* Bug fixes related to first time schedule retrieval and missing schedules.
+
 ## 2.1.0 (2013-09-20)
 
 * Locking to resque &lt; 1.25.0 (for now)
@@ -69,6 +123,11 @@
 * Dynamic schedule support (brianjlandau, davidyang)
 * Now depends on redis >=1.3
 
+## 1.9.11 (2013-11-20)
+
+* Fixed behavior of `#validate_job!` via `#enqueue_at_with_queue` #286
+* Correcting `require_paths` in gemspec #288
+
 ## 1.9.10 (2013-09-19)
 
 * Backported `#enqueue_at_with_queue`
@@ -127,8 +186,8 @@
 
 ## 1.8.1 (2010-05-19)
 
-* Adding rails_env for scheduled jobs to support scoping jobs by
-  RAILS_ENV (gravis).
+* Adding `rails_env` for scheduled jobs to support scoping jobs by
+  `RAILS_ENV` (gravis).
 * Fixing ruby 1.8.6 compatibility issue.
 * Adding gemspec for bundler support.
 

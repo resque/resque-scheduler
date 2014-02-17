@@ -1,10 +1,13 @@
+# vim:fileencoding=utf-8
 require 'rubygems'
 require 'resque'
 require 'resque_scheduler/version'
+require 'resque_scheduler/util'
 require 'resque/scheduler'
 require 'resque_scheduler/plugin'
 
 module ResqueScheduler
+  autoload :Cli, 'resque_scheduler/cli'
 
   #
   # Accepts a new schedule configuration of the form:
@@ -33,8 +36,8 @@ module ResqueScheduler
   # :every can be used in lieu of :cron. see rufus-scheduler's 'every' usage
   # for valid syntax. If :cron is present it will take precedence over :every.
   #
-  # :class must be a resque worker class. If it is missing, the job name (hash key)
-  # will be used as :class.
+  # :class must be a resque worker class. If it is missing, the job name (hash
+  # key) will be used as :class.
   #
   # :args can be any yaml which will be converted to a ruby literal and
   # passed in a params. (optional)
@@ -62,23 +65,18 @@ module ResqueScheduler
 
   # Returns the schedule hash
   def schedule
-    @schedule ||= get_schedules
-    if @schedule.nil?
-      return {}
-    end
-    @schedule
+    @schedule ||= all_schedules
+    @schedule || {}
   end
 
   # reloads the schedule from redis
   def reload_schedule!
-    @schedule = get_schedules
+    @schedule = all_schedules
   end
 
   # gets the schedules as it exists in redis
-  def get_schedules
-    unless redis.exists(:schedules)
-      return nil
-    end
+  def all_schedules
+    return nil unless redis.exists(:schedules)
 
     redis.hgetall(:schedules).tap do |h|
       h.each do |name, config|
@@ -91,7 +89,7 @@ module ResqueScheduler
   def clean_schedules
     if redis.exists(:schedules)
       redis.hkeys(:schedules).each do |key|
-        remove_schedule(key)
+        remove_schedule(key) unless schedule_persisted?(key)
       end
     end
     @schedule = nil
@@ -108,23 +106,34 @@ module ResqueScheduler
   #                                     :queue => 'high',
   #                                     :args => '/tmp/poop'})
   def set_schedule(name, config)
-    existing_config = get_schedule(name)
+    existing_config = fetch_schedule(name)
+    persist = config.delete(:persist) || config.delete('persist')
     unless existing_config && existing_config == config
-      redis.hset(:schedules, name, encode(config))
-      redis.sadd(:schedules_changed, name)
+      redis.pipelined do
+        redis.hset(:schedules, name, encode(config))
+        redis.sadd(:schedules_changed, name)
+        redis.sadd(:persisted_schedules, name) if persist
+      end
     end
     config
   end
 
   # retrive the schedule configuration for the given name
-  def get_schedule(name)
+  def fetch_schedule(name)
     decode(redis.hget(:schedules, name))
+  end
+
+  def schedule_persisted?(name)
+    redis.sismember(:persisted_schedules, name)
   end
 
   # remove a given schedule by name
   def remove_schedule(name)
-    redis.hdel(:schedules, name)
-    redis.sadd(:schedules_changed, name)
+    redis.pipelined do
+      redis.hdel(:schedules, name)
+      redis.srem(:persisted_schedules, name)
+      redis.sadd(:schedules_changed, name)
+    end
   end
 
   # This method is nearly identical to +enqueue+ only it also
@@ -132,7 +141,7 @@ module ResqueScheduler
   # for queueing.  Until timestamp is in the past, the job will
   # sit in the schedule list.
   def enqueue_at(timestamp, klass, *args)
-    validate_job!(klass)
+    validate(klass)
     enqueue_at_with_queue(queue_from_class(klass), timestamp, klass, *args)
   end
 
@@ -145,10 +154,11 @@ module ResqueScheduler
 
     if Resque.inline? || timestamp.to_i < Time.now.to_i
       # Just create the job and let resque perform it right away with inline.
-      # If the class is a custom job class, call self#scheduled on it. This allows you to do things like
-      # Resque.enqueue_at(timestamp, CustomJobClass, :opt1 => val1). Otherwise, pass off to Resque.
+      # If the class is a custom job class, call self#scheduled on it. This
+      # allows you to do things like Resque.enqueue_at(timestamp,
+      # CustomJobClass, :opt1 => val1). Otherwise, pass off to Resque.
       if klass.respond_to?(:scheduled)
-        klass.scheduled(queue, klass.to_s(), *args)
+        klass.scheduled(queue, klass.to_s, *args)
       else
         Resque::Job.create(queue, klass, *args)
       end
@@ -169,7 +179,8 @@ module ResqueScheduler
   # a queue in which the job will be placed after the
   # number of seconds has passed.
   def enqueue_in_with_queue(queue, number_of_seconds_from_now, klass, *args)
-    enqueue_at_with_queue(queue, Time.now + number_of_seconds_from_now, klass, *args)
+    enqueue_at_with_queue(queue, Time.now + number_of_seconds_from_now,
+                          klass, *args)
   end
 
   # Used internally to stuff the item into the schedule sorted list.
@@ -191,7 +202,8 @@ module ResqueScheduler
 
   # Returns an array of timestamps based on start and count
   def delayed_queue_peek(start, count)
-    Array(redis.zrange(:delayed_queue_schedule, start, start+count-1)).collect { |x| x.to_i }
+    result = redis.zrange(:delayed_queue_schedule, start, start + count - 1)
+    Array(result).map(&:to_i)
   end
 
   # Returns the size of the delayed queue schedule
@@ -199,7 +211,8 @@ module ResqueScheduler
     redis.zcard :delayed_queue_schedule
   end
 
-  # Returns the number of jobs for a given timestamp in the delayed queue schedule
+  # Returns the number of jobs for a given timestamp in the delayed queue
+  # schedule
   def delayed_timestamp_size(timestamp)
     redis.llen("delayed:#{timestamp.to_i}").to_i
   end
@@ -216,8 +229,11 @@ module ResqueScheduler
 
   # Returns the next delayed queue timestamp
   # (don't call directly)
-  def next_delayed_timestamp(at_time=nil)
-    items = redis.zrangebyscore :delayed_queue_schedule, '-inf', (at_time || Time.now).to_i, :limit => [0, 1]
+  def next_delayed_timestamp(at_time = nil)
+    items = redis.zrangebyscore(
+      :delayed_queue_schedule, '-inf', (at_time || Time.now).to_i,
+      limit: [0, 1]
+    )
     timestamp = items.nil? ? nil : Array(items).first
     timestamp.to_i unless timestamp.nil?
   end
@@ -263,13 +279,45 @@ module ResqueScheduler
       end
     end
 
-    (replies.nil? || replies.empty?) ? 0 : replies.each_slice(2).collect { |slice| slice.first }.inject(:+)
+    return 0 if replies.nil? || replies.empty?
+    replies.each_slice(2).map(&:first).inject(:+)
   end
 
   # Given an encoded item, enqueue it now
   def enqueue_delayed(klass, *args)
     hash = job_to_hash(klass, args)
-    remove_delayed(klass, *args).times { Resque::Scheduler.enqueue_from_config(hash) }
+    remove_delayed(klass, *args).times do
+      Resque::Scheduler.enqueue_from_config(hash)
+    end
+  end
+
+  # Given a block, remove jobs that return true from a block
+  #
+  # This allows for removal of delayed jobs that have arguments matching
+  # certain criteria
+  def remove_delayed_selection
+    fail ArgumentError, 'Please supply a block' unless block_given?
+
+    destroyed = 0
+    # There is no way to search Redis list entries for a partial match, so we
+    # query for all delayed job tasks and do our matching after decoding the
+    # payload data
+    jobs = Resque.redis.keys('delayed:*')
+    jobs.each do |job|
+      index = Resque.redis.llen(job) - 1
+      while index >= 0
+        payload = Resque.redis.lindex(job, index)
+        decoded_payload = decode(payload)
+        if yield(decoded_payload['args'])
+          removed = redis.lrem job, 0, payload
+          destroyed += removed
+          index -= removed
+        else
+          index -= 1
+        end
+      end
+    end
+    destroyed
   end
 
   # Given a timestamp and job (klass + args) it removes all instances and
@@ -322,7 +370,7 @@ module ResqueScheduler
   # Returns delayed jobs schedule timestamp for +klass+, +args+.
   def scheduled_at(klass, *args)
     search = encode(job_to_hash(klass, args))
-    redis.smembers("timestamps:#{search}").collect do |key|
+    redis.smembers("timestamps:#{search}").map do |key|
       key.tr('delayed:', '').to_i
     end
   end
@@ -342,50 +390,41 @@ module ResqueScheduler
       nil
     end
 
-    def job_to_hash(klass, args)
-      {:class => klass.to_s, :args => args, :queue => queue_from_class(klass)}
-    end
+  def job_to_hash(klass, args)
+    { class: klass.to_s, args: args, queue: queue_from_class(klass) }
+  end
 
-    def job_to_hash_with_queue(queue, klass, args)
-      {:class => klass.to_s, :args => args, :queue => queue}
-    end
+  def job_to_hash_with_queue(queue, klass, args)
+    { class: klass.to_s, args: args, queue: queue }
+  end
 
-    def clean_up_timestamp(key, timestamp)
-      # If the list is empty, remove it.
+  def clean_up_timestamp(key, timestamp)
+    # If the list is empty, remove it.
 
-      # Use a watch here to ensure nobody adds jobs to this delayed
-      # queue while we're removing it.
-      redis.watch key
-      if 0 == redis.llen(key).to_i
-        redis.multi do
-          redis.del key
-          redis.zrem :delayed_queue_schedule, timestamp.to_i
-        end
-      else
-        redis.unwatch
+    # Use a watch here to ensure nobody adds jobs to this delayed
+    # queue while we're removing it.
+    redis.watch key
+    if 0 == redis.llen(key).to_i
+      redis.multi do
+        redis.del key
+        redis.zrem :delayed_queue_schedule, timestamp.to_i
       end
+    else
+      redis.unwatch
     end
+  end
 
-    def validate_job!(klass)
-      if klass.to_s.empty?
-        raise Resque::NoClassError.new("Jobs must be given a class.")
+  def prepare_schedule(schedule_hash)
+    prepared_hash = {}
+    schedule_hash.each do |name, job_spec|
+      job_spec = job_spec.dup
+      unless job_spec.key?('class') || job_spec.key?(:class)
+        job_spec['class'] = name
       end
-
-      unless queue_from_class(klass)
-        raise Resque::NoQueueError.new("Jobs must be placed onto a queue.")
-      end
+      prepared_hash[name] = job_spec
     end
-
-    def prepare_schedule(schedule_hash)
-      prepared_hash = {}
-      schedule_hash.each do |name, job_spec|
-        job_spec = job_spec.dup
-        job_spec['class'] = name unless job_spec.key?('class') || job_spec.key?(:class)
-        prepared_hash[name] = job_spec
-      end
-      prepared_hash
-    end
-
+    prepared_hash
+  end
 end
 
 Resque.extend ResqueScheduler

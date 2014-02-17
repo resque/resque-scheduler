@@ -4,6 +4,7 @@ resque-scheduler
 [![Dependency Status](https://gemnasium.com/resque/resque-scheduler.png)](https://gemnasium.com/resque/resque-scheduler)
 [![Gem Version](https://badge.fury.io/rb/resque-scheduler.png)](http://badge.fury.io/rb/resque-scheduler)
 [![Build Status](https://travis-ci.org/resque/resque-scheduler.png?branch=master)](https://travis-ci.org/resque/resque-scheduler)
+[![Code Climate](https://codeclimate.com/github/resque/resque-scheduler.png)](https://codeclimate.com/github/resque/resque-scheduler)
 
 ### Description
 
@@ -12,10 +13,10 @@ that adds support for queueing items in the future.
 
 This table explains the version requirements for redis
 
-| resque-scheduler version | required redis version|
+| resque-scheduler version | required redis gem version|
 |:-------------------------|----------------------:|
-| >= 2.0.0                 | >= 2.2.0              |
-| >= 0.0.1                 | >= 1.3                |
+| ~> 2.0                   | >= 3.0.0              |
+| >= 0.0.1                 | ~> 1.3                |
 
 
 Job scheduling is supported in two different way: Recurring (scheduled) and
@@ -33,8 +34,9 @@ Resque.enqueue_at(5.days.from_now, SomeJob) # run SomeJob at a specific time
 
 ### Documentation
 
-This README covers what most people need to know.  If you're looking for
-details on individual methods, you might want to try the [rdoc](http://rdoc.info/github/bvandenbos/resque-scheduler/master/frames).
+This `README` covers what most people need to know.  If you're looking
+for details on individual methods, you might want to try the
+[rdoc](http://rdoc.info/github/resque/resque-scheduler/master/frames).
 
 ### Installation
 
@@ -45,7 +47,7 @@ To install:
 If you use a Gemfile, you may want to specify the `:require` explicitly:
 
 ```ruby
-gem 'resque-scheduler', :require => 'resque_scheduler'
+gem 'resque-scheduler'
 ```
 
 Adding the resque:scheduler rake task:
@@ -71,7 +73,6 @@ namespace :resque do
   task :setup do
     require 'resque'
     require 'resque_scheduler'
-    require 'resque/scheduler'
 
     # you probably already have this somewhere
     Resque.redis = 'localhost:6379'
@@ -105,10 +106,29 @@ never exits.
 
     $ rake resque:scheduler
 
+or, if you want to load the environment first:
+
+    $ rake environment resque:scheduler
+
 Supported environment variables are `VERBOSE` and `MUTE`.  If either is set to
 any nonempty value, they will take effect.  `VERBOSE` simply dumps more output
 to stdout.  `MUTE` does the opposite and silences all output. `MUTE`
 supersedes `VERBOSE`.
+
+### Resque Pool integration 
+
+For normal work with the
+[resque-pool](https://github.com/nevans/resque-pool) gem, add the
+following task to wherever tasks are kept, such as
+`./lib/tasks/resque.rake`:
+
+```ruby
+task 'resque:pool:setup' do
+  Resque::Pool.after_prefork do |job|
+    Resque.redis.client.reconnect
+  end
+end
+```
 
 
 ### Delayed jobs
@@ -138,7 +158,7 @@ standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
 from scheduled jobs in that if your scheduler process is down or workers are
 down when a particular job is supposed to be queue, they will simply "catch up"
 once they are started again.  Jobs are guaranteed to run (provided they make it
-into the delayed queue) after their given queue_at time has passed.
+into the delayed queue) after their given `queue_at` time has passed.
 
 One other thing to note is that insertion into the delayed queue is O(log(n))
 since the jobs are stored in a redis sorted set (zset).  I can't imagine this
@@ -156,15 +176,38 @@ Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :user_id => current_user.i
 Resque.remove_delayed(SendFollowUpEmail, :user_id => current_user.id)
 ```
 
+If you need to cancel a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
+
+``` ruby
+# after you've enqueued a job like:
+Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
+# remove jobs matching just the account:
+Resque.remove_delayed_selection { |args| args[0]['account_id'] == current_account.id }
+# or remove jobs matching just the user:
+Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
+```
+
 ### Scheduled Jobs (Recurring Jobs)
 
 Scheduled (or recurring) jobs are logically no different than a standard cron
-job.  They are jobs that run based on a fixed schedule which is set at
-startup.
+job.  They are jobs that run based on a schedule which can be static or dynamic.
 
-The schedule is a list of Resque worker classes with arguments and a
+#### Static schedules
+
+Static schedules are set when `resque-scheduler` starts by passing a schedule file
+to `resque-scheduler` initialization like this (see *Installation* above for a more complete example):
+
+```ruby
+Resque.schedule = YAML.load_file('your_resque_schedule.yml')
+```
+
+If a static schedule is not set `resque-scheduler` will issue a "Schedule empty!" warning on
+startup, but despite that warning setting a static schedule is totally optional. It is possible
+to use only dynamic schedules (see below).
+
+The schedule file is a list of Resque job classes with arguments and a
 schedule frequency (in crontab syntax).  The schedule is just a hash, but
-is most likely stored in a YAML like so:
+is usually stored in a YAML like this:
 
 ```yaml
 CancelAbandonedOrders:
@@ -173,17 +216,17 @@ CancelAbandonedOrders:
 queue_documents_for_indexing:
   cron: "0 0 * * *"
   # you can use rufus-scheduler "every" syntax in place of cron if you prefer
-  # every: 1hr
+  # every: 1h
   # By default the job name (hash key) will be taken as worker class name.
   # If you want to have a different job name and class name, provide the 'class' option
-  class: QueueDocuments
+  class: "QueueDocuments"
   queue: high
   args:
   description: "This job queues all content for indexing in solr"
 
 clear_leaderboards_contributors:
   cron: "30 6 * * 1"
-  class: ClearLeaderboards
+  class: "ClearLeaderboards"
   queue: low
   args: contributors
   description: "This job resets the weekly leaderboard for contributions"
@@ -201,11 +244,16 @@ You can provide options to "every" or "cron" via Array:
 clear_leaderboards_moderator:
   every:
     - "30s"
-    - :first_in: "120s"
-  class: CheckDaemon
+    - :first_in: '120s'
+  class: "CheckDaemon"
   queue: daemons
   description: "This job will check Daemon every 30 seconds after 120 seconds after start"
 ```
+
+IMPORTANT: Rufus `every` syntax will calculate jobs scheduling time starting from the moment of deploy,
+resulting in resetting schedule time on every deploy, so it's probably a good idea to use it only for
+frequent jobs (like every 10-30 minutes), otherwise - when you use something like `every 20h` and deploy once-twice per day -
+it will schedule the job for 20 hours from deploy, resulting in a job to never be run.
 
 NOTE: Six parameter cron's are also supported (as they supported by
 rufus-scheduler which powers the resque-scheduler process).  This allows you
@@ -215,6 +263,60 @@ seconds past the minute).
 A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler)
 for handling the heavy lifting of the actual scheduling engine.
 
+#### Dynamic schedules
+
+Dynamic schedules are programmatically set on a running `resque-scheduler`.
+All [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
+when setting schedules.
+
+Dynamic schedules are not enabled by default. To be able to dynamically set schedules, you
+must pass the following to `resque-scheduler` initialization (see *Installation* above for a more complete example):
+
+```ruby
+Resque::Scheduler.dynamic = true
+```
+
+Dynamic schedules allow for greater flexibility than static schedules as they can be set,
+unset or changed without having to restart `resque-scheduler`. You can specify, if the schedule
+must survive a resque-scheduler restart or not. This is done by setting the `persist` configuration
+for the schedule: it is a boolean value, if set the schedule will persist a restart. By default,
+a schedule will not be persisted.
+
+The job to be scheduled must be a valid Resque job class.
+
+For example, suppose you have a SendEmail job which sends emails. The `perform` method of the
+job receives a string argument with the email subject. To run the SendEmail job every hour
+starting five minutes from now, you can do:
+
+```ruby
+name = 'send_emails'
+config = {}
+config[:class] = 'SendEmail'
+config[:args] = 'POC email subject'
+config[:every] = ['1h', {first_in: 5.minutes}]
+config[:persist] = true
+Resque.set_schedule(name, config)
+```
+
+Schedules can later be removed by passing their name to the `remove_schedule` method:
+
+```ruby
+name = 'send_emails'
+Resque.remove_schedule(name)
+```
+
+Schedule names are unique; i.e. two dynamic schedules cannot have the same name. If `set_schedule` is
+passed the name of an existing schedule, that schedule is updated. E.g. if after setting the above schedule
+ we want the job to run every day instead of every hour from now on, we can do:
+
+```ruby
+name = 'send_emails'
+config = {}
+config[:class] = 'SendEmail'
+config[:args] = 'POC email subject'
+config[:every] = '1d'
+Resque.set_schedule(name, config)
+```
 
 #### Time zones
 
@@ -278,7 +380,7 @@ And then a schedule:
 create_fake_leaderboards:
   cron: "30 6 * * 1"
   queue: scoring
-  custom_job_class: FakeLeaderboard
+  custom_job_class: "FakeLeaderboard"
   args:
   rails_env: demo
   description: "This job will auto-create leaderboards for our online demo and the status will update as the worker makes progress"
@@ -396,32 +498,42 @@ worker is started.
 There are several options to toggle the way scheduler logs its actions. They
 are toggled by environment variables:
 
-  - `MUTE` will stop logging anything. Completely silent;
-  - `VERBOSE` opposite to 'mute' will log even debug information;
-  - `LOGFILE` specifies the file to write logs to. Default is standard output.
+  - `MUTE` will stop logging anything. Completely silent.
+  - `VERBOSE` opposite of 'mute'; will log even debug information
+  - `LOGFILE` specifies the file to write logs to. (default standard output)
+  - `LOGFORMAT` specifies either "text" or "json" output format
+    (default "text")
 
-All those variables are non-mandatory and default values are
+All of these variables are optional and will be given the following default
+values:
 
 ```ruby
-Resque::Scheduler.mute    = false
-Resque::Scheduler.verbose = false
-Resque::Scheduler.logfile = nil # that means, all messages go to STDOUT
+Resque::Scheduler.configure do |c|
+  c.mute = false
+  c.verbose = false
+  c.logfile = nil # meaning all messages go to $stdout
+  c.logformat = 'text'
+end
 ```
-
 
 ### Polling frequency
 
-You can pass an INTERVAL option which is a integer representing the polling frequency.
-The default is 5 seconds, but for a semi-active app you may want to use a smaller (integer) value.
+You can pass a `RESQUE_SCHEDULER_INTERVAL` option which is an integer or
+float representing the polling frequency. The default is 5 seconds, but
+for a semi-active app you may want to use a smaller value.
 
-    $ INTERVAL=1 rake resque:scheduler
+    $ RESQUE_SCHEDULER_INTERVAL=1 rake resque:scheduler
+
+**NOTE** This value was previously `INTERVAL` but was renamed to
+`RESQUE_SCHEDULER_INTERVAL` to avoid clashing with the interval Resque
+uses for its jobs.
 
 ### Plagiarism alert
 
-This was intended to be an extension to resque and so resulted in a lot of the
-code looking very similar to resque, particularly in resque-web and the views. I
-wanted it to be similar enough that someone familiar with resque could easily
-work on resque-scheduler.
+This was intended to be an extension to resque and so resulted in a lot
+of the code looking very similar to resque, particularly in resque-web
+and the views. I wanted it to be similar enough that someone familiar
+with resque could easily work on resque-scheduler.
 
 
 ### Contributing

@@ -20,10 +20,12 @@ Resque Scheduler authors
 - David Yang
 - Denis Yagofarov
 - Evan Tahler
+- Eugene Batogov
 - Giovanni Cappellotto
 - Harry Lascelles
 - Henrik Nyh
 - James Le Cuirot
+- Jarkko Mönkkönen
 - John Crepezzi
 - John Griffin
 - Jon Larkowski and Les Hill
@@ -44,13 +46,17 @@ Resque Scheduler authors
 - Olivier Brisse
 - Petteri Räty
 - Phil Cohen
+- Rob Olson
 - Russell Branca
 - Ryan Biesemeyer
 - Ryan Carver
+- Sameer Siruguri
+- Scott Francis
 - Sebastian Kippe
 - Spring MC
 - Tim Liner
 - Tony Lewis
+- Vincent Zhu
 - V Sreekanth
 - andreas
 - bbauer

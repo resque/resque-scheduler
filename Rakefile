@@ -1,41 +1,17 @@
+# vim:fileencoding=utf-8
 require 'bundler/gem_tasks'
+require 'rake/testtask'
+require 'rubocop/rake_task'
 
-$LOAD_PATH.unshift 'lib'
+task default: [:rubocop, :test]
 
-task :default => :test
+Rubocop::RakeTask.new
 
-desc 'Run tests'
-task :test do
-  if RUBY_VERSION =~ /^1\.8/
-    unless ENV['SEED']
-      srand
-      ENV['SEED'] = (srand % 0xFFFF).to_s
-    end
-
-    $stdout.puts "Running with SEED=#{ENV['SEED']}"
-    srand Integer(ENV['SEED'])
-  elsif ENV['SEED']
-    ARGV += %W(--seed #{ENV['SEED']})
+Rake::TestTask.new do |t|
+  t.libs << 'test'
+  t.pattern = ENV['PATTERN'] || 'test/*_test.rb'
+  t.options = ''.tap do |o|
+    o << "--seed #{ENV['SEED']} " if ENV['SEED']
+    o << '--verbose ' if ENV['VERBOSE']
   end
-  Dir['test/*_test.rb'].each do |f|
-    require File.expand_path(f)
-  end
-end
-
-desc 'Run rubocop'
-task :rubocop do
-  unless RUBY_VERSION < '1.9'
-    sh('rubocop --config .rubocop.yml --format simple') { |r, _| r || abort }
-  end
-end
-
-begin
-  require 'rdoc/task'
-
-  Rake::RDocTask.new do |rd|
-    rd.main = 'README.md'
-    rd.rdoc_files.include('README.md', 'lib/**/*.rb')
-    rd.rdoc_dir = 'doc'
-  end
-rescue LoadError
 end

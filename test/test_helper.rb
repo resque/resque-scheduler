@@ -1,63 +1,57 @@
+# vim:fileencoding=utf-8
+require 'simplecov'
 
-# Pretty much copied this file from the resque test_helper since we want
-# to do all the same stuff
-
-dir = File.dirname(File.expand_path(__FILE__))
-
-require 'rubygems'
 require 'test/unit'
 require 'mocha/setup'
+require 'rack/test'
 require 'resque'
+
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque_scheduler'
 require 'resque_scheduler/server'
 
-#
-# make sure we can run redis
-#
-
-if !system("which redis-server")
-  puts '', "** can't find `redis-server` in your path"
-  puts "** try running `sudo rake install`"
-  abort ''
+unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
+  # Start our own Redis when the tests start. RedisInstance will take care of
+  # starting and stopping.
+  require File.expand_path('../support/redis_instance', __FILE__)
+  RedisInstance.run!
 end
 
-
-# Start our own Redis when the tests start. RedisInstance will take care of
-# starting and stopping.
-require File.dirname(__FILE__) + '/support/redis_instance'
-RedisInstance.run!
-
-at_exit do
-  next if $!
-
-  if defined?(MiniTest)
-    exit_code = MiniTest::Unit.new.run(ARGV)
-  else
-    exit_code = Test::Unit::AutoRunner.run
-  end
-
-  exit exit_code
-end
+at_exit { exit MiniTest::Unit.new.run(ARGV) || 0 }
 
 ##
 # test/spec/mini 3
-# http://gist.github.com/25455
-# chris@ozmm.org
+# original work: http://gist.github.com/25455
+# forked and modified: https://gist.github.com/meatballhat/8906709
 #
 def context(*args, &block)
   return super unless (name = args.first) && block
   require 'test/unit'
-  klass = Class.new(defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase) do
+  klass = Class.new(Test::Unit::TestCase) do
     def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
+      define_method("test_#{name.gsub(/\W/, '_')}", &block) if block
     end
-    def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup, &block) end
-    def self.teardown(&block) define_method(:teardown, &block) end
+    def self.xtest(*args)
+    end
+    def self.setup(&block)
+      define_method(:setup, &block)
+    end
+    def self.teardown(&block)
+      define_method(:teardown, &block)
+    end
   end
-  (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
+  (class << klass; self end).send(:define_method, :name) do
+    name.gsub(/\W/, '_')
+  end
   klass.class_eval(&block)
+end
+
+unless defined?(Rails)
+  module Rails
+    class << self
+      attr_accessor :env
+    end
+  end
 end
 
 class FakeCustomJobClass
@@ -78,15 +72,51 @@ class SomeIvarJob < SomeJob
   @queue = :ivar
 end
 
+class SomeQuickJob < SomeJob
+  @queue = :quick
+end
+
 class SomeRealClass
   def self.queue
     :some_real_queue
   end
 end
 
-def nullify_logger
-  Resque::Scheduler.mute    = nil
-  Resque::Scheduler.verbose = nil
-  Resque::Scheduler.logfile = nil
-  Resque::Scheduler.logger  = nil
+class JobWithParams
+  def self.perform(*args)
+    @args = args
+  end
 end
+
+JobWithoutParams = Class.new(JobWithParams)
+
+%w(
+  APP_NAME
+  DYNAMIC_SCHEDULE
+  LOGFILE
+  LOGFORMAT
+  MUTE
+  RAILS_ENV
+  RESQUE_SCHEDULER_INTERVAL
+  VERBOSE
+).each do |envvar|
+  ENV[envvar] = nil
+end
+
+def nullify_logger
+  Resque::Scheduler.configure do |c|
+    c.mute = nil
+    c.verbose = nil
+    c.logfile = nil
+    c.logger = nil
+  end
+
+  ENV['LOGFILE'] = nil
+end
+
+def restore_devnull_logfile
+  nullify_logger
+  ENV['LOGFILE'] = '/dev/null'
+end
+
+restore_devnull_logfile

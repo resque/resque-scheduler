@@ -1,25 +1,29 @@
+# vim:fileencoding=utf-8
+
 module ResqueScheduler
   module Plugin
-    extend self
-    def hooks(job, pattern)
+    def self.hooks(job, pattern)
       job.methods.grep(/^#{pattern}/).sort
     end
 
-    def run_hooks(job, pattern, *args)
-      results = hooks(job, pattern).collect do |hook|
+    def self.run_hooks(job, pattern, *args)
+      results = hooks(job, pattern).map do |hook|
         job.send(hook, *args)
       end
 
       results.all? { |result| result != false }
     end
 
-    def method_missing(method_name, *args, &block)
-      if method_name.to_s =~ /^run_(.*)_hooks$/
-        job = args.shift
-        run_hooks job, $1, *args
-      else
-        super
-      end
+    def self.run_before_delayed_enqueue_hooks(klass, *args)
+      run_hooks(klass, 'before_delayed_enqueue', *args)
+    end
+
+    def self.run_before_schedule_hooks(klass, *args)
+      run_hooks(klass, 'before_schedule', *args)
+    end
+
+    def self.run_after_schedule_hooks(klass, *args)
+      run_hooks(klass, 'after_schedule', *args)
     end
   end
 end

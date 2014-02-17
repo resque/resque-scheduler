@@ -1,3 +1,5 @@
+# vim:fileencoding=utf-8
+
 module ResqueScheduler
   # Just builds a logger, with specified verbosity and destination.
   # The simplest example:
@@ -10,23 +12,25 @@ module ResqueScheduler
     #   - :mute if logger needs to be silent for all levels. Default - false
     #   - :verbose if there is a need in debug messages. Default - false
     #   - :log_dev to output logs into a desired file. Default - STDOUT
+    #   - :format log format, either 'text' or 'json'. Default - 'text'
     #
     # Example:
     #
-    #   LoggerBuilder.new(:mute => false, :verbose => true, :log_dev => 'log/sheduler.log')
-    def initialize(opts={})
-      @muted   = !!opts[:mute]
+    #   LoggerBuilder.new(
+    #     :mute => false, :verbose => true, :log_dev => 'log/scheduler.log'
+    #   )
+    def initialize(opts = {})
+      @muted = !!opts[:mute]
       @verbose = !!opts[:verbose]
-      @log_dev = opts[:log_dev] || STDOUT
+      @log_dev = opts[:log_dev] || $stdout
+      @format = opts[:format] || 'text'
     end
 
     # Returns an instance of Logger
     def build
       logger = Logger.new(@log_dev)
       logger.level = level
-      logger.datetime_format = "%Y-%m-%d %H:%M:%S"
-      logger.formatter = formatter
-
+      logger.formatter = send(:"#{@format}_formatter")
       logger
     end
 
@@ -42,9 +46,24 @@ module ResqueScheduler
       end
     end
 
-    def formatter
+    def text_formatter
       proc do |severity, datetime, progname, msg|
-        "[#{severity}] #{datetime}: #{msg}\n"
+        "resque-scheduler: [#{severity}] #{datetime.iso8601}: #{msg}\n"
+      end
+    end
+
+    def json_formatter
+      proc do |severity, datetime, progname, msg|
+        require 'json'
+        JSON.dump(
+
+            name: 'resque-scheduler',
+            progname: progname,
+            level: severity,
+            timestamp: datetime.iso8601,
+            msg: msg
+
+        ) + "\n"
       end
     end
   end
