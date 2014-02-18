@@ -21,6 +21,10 @@ module Resque
           ).to_i == 1
         end
 
+        def timeout=(t)
+          @timeout = t if locked?
+        end
+
         private
 
         def locked_sha(refresh = false)
