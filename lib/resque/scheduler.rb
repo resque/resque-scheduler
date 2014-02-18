@@ -10,6 +10,7 @@ module Resque
   module Scheduler
     autoload :Cli, 'resque/scheduler/cli'
     autoload :Extension, 'resque/scheduler/extension'
+    autoload :Util, 'resque/scheduler/util'
 
     private
 
