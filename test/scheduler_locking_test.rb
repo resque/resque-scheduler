@@ -257,5 +257,25 @@ context 'Resque::Scheduler::Lock::Resilient' do
       assert Resque.redis.ttl(@lock.key) <= 10,
              'TTL should not have been updated'
     end
+
+    test 'setting the lock timeout changes the key TTL if we hold it' do
+      @lock.acquire!
+
+      @lock.timeout = 120
+      ttl = Resque.redis.ttl(@lock.key)
+      assert_send [ttl, :>, 100]
+
+      @lock.timeout = 180
+      ttl = Resque.redis.ttl(@lock.key)
+      assert_send [ttl, :>, 120]
+    end
+
+    test 'setting the lock timeout is a noop if not held' do
+      @lock.acquire!
+      @lock.timeout = 100
+      @lock.stubs(:locked?).returns(false)
+      @lock.timeout = 120
+      assert_equal 100, @lock.timeout
+    end
   end
 end

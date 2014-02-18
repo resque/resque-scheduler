@@ -10,3 +10,5 @@ nbproject
 *.swp
 
 /coverage/
+/.vagrant/
+/dump.rdb

@@ -571,6 +571,33 @@ of the code looking very similar to resque, particularly in resque-web
 and the views. I wanted it to be similar enough that someone familiar
 with resque could easily work on resque-scheduler.
 
+### Development
+
+Working on resque-scheduler requires the following:
+
+* A relatively modern Ruby interpreter (MRI 1.9+ is what's tested)
+* bundler
+
+The development setup looks like this, which is roughly the same thing
+that happens on Travis CI:
+
+``` bash
+# Install everything
+bundle install
+
+# Make sure tests are green before you change stuff
+bundle exec rake
+# Change stuff
+# Repeat
+```
+
+If you have [vagrant](http://www.vagrantup.com) installed, there is a
+development box available that requires no plugins or external
+provisioners:
+
+``` bash
+vagrant up
+```
 
 ### Contributing
 
