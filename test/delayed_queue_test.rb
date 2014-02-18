@@ -534,10 +534,10 @@ context 'DelayedQueue' do
     Resque.enqueue_at Time.now + 1, SomeIvarJob
     Resque.enqueue_at Time.now + 1, SomeIvarJob, id: 1
 
-    assert(Resque.delayed?(SomeIvarJob, id: 1))
-    assert(!Resque.delayed?(SomeIvarJob, id: 2))
-    assert(Resque.delayed?(SomeIvarJob))
-    assert(!Resque.delayed?(SomeJob))
+    assert Resque.delayed?(SomeIvarJob, id: 1)
+    assert !Resque.delayed?(SomeIvarJob, id: 2)
+    assert Resque.delayed?(SomeIvarJob)
+    assert !Resque.delayed?(SomeJob)
 
   end
 

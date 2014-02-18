@@ -347,6 +347,15 @@ module Resque
         total_jobs
       end
 
+      # Discover if a job has been delayed.
+      # Examples
+      #   Resque.delayed?(MyJob)
+      #   Resque.delayed?(MyJob, id: 1)
+      # Returns true if the job has been delayed
+      def delayed?(klass, *args)
+        !scheduled_at(klass, *args).empty?
+      end
+
       # Returns delayed jobs schedule timestamp for +klass+, +args+.
       def scheduled_at(klass, *args)
         search = encode(job_to_hash(klass, args))
