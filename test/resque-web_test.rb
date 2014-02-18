@@ -11,7 +11,7 @@ end
 
 context "on GET to /schedule with scheduled jobs" do
   setup do
-    ENV['rails_env'] = 'production'
+    Resque::Scheduler.env = 'production'
     Resque.schedule = {
       'some_ivar_job' => {
         'cron' => "* * * * *",
@@ -26,6 +26,13 @@ context "on GET to /schedule with scheduled jobs" do
         'args' => {
           'b' => 'blah'
         }
+      },
+      'some_fancy_job' => {
+        'every' => ['1m'],
+        'queue' => 'fancy',
+        'class' => 'SomeFancyJob',
+        'args' => 'sparkles',
+        'rails_env' => 'fancy'
       }
     }
     Resque::Scheduler.load_schedule!
@@ -36,6 +43,10 @@ context "on GET to /schedule with scheduled jobs" do
 
   test 'see the scheduled job' do
     assert last_response.body.include?('SomeIvarJob')
+  end
+
+  test 'excludes jobs for other envs' do
+    assert !last_response.body.include?('SomeFancyJob')
   end
 end
 

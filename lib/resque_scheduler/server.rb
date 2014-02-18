@@ -82,6 +82,11 @@ module ResqueScheduler
               config['class']
             end
           end
+
+          def scheduled_in_this_env?(name)
+            return true if Resque.schedule[name]['rails_env'].nil?
+            Resque.schedule[name]['rails_env'] == Resque::Scheduler.env
+          end
         end
 
         get "/schedule" do
