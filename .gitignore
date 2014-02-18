@@ -9,3 +9,5 @@ Gemfile.lock
 *.swp
 
 /coverage/
+/.vagrant/
+/dump.rdb
