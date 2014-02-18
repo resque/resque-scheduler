@@ -95,7 +95,7 @@ JobWithoutParams = Class.new(JobWithParams)
   DYNAMIC_SCHEDULE
   LOGFILE
   LOGFORMAT
-  MUTE
+  QUIET
   RAILS_ENV
   RESQUE_SCHEDULER_INTERVAL
   VERBOSE
@@ -105,7 +105,7 @@ end
 
 def nullify_logger
   Resque::Scheduler.configure do |c|
-    c.mute = nil
+    c.quiet = nil
     c.verbose = nil
     c.logfile = nil
     c.send(:logger=, nil)

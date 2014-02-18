@@ -26,10 +26,10 @@ module Resque
       end
 
       # If set, produces no output
-      attr_writer :mute
+      attr_writer :quiet
 
-      def mute
-        @mute ||= !!ENV['MUTE']
+      def quiet
+        @quiet ||= !!ENV['QUIET']
       end
 
       # If set, will write messages to the file

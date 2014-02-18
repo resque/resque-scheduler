@@ -145,8 +145,8 @@ scheduled job must run (coerced with `Kernel#Float()`) (default `5`)
 * `LOGFORMAT` - Log output format to use (either `'text'` or `'json'`,
 default `'text'`)
 * `PIDFILE` - If non-empty, write process PID to file (default empty)
-* `QUIET` or `MUTE` - Silence most output if non-empty (equivalent to
-a level of `Logger::FATAL`, default `false`)
+* `QUIET` - Silence most output if non-empty (equivalent to a level of
+`Logger::FATAL`, default `false`)
 * `VERBOSE` - Maximize log verbosity if non-empty (equivalent to a level
 of `Logger::DEBUG`, default `false`)
 
@@ -534,8 +534,8 @@ worker is started.
 There are several options to toggle the way scheduler logs its actions. They
 are toggled by environment variables:
 
-  - `MUTE` will stop logging anything. Completely silent.
-  - `VERBOSE` opposite of 'mute'; will log even debug information
+  - `QUIET` will stop logging anything. Completely silent.
+  - `VERBOSE` opposite of 'QUIET'; will log even debug information
   - `LOGFILE` specifies the file to write logs to. (default standard output)
   - `LOGFORMAT` specifies either "text" or "json" output format
     (default "text")
@@ -545,7 +545,7 @@ values:
 
 ```ruby
 Resque::Scheduler.configure do |c|
-  c.mute = false
+  c.quiet = false
   c.verbose = false
   c.logfile = nil # meaning all messages go to $stdout
   c.logformat = 'text'

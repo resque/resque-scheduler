@@ -19,11 +19,11 @@ context 'Resque::Scheduler' do
   end
 
   test 'configure block' do
-    Resque::Scheduler.mute = false
+    Resque::Scheduler.quiet = false
     Resque::Scheduler.configure do |c|
-      c.mute = true
+      c.quiet = true
     end
-    assert_equal(Resque::Scheduler.mute, true)
+    assert_equal(Resque::Scheduler.quiet, true)
   end
 
   context 'when getting the env' do
@@ -67,7 +67,7 @@ context 'Resque::Scheduler' do
       assert Resque::Scheduler.send(:logger).level > Logger::DEBUG
     end
 
-    test 'not muted' do
+    test 'not quieted' do
       assert Resque::Scheduler.send(:logger).level < Logger::FATAL
     end
   end
@@ -90,8 +90,8 @@ context 'Resque::Scheduler' do
       assert Resque::Scheduler.send(:logger).level == Logger::DEBUG
     end
 
-    test 'mute logger' do
-      Resque::Scheduler.mute = true
+    test 'quiet logger' do
+      Resque::Scheduler.quiet = true
       assert Resque::Scheduler.send(:logger).level == Logger::FATAL
     end
   end

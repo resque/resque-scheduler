@@ -8,7 +8,7 @@ context 'Resque::Scheduler' do
       c.poll_sleep_amount = 0.1
     end
     Resque.redis.flushall
-    Resque::Scheduler.mute = true
+    Resque::Scheduler.quiet = true
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
     Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)

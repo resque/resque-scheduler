@@ -158,25 +158,25 @@ context 'Cli' do
     cli.pre_run
   end
 
-  test 'initializes mute/quiet from the env' do
+  test 'initializes quiet from the env' do
     cli = new_cli([], 'QUIET' => '1')
-    assert_equal('1', cli.send(:options)[:mute])
+    assert_equal('1', cli.send(:options)[:quiet])
   end
 
-  test 'defaults to unmuted' do
-    assert_equal(false, !!new_cli.send(:options)[:mute])
+  test 'defaults to un-quieted' do
+    assert_equal(false, !!new_cli.send(:options)[:quiet])
   end
 
-  test 'accepts mute/quiet via -q' do
+  test 'accepts quiet via -q' do
     cli = new_cli(%w(-q))
     cli.parse_options
-    assert_equal(true, cli.send(:options)[:mute])
+    assert_equal(true, cli.send(:options)[:quiet])
   end
 
-  test 'accepts mute via --quiet' do
+  test 'accepts quiet via --quiet' do
     cli = new_cli(%w(--quiet))
     cli.parse_options
-    assert_equal(true, cli.send(:options)[:mute])
+    assert_equal(true, cli.send(:options)[:quiet])
   end
 
   test 'initializes logfile from the env' do

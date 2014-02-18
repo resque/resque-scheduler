@@ -10,7 +10,7 @@ module Resque
       # Initializes new instance of the builder
       #
       # Pass :opts Hash with
-      #   - :mute if logger needs to be silent for all levels. Default - false
+      #   - :quiet if logger needs to be silent for all levels. Default - false
       #   - :verbose if there is a need in debug messages. Default - false
       #   - :log_dev to output logs into a desired file. Default - STDOUT
       #   - :format log format, either 'text' or 'json'. Default - 'text'
@@ -18,10 +18,10 @@ module Resque
       # Example:
       #
       #   LoggerBuilder.new(
-      #     :mute => false, :verbose => true, :log_dev => 'log/scheduler.log'
+      #     :quiet => false, :verbose => true, :log_dev => 'log/scheduler.log'
       #   )
       def initialize(opts = {})
-        @muted = !!opts[:mute]
+        @quiet = !!opts[:quiet]
         @verbose = !!opts[:verbose]
         @log_dev = opts[:log_dev] || $stdout
         @format = opts[:format] || 'text'
@@ -38,9 +38,9 @@ module Resque
       private
 
       def level
-        if @verbose && !@muted
+        if @verbose && !@quiet
           Logger::DEBUG
-        elsif !@muted
+        elsif !@quiet
           Logger::INFO
         else
           Logger::FATAL

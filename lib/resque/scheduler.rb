@@ -372,7 +372,7 @@ module Resque
 
       def logger
         @logger ||= Resque::Scheduler::LoggerBuilder.new(
-          mute: mute,
+          quiet: quiet,
           verbose: verbose,
           log_dev: logfile,
           format: logformat

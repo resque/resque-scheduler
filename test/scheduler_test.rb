@@ -5,7 +5,7 @@ context 'Resque::Scheduler' do
   setup do
     Resque::Scheduler.configure do |c|
       c.dynamic = false
-      c.mute = true
+      c.quiet = true
       c.env = nil
       c.app_name = nil
     end

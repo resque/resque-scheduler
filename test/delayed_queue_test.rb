@@ -3,7 +3,7 @@ require_relative 'test_helper'
 
 context 'DelayedQueue' do
   setup do
-    Resque::Scheduler.mute = true
+    Resque::Scheduler.quiet = true
     Resque.redis.flushall
   end
 

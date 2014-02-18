@@ -7,7 +7,7 @@ context 'scheduling jobs with arguments' do
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.configure do |c|
       c.dynamic = false
-      c.mute = true
+      c.quiet = true
       c.poll_sleep_amount = nil
     end
   end
