@@ -2,8 +2,14 @@
 require_relative 'test_helper'
 
 context 'Cli' do
+  def mock_runtime_env
+    mock.tap { |m| m.stubs(:setup) }
+  end
+
   def new_cli(argv = [], env = {})
-    Resque::Scheduler::Cli.new(argv, env)
+    Resque::Scheduler::Cli.new(argv, env).tap do |cli|
+      cli.stubs(:runtime_env).returns(mock_runtime_env)
+    end
   end
 
   test 'does not require any positional arguments' do
@@ -52,31 +58,6 @@ context 'Cli' do
     assert_equal(true, cli.send(:options)[:background])
   end
 
-  test 'daemonizes when background is true' do
-    Process.expects(:daemon)
-    cli = new_cli(%w(--background))
-    cli.pre_run
-  end
-
-  test 'reconnects redis when background is true' do
-    Process.stubs(:daemon)
-    mock_redis_client = mock('redis_client')
-    mock_redis = mock('redis')
-    mock_redis.expects(:client).returns(mock_redis_client)
-    mock_redis_client.expects(:reconnect)
-    Resque.expects(:redis).returns(mock_redis)
-    cli = new_cli(%w(--background))
-    cli.pre_run
-  end
-
-  test 'aborts when background is given and Process does not support daemon' do
-    Process.stubs(:daemon)
-    Process.expects(:respond_to?).with('daemon').returns(false)
-    cli = new_cli(%w(--background))
-    cli.expects(:abort)
-    cli.pre_run
-  end
-
   test 'initializes pidfile from the env' do
     cli = new_cli([], 'PIDFILE' => 'bar')
     assert_equal('bar', cli.send(:options)[:pidfile])
@@ -96,14 +77,6 @@ context 'Cli' do
     cli = new_cli(%w(--pidfile foo))
     cli.parse_options
     assert_equal('foo', cli.send(:options)[:pidfile])
-  end
-
-  test 'writes pid to pidfile when given' do
-    mock_pidfile = mock('pidfile')
-    mock_pidfile.expects(:puts)
-    File.expects(:open).with('derp.pid', 'w').yields(mock_pidfile)
-    cli = new_cli(%w(--pidfile derp.pid))
-    cli.pre_run
   end
 
   test 'defaults to nil dynamic' do

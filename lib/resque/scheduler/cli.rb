@@ -4,6 +4,20 @@ require 'optparse'
 
 module Resque
   module Scheduler
+    CLI_OPTIONS_ENV_MAPPING = {
+      app_name: 'APP_NAME',
+      background: 'BACKGROUND',
+      dynamic: 'DYNAMIC_SCHEDULE',
+      env: 'RAILS_ENV',
+      initializer_path: 'INITIALIZER_PATH',
+      logfile: 'LOGFILE',
+      logformat: 'LOGFORMAT',
+      quiet: 'QUIET',
+      pidfile: 'PIDFILE',
+      poll_sleep_amount: 'RESQUE_SCHEDULER_INTERVAL',
+      verbose: 'VERBOSE'
+    }
+
     class Cli
       BANNER = <<-EOF.gsub(/ {6}/, '')
       Usage: resque-scheduler [options]
@@ -95,12 +109,8 @@ module Resque
       end
 
       def setup_env
-        require 'resque'
-        require 'resque/scheduler'
-
-        setup_backgrounding
-        setup_pid_file
-        setup_scheduler_configuration
+        require_relative 'env'
+        runtime_env.setup
       end
 
       def run_forever
@@ -111,6 +121,10 @@ module Resque
 
       attr_reader :argv, :env
 
+      def runtime_env
+        Resque::Scheduler::Env.new(options)
+      end
+
       def option_parser
         OptionParser.new do |opts|
           opts.banner = BANNER
@@ -120,60 +134,9 @@ module Resque
         end
       end
 
-      OPTIONS_ENV_MAPPING = {
-        app_name: 'APP_NAME',
-        background: 'BACKGROUND',
-        dynamic: 'DYNAMIC_SCHEDULE',
-        env: 'RAILS_ENV',
-        initializer_path: 'INITIALIZER_PATH',
-        logfile: 'LOGFILE',
-        logformat: 'LOGFORMAT',
-        quiet: 'QUIET',
-        pidfile: 'PIDFILE',
-        poll_sleep_amount: 'RESQUE_SCHEDULER_INTERVAL',
-        verbose: 'VERBOSE'
-      }
-
       def options
         @options ||= {}.tap do |o|
-          OPTIONS_ENV_MAPPING.map { |key, envvar| o[key] = env[envvar] }
-        end
-      end
-
-      def setup_backgrounding
-        # Need to set this here for conditional Process.daemon redirect of
-        # stderr/stdout to /dev/null
-        Resque::Scheduler.quiet = !!options[:quiet]
-
-        if options[:background]
-          unless Process.respond_to?('daemon')
-            abort 'background option is set, which requires ruby >= 1.9'
-          end
-
-          Process.daemon(true, !Resque::Scheduler.quiet)
-          Resque.redis.client.reconnect
-        end
-      end
-
-      def setup_pid_file
-        File.open(options[:pidfile], 'w') do |f|
-          f.puts $PROCESS_ID
-        end if options[:pidfile]
-      end
-
-      def setup_scheduler_configuration
-        Resque::Scheduler.configure do |c|
-          # These settings are somewhat redundant given the defaults present
-          # in the attr reader methods.  They are left here for clarity and
-          # to serve as an example of how to use `.configure`.
-
-          c.app_name = options[:app_name]
-          c.dynamic = !!options[:dynamic]
-          c.env = options[:env]
-          c.logfile = options[:logfile]
-          c.logformat = options[:logformat]
-          c.poll_sleep_amount = Float(options[:poll_sleep_amount] || '5')
-          c.verbose = !!options[:verbose]
+          CLI_OPTIONS_ENV_MAPPING.map { |key, envvar| o[key] = env[envvar] }
         end
       end
     end

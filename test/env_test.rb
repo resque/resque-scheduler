@@ -1,0 +1,41 @@
+# vim:fileencoding=utf-8
+require_relative 'test_helper'
+
+context 'Env' do
+  def new_env(options = {})
+    Resque::Scheduler::Env.new(options)
+  end
+
+  test 'daemonizes when background is true' do
+    Process.expects(:daemon)
+    env = new_env(background: true)
+    env.setup
+  end
+
+  test 'reconnects redis when background is true' do
+    Process.stubs(:daemon)
+    mock_redis_client = mock('redis_client')
+    mock_redis = mock('redis')
+    mock_redis.expects(:client).returns(mock_redis_client)
+    mock_redis_client.expects(:reconnect)
+    Resque.expects(:redis).returns(mock_redis)
+    env = new_env(background: true)
+    env.setup
+  end
+
+  test 'aborts when background is given and Process does not support daemon' do
+    Process.stubs(:daemon)
+    Process.expects(:respond_to?).with('daemon').returns(false)
+    env = new_env(background: true)
+    env.expects(:abort)
+    env.setup
+  end
+
+  test 'writes pid to pidfile when given' do
+    mock_pidfile = mock('pidfile')
+    mock_pidfile.expects(:puts)
+    File.expects(:open).with('derp.pid', 'w').yields(mock_pidfile)
+    env = new_env(pidfile: 'derp.pid')
+    env.setup
+  end
+end
