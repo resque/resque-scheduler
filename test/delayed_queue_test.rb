@@ -538,7 +538,5 @@ context 'DelayedQueue' do
     assert !Resque.delayed?(SomeIvarJob, id: 2)
     assert Resque.delayed?(SomeIvarJob)
     assert !Resque.delayed?(SomeJob)
-
   end
-
 end
