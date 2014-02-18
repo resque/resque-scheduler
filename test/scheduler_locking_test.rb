@@ -242,21 +242,50 @@ context 'Resque::Scheduler::Lock::Resilient' do
     test 'setting the lock timeout changes the key TTL if we hold it' do
       @lock.acquire!
 
+      @lock.stubs(:locked?).returns(true)
       @lock.timeout = 120
       ttl = Resque.redis.ttl(@lock.key)
       assert_send [ttl, :>, 100]
 
+      @lock.stubs(:locked?).returns(true)
       @lock.timeout = 180
       ttl = Resque.redis.ttl(@lock.key)
       assert_send [ttl, :>, 120]
     end
 
-    test 'setting the lock timeout is a noop if not held' do
+    test 'setting lock timeout is a noop if not held' do
       @lock.acquire!
       @lock.timeout = 100
       @lock.stubs(:locked?).returns(false)
       @lock.timeout = 120
       assert_equal 100, @lock.timeout
+    end
+
+    test 'setting lock timeout nils out lock script' do
+      @lock.acquire!
+      @lock.timeout = 100
+      assert_equal nil, @lock.instance_variable_get(:@locked_sha)
+    end
+
+    test 'setting lock timeout does not nil out lock script if not held' do
+      @lock.acquire!
+      @lock.locked?
+      @lock.stubs(:locked?).returns(false)
+      @lock.timeout = 100
+      assert_not_nil @lock.instance_variable_get(:@locked_sha)
+    end
+
+    test 'setting lock timeout nils out acquire script' do
+      @lock.acquire!
+      @lock.timeout = 100
+      assert_equal nil, @lock.instance_variable_get(:@acquire_sha)
+    end
+
+    test 'setting lock timeout does not nil out acquire script if not held' do
+      @lock.acquire!
+      @lock.stubs(:locked?).returns(false)
+      @lock.timeout = 100
+      assert_not_nil @lock.instance_variable_get(:@acquire_sha)
     end
   end
 end
