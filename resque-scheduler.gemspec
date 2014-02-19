@@ -23,5 +23,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency(%q<redis>, [">= 2.0.1"])
   s.add_runtime_dependency(%q<resque>, [">= 1.20.0"])
-  s.add_runtime_dependency(%q<rufus-scheduler>, [">= 0"])
+  s.add_runtime_dependency(%q<rufus-scheduler>, ["~> 2.0"])
 end
