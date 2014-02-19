@@ -26,3 +26,5 @@ begin
 rescue LoadError
 end
 
+# All-in-one target for Yesware CI
+task :ci => ['test']
