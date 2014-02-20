@@ -361,6 +361,14 @@ module ResqueScheduler
     end
   end
 
+  def last_enqueued_at(job_name, date)
+    redis.hset('delayed:last_enqueued_at', job_name, date)
+  end
+
+  def get_last_enqueued_at(job_name)
+    redis.hget('delayed:last_enqueued_at', job_name)
+  end
+
   private
 
   def job_to_hash(klass, args)
