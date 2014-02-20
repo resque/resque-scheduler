@@ -222,7 +222,7 @@ module Resque
               job = rufus_scheduler.send(interval_type, *args) do
                 if master?
                   log! "queueing #{config['class']} (#{name})"
-                  Resque.set_last_run(name, Time.now.to_s)
+                  Resque.last_enqueued_at(name, Time.now.to_s)
                   handle_errors { enqueue_from_config(config) }
                 end
               end
