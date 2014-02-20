@@ -15,7 +15,7 @@
     <th>Class</th>
     <th>Queue</th>
     <th>Arguments</th>
-    <th>Last Run</th>
+    <th>Last Enqueued</th>
   </tr>
   <% Resque.schedule.keys.sort.each do |name| %>
     <% config = Resque.schedule[name] %>
