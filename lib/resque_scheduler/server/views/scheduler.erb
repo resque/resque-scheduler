@@ -17,7 +17,7 @@
     <th>Arguments</th>
     <th>Last Enqueued</th>
   </tr>
-  <% Resque.schedule.keys.sort.each do |name| %>
+  <% Resque.schedule.keys.sort.select { |n| scheduled_in_this_env?(n) }.each do |name| %>
     <% config = Resque.schedule[name] %>
     <tr>
       <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
