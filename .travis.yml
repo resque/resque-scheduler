@@ -8,6 +8,7 @@ rvm:
 env:
   global:
   - RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER=1
+  - JRUBY_OPTS='-Xcext.enabled=true'
 services:
 - redis-server
 notifications:
