@@ -4,7 +4,8 @@ require 'rake/testtask'
 require 'rubocop/rake_task'
 require 'yard'
 
-task default: [:rubocop, :test]
+task default: [:rubocop, :test] unless RUBY_PLATFORM =~ /java/
+task default: [:test] if RUBY_PLATFORM =~ /java/
 
 Rubocop::RakeTask.new
 

@@ -72,6 +72,12 @@ class SomeIvarJob < SomeJob
   @queue = :ivar
 end
 
+class SomeFancyJob < SomeJob
+  def self.queue
+    :fancy
+  end
+end
+
 class SomeQuickJob < SomeJob
   @queue = :quick
 end

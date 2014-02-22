@@ -1,1 +1,3 @@
-SimpleCov.start { add_filter '/test/' } if ENV['COVERAGE']
+if ENV['COVERAGE'] && RUBY_PLATFORM !~ /java/
+  SimpleCov.start { add_filter '/test/' }
+end

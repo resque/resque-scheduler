@@ -23,10 +23,11 @@ context 'Resque::Scheduler' do
 
   test 'sending TERM to scheduler breaks out of poll_sleep' do
     Resque::Scheduler.expects(:release_master_lock!)
-    fork do
+
+    @pid = Process.pid
+    Thread.new do
       sleep(0.05)
-      system("kill -TERM #{Process.ppid}")
-      exit!
+      Process.kill(:TERM, @pid)
     end
 
     assert_raises SystemExit do
