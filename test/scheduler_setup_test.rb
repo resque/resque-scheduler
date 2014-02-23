@@ -12,7 +12,7 @@ context "Resque::Scheduler" do
   teardown { restore_devnull_logfile }
 
   test 'set custom logger' do
-    custom_logger = Logger.new('/dev/null')
+    custom_logger = MonoLogger.new('/dev/null')
     Resque::Scheduler.logger = custom_logger
     assert_equal(custom_logger, Resque::Scheduler.logger)
   end
@@ -62,11 +62,11 @@ context "Resque::Scheduler" do
     end
 
     test 'not verbose' do
-      assert Resque::Scheduler.logger.level > Logger::DEBUG
+      assert Resque::Scheduler.logger.level > MonoLogger::DEBUG
     end
 
     test 'not muted' do
-      assert Resque::Scheduler.logger.level < Logger::FATAL
+      assert Resque::Scheduler.logger.level < MonoLogger::FATAL
     end
   end
 
@@ -84,12 +84,12 @@ context "Resque::Scheduler" do
 
     test 'set verbosity' do
       Resque::Scheduler.verbose = true
-      assert Resque::Scheduler.logger.level == Logger::DEBUG
+      assert Resque::Scheduler.logger.level == MonoLogger::DEBUG
     end
 
     test 'mute logger' do
       Resque::Scheduler.mute = true
-      assert Resque::Scheduler.logger.level == Logger::FATAL
+      assert Resque::Scheduler.logger.level == MonoLogger::FATAL
     end
   end
 end

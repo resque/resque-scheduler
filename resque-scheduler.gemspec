@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rubocop' unless RUBY_VERSION < '1.9'
   spec.add_development_dependency 'simplecov' unless RUBY_VERSION < '1.9'
 
+  spec.add_runtime_dependency 'mono_logger', '~> 1.0'
   spec.add_runtime_dependency 'redis', '~> 3.0.4'
   spec.add_runtime_dependency 'resque', '~> 1.25.1'
   spec.add_runtime_dependency 'rufus-scheduler', '~> 2.0.24'

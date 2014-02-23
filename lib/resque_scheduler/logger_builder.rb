@@ -1,5 +1,7 @@
 # vim:fileencoding=utf-8
 
+require 'mono_logger'
+
 module ResqueScheduler
   # Just builds a logger, with specified verbosity and destination.
   # The simplest example:
@@ -26,9 +28,9 @@ module ResqueScheduler
       @format = opts[:format] || 'text'
     end
 
-    # Returns an instance of Logger
+    # Returns an instance of MonoLogger
     def build
-      logger = Logger.new(@log_dev)
+      logger = MonoLogger.new(@log_dev)
       logger.level = level
       logger.formatter = send(:"#{@format}_formatter")
       logger
@@ -38,11 +40,11 @@ module ResqueScheduler
 
     def level
       if @verbose && !@muted
-        Logger::DEBUG
+        MonoLogger::DEBUG
       elsif !@muted
-        Logger::INFO
+        MonoLogger::INFO
       else
-        Logger::FATAL
+        MonoLogger::FATAL
       end
     end
 
