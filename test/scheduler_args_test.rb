@@ -5,8 +5,11 @@ require_relative 'test_helper'
 context 'scheduling jobs with arguments' do
   setup do
     Resque::Scheduler.clear_schedule!
-    Resque::Scheduler.dynamic = false
-    Resque::Scheduler.mute = true
+    Resque::Scheduler.configure do |c|
+      c.dynamic = false
+      c.quiet = true
+      c.poll_sleep_amount = nil
+    end
   end
 
   test 'enqueue_from_config puts stuff in resque without class loaded' do

@@ -1,11 +1,12 @@
-.bundle/
-.idea/
+/.bundle/
+/.idea/
+/.yardoc/
 
-doc/
-pkg
+/doc/
+/pkg/
 nbproject
-Gemfile.lock
-.rvmrc
+/Gemfile.lock
+/.rvmrc
 *.swp
 
 /coverage/

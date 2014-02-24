@@ -1,96 +1,26 @@
 # vim:fileencoding=utf-8
+
 require 'rufus/scheduler'
-require 'resque/scheduler_locking'
-require 'resque_scheduler/logger_builder'
+require_relative 'scheduler/configuration'
+require_relative 'scheduler/locking'
+require_relative 'scheduler/logger_builder'
+require_relative 'scheduler/signal_handling'
 
 module Resque
-  class Scheduler
-    extend Resque::SchedulerLocking
+  module Scheduler
+    autoload :Cli, 'resque/scheduler/cli'
+    autoload :Extension, 'resque/scheduler/extension'
+    autoload :Util, 'resque/scheduler/util'
+
+    private
+
+    extend Resque::Scheduler::Locking
+    extend Resque::Scheduler::Configuration
+    extend Resque::Scheduler::SignalHandling
+
+    public
 
     class << self
-      # Allows for block-style configuration
-      def configure
-        yield self
-      end
-
-      attr_writer :signal_queue
-
-      def signal_queue
-        @signal_queue ||= []
-      end
-
-      # Used in `#load_schedule_job`
-      attr_writer :env
-
-      def env
-        return @env if @env
-        @env ||= Rails.env if defined?(Rails)
-        @env ||= ENV['RAILS_ENV']
-        @env
-      end
-
-      # If true, logs more stuff...
-      attr_writer :verbose
-
-      def verbose
-        @verbose ||= !!ENV['VERBOSE']
-      end
-
-      # If set, produces no output
-      attr_writer :mute
-
-      def mute
-        @mute ||= !!ENV['MUTE']
-      end
-
-      # If set, will write messages to the file
-      attr_writer :logfile
-
-      def logfile
-        @logfile ||= ENV['LOGFILE']
-      end
-
-      # Sets whether to log in 'text' or 'json'
-      attr_writer :logformat
-
-      def logformat
-        @logformat ||= ENV['LOGFORMAT']
-      end
-
-      # If set, will try to update the schedule in the loop
-      attr_writer :dynamic
-
-      def dynamic
-        @dynamic ||= !!ENV['DYNAMIC_SCHEDULE']
-      end
-
-      # If set, will append the app name to procline
-      attr_writer :app_name
-
-      def app_name
-        @app_name ||= ENV['APP_NAME']
-      end
-
-      # Amount of time in seconds to sleep between polls of the delayed
-      # queue.  Defaults to 5
-      attr_writer :poll_sleep_amount
-
-      def poll_sleep_amount
-        @poll_sleep_amount ||=
-          Float(ENV.fetch('RESQUE_SCHEDULER_INTERVAL', '5'))
-      end
-
-      attr_writer :logger
-
-      def logger
-        @logger ||= ResqueScheduler::LoggerBuilder.new(
-          mute: mute,
-          verbose: verbose,
-          log_dev: logfile,
-          format: logformat
-        ).build
-      end
-
       # the Rufus::Scheduler jobs that are scheduled
       attr_reader :scheduled_jobs
 
@@ -133,28 +63,6 @@ module Resque
 
         rescue Interrupt
           log 'Exiting'
-        end
-      end
-
-      # For all signals, set the shutdown flag and wait for current
-      # poll/enqueing to finish (should be almost instant).  In the
-      # case of sleeping, exit immediately.
-      def register_signal_handlers
-        %w(INT TERM USR1 USR2 QUIT).each do |sig|
-          trap(sig) { signal_queue << sig }
-        end
-      end
-
-      def handle_signals
-        loop do
-          sig = signal_queue.shift
-          break unless sig
-          log! "Got #{sig} signal"
-          case sig
-          when 'INT', 'TERM', 'QUIT' then shutdown
-          when 'USR1' then print_schedule
-          when 'USR2' then reload_schedule!
-          end
         end
       end
 
@@ -202,8 +110,8 @@ module Resque
         args
       end
 
-      # Loads a job schedule into the Rufus::Scheduler and stores it in
-      # @scheduled_jobs
+      # Loads a job schedule into the Rufus::Scheduler and stores it
+      # in @scheduled_jobs
       def load_schedule_job(name, config)
         # If `rails_env` or `env` is set in the config, load jobs only if they
         # are meant to be loaded in `Resque::Scheduler.env`.  If `rails_env` or
@@ -307,7 +215,7 @@ module Resque
 
         klass_name = job_config['class'] || job_config[:class]
         begin
-          klass = ResqueScheduler::Util.constantize(klass_name)
+          klass = Resque::Scheduler::Util.constantize(klass_name)
         rescue NameError
           klass = klass_name
         end
@@ -325,7 +233,7 @@ module Resque
           # from the web perhaps), fall back to enqueing normally via
           # Resque::Job.create.
           begin
-            ResqueScheduler::Util.constantize(job_klass).scheduled(
+            Resque::Scheduler::Util.constantize(job_klass).scheduled(
               queue, klass_name, *params
             )
           rescue NameError
@@ -338,7 +246,7 @@ module Resque
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another.
           if Class === klass
-            ResqueScheduler::Plugin.run_before_delayed_enqueue_hooks(
+            Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(
               klass, *params
             )
 
@@ -462,6 +370,17 @@ module Resque
 
       private
 
+      attr_writer :logger
+
+      def logger
+        @logger ||= Resque::Scheduler::LoggerBuilder.new(
+          quiet: quiet,
+          verbose: verbose,
+          log_dev: logfile,
+          format: logformat
+        ).build
+      end
+
       def app_str
         app_name ? "[#{app_name}]" : ''
       end
@@ -475,7 +394,7 @@ module Resque
       end
 
       def internal_name
-        "resque-scheduler-#{ResqueScheduler::VERSION}"
+        "resque-scheduler-#{Resque::Scheduler::VERSION}"
       end
     end
   end

@@ -2,6 +2,7 @@
 require 'bundler/gem_tasks'
 require 'rake/testtask'
 require 'rubocop/rake_task'
+require 'yard'
 
 task default: [:rubocop, :test] unless RUBY_PLATFORM =~ /java/
 task default: [:test] if RUBY_PLATFORM =~ /java/
@@ -16,3 +17,5 @@ Rake::TestTask.new do |t|
     o << '--verbose ' if ENV['VERBOSE']
   end
 end
+
+YARD::Rake::YardocTask.new

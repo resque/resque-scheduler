@@ -7,8 +7,8 @@ require 'rack/test'
 require 'resque'
 
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
-require 'resque_scheduler'
-require 'resque_scheduler/server'
+require 'resque-scheduler'
+require 'resque/scheduler/server'
 
 unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   # Start our own Redis when the tests start. RedisInstance will take care of
@@ -101,7 +101,7 @@ JobWithoutParams = Class.new(JobWithParams)
   DYNAMIC_SCHEDULE
   LOGFILE
   LOGFORMAT
-  MUTE
+  QUIET
   RAILS_ENV
   RESQUE_SCHEDULER_INTERVAL
   VERBOSE
@@ -111,10 +111,10 @@ end
 
 def nullify_logger
   Resque::Scheduler.configure do |c|
-    c.mute = nil
+    c.quiet = nil
     c.verbose = nil
     c.logfile = nil
-    c.logger = nil
+    c.send(:logger=, nil)
   end
 
   ENV['LOGFILE'] = nil

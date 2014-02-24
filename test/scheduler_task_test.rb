@@ -3,9 +3,12 @@ require_relative 'test_helper'
 
 context 'Resque::Scheduler' do
   setup do
-    Resque::Scheduler.dynamic = false
+    Resque::Scheduler.configure do |c|
+      c.dynamic = false
+      c.poll_sleep_amount = 0.1
+    end
     Resque.redis.flushall
-    Resque::Scheduler.mute = true
+    Resque::Scheduler.quiet = true
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
     Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
@@ -23,7 +26,7 @@ context 'Resque::Scheduler' do
 
     @pid = Process.pid
     Thread.new do
-      sleep 0.5
+      sleep(0.05)
       Process.kill(:TERM, @pid)
     end
 

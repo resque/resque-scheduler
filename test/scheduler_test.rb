@@ -5,7 +5,7 @@ context 'Resque::Scheduler' do
   setup do
     Resque::Scheduler.configure do |c|
       c.dynamic = false
-      c.mute = true
+      c.quiet = true
       c.env = nil
       c.app_name = nil
     end
@@ -378,7 +378,7 @@ context 'Resque::Scheduler' do
   test 'adheres to lint' do
     assert_nothing_raised do
       Resque::Plugin.lint(Resque::Scheduler)
-      Resque::Plugin.lint(ResqueScheduler)
+      Resque::Plugin.lint(Resque::Scheduler::Extension)
     end
   end
 

@@ -9,7 +9,7 @@ end
 
 context '#master_lock_key' do
   setup do
-    @subject = Class.new { extend Resque::SchedulerLocking }
+    @subject = Class.new { extend Resque::Scheduler::Locking }
   end
 
   teardown do
@@ -25,7 +25,7 @@ context '#master_lock_key' do
   context 'with a prefix set via ENV' do
     setup do
       ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = 'my.prefix'
-      @subject = Class.new { extend Resque::SchedulerLocking }
+      @subject = Class.new { extend Resque::Scheduler::Locking }
     end
 
     teardown do
@@ -43,7 +43,7 @@ context '#master_lock_key' do
   context 'with a namespace set for resque' do
     setup do
       Resque.redis.namespace = 'my.namespace'
-      @subject = Class.new { extend Resque::SchedulerLocking }
+      @subject = Class.new { extend Resque::Scheduler::Locking }
     end
 
     teardown do
@@ -61,7 +61,7 @@ context '#master_lock_key' do
       setup do
         Resque.redis.namespace = 'my.namespace'
         ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = 'my.prefix'
-        @subject = Class.new { extend Resque::SchedulerLocking }
+        @subject = Class.new { extend Resque::Scheduler::Locking }
       end
 
       teardown do
@@ -79,9 +79,9 @@ context '#master_lock_key' do
   end
 end
 
-context 'Resque::SchedulerLocking' do
+context 'Resque::Scheduler::Locking' do
   setup do
-    @subject = Class.new { extend Resque::SchedulerLocking }
+    @subject = Class.new { extend Resque::Scheduler::Locking }
   end
 
   teardown do
