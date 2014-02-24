@@ -5,6 +5,10 @@ require 'json'
 # Extend Resque::Server to add tabs
 module ResqueScheduler
   module Server
+    unless defined?(::ResqueScheduler::Server::VIEWS)
+      VIEWS = File.expand_path('../server/views', __FILE__)
+    end
+
     def self.included(base)
       base.class_eval do
         helpers do
