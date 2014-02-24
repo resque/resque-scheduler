@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'yard'
 
+  spec.add_runtime_dependency 'mono_logger', '~> 1.0'
   spec.add_runtime_dependency 'redis', '~> 3.0'
   spec.add_runtime_dependency 'resque', '~> 1.25'
   spec.add_runtime_dependency 'rufus-scheduler', '~> 2.0'
