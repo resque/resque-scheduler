@@ -30,6 +30,7 @@ Resque Scheduler authors
 - John Crepezzi
 - John Griffin
 - Jon Larkowski and Les Hill
+- Jonathan Conley
 - Jonathan Hyman
 - Jonathan Owens
 - Joshua Szmajda

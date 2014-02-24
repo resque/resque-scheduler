@@ -48,6 +48,20 @@ context 'on GET to /schedule with scheduled jobs' do
   test 'excludes jobs for other envs' do
     assert !last_response.body.include?('SomeFancyJob')
   end
+
+  test 'allows delete when dynamic' do
+    Resque::Scheduler.stubs(:dynamic).returns(true)
+    get '/schedule'
+
+    assert last_response.body.include?('Delete')
+  end
+
+  test "doesn't allow delete when static" do
+    Resque::Scheduler.stubs(:dynamic).returns(false)
+    get '/schedule'
+
+    assert !last_response.body.include?('Delete')
+  end
 end
 
 context 'on GET to /delayed' do
@@ -245,5 +259,63 @@ context 'on GET to /delayed/:timestamp' do
 
   test 'shows delayed_timestamp view' do
     assert last_response.status == 200
+  end
+end
+
+context 'DELETE /schedule when dynamic' do
+  setup do
+    Resque.schedule = Test::RESQUE_SCHEDULE
+    Resque::Scheduler.load_schedule!
+    Resque::Scheduler.stubs(:dynamic).returns(true)
+  end
+
+  test 'redirects to schedule page' do
+    delete '/schedule'
+
+    status = last_response.status
+    redirect_location = last_response.original_headers['Location']
+    response_status_msg = "Expected response to be a 302, but was a #{status}."
+    redirect_msg = "Redirect to #{redirect_location} instead of /schedule."
+
+    assert status == 302, response_status_msg
+    assert_match %r{/schedule/?$}, redirect_location, redirect_msg
+  end
+
+  test 'does not show the deleted job' do
+    delete '/schedule', job_name: 'job_with_params'
+    follow_redirect!
+
+    msg = 'The job should not have been shown on the /schedule page.'
+    assert !last_response.body.include?('job_with_params'), msg
+  end
+
+  test 'removes job from redis' do
+    delete '/schedule', job_name: 'job_with_params'
+
+    msg = 'The job was not deleted from redis.'
+    assert_nil Resque.fetch_schedule('job_with_params'), msg
+  end
+end
+
+context 'DELETE /schedule when static' do
+  setup do
+    Resque.schedule = Test::RESQUE_SCHEDULE
+    Resque::Scheduler.load_schedule!
+    Resque::Scheduler.stubs(:dynamic).returns(false)
+  end
+
+  test 'does not remove the job from the UI' do
+    delete '/schedule', job_name: 'job_with_params'
+    follow_redirect!
+
+    msg = 'The job should not have been removed from the /schedule page.'
+    assert last_response.body.include?('job_with_params'), msg
+  end
+
+  test 'does not remove job from redis' do
+    delete '/schedule', job_name: 'job_with_params'
+
+    msg = 'The job should not have been deleted from redis.'
+    assert Resque.fetch_schedule('job_with_params'), msg
   end
 end
