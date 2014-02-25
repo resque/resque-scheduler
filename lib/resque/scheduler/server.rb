@@ -17,6 +17,7 @@ module Resque
           post('/schedule/requeue_with_params') do
             schedule_requeue_with_params
           end
+          delete('/schedule') { delete_schedule }
           get('/delayed') { delayed }
           get('/delayed/jobs/:klass') { delayed_jobs_klass }
           post('/delayed/search') { delayed_search }
@@ -62,6 +63,14 @@ module Resque
           config = config.merge('args' => config_args)
           Resque::Scheduler.enqueue_from_config(config)
           redirect u('/overview')
+        end
+
+        def delete_schedule
+          if Resque::Scheduler.dynamic
+            job_name = params['job_name'] || params[:job_name]
+            Resque.remove_schedule(job_name)
+          end
+          redirect u('/schedule')
         end
 
         def delayed

@@ -8,6 +8,9 @@
 <div style="overflow-y: auto; width:100%; padding: 0px 5px;">
 <table>
   <tr>
+    <% if Resque::Scheduler.dynamic %>
+      <th></th>
+    <% end %>
     <th></th>
     <th>Name</th>
     <th>Description</th>
@@ -20,6 +23,15 @@
   <% Resque.schedule.keys.sort.select { |n| scheduled_in_this_env?(n) }.each do |name| %>
     <% config = Resque.schedule[name] %>
     <tr>
+      <% if Resque::Scheduler.dynamic %>
+        <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
+          <form action="<%= u "/schedule" %>" method="post" style="margin-left: 0">
+            <input type="hidden" name="job_name" value="<%= h name %>">
+            <input type="hidden" name="_method" value="delete">
+            <input type="submit" value="Delete">
+          </form>
+        </td>
+      <% end %>
       <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
         <form action="<%= u "/schedule/requeue" %>" method="post" style="margin-left: 0">
           <input type="hidden" name="job_name" value="<%= h name %>">
