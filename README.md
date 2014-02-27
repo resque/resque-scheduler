@@ -145,9 +145,9 @@ scheduled job must run (coerced with `Kernel#Float()`) (default `5`)
 default `'text'`)
 * `PIDFILE` - If non-empty, write process PID to file (default empty)
 * `QUIET` or `MUTE` - Silence most output if non-empty (equivalent to
-a level of `Logger::FATAL`, default `false`)
+a level of `MonoLogger::FATAL`, default `false`)
 * `VERBOSE` - Maximize log verbosity if non-empty (equivalent to a level
-of `Logger::DEBUG`, default `false`)
+of `MonoLogger::DEBUG`, default `false`)
 
 
 ### Resque Pool integration 
