@@ -26,9 +26,11 @@ module Resque
           post('/delayed/cancel_now') { delayed_cancel_now }
           post('/delayed/clear') { delayed_clear }
         end
+
       end
 
       module ServerMethods
+
         def schedule
           Resque.reload_schedule! if Resque::Scheduler.dynamic
           erb scheduler_template('scheduler')
@@ -121,6 +123,10 @@ module Resque
       end
 
       module HelperMethods
+        def render_partial(partial)
+          erb partial, :layout => false
+        end
+
         def format_time(t)
           t.strftime('%Y-%m-%d %H:%M:%S %z')
         end
@@ -236,3 +242,4 @@ Resque::Server.tabs << 'Delayed'
 Resque::Server.class_eval do
   include Resque::Scheduler::Server
 end
+
