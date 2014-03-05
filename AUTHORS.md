@@ -63,6 +63,7 @@ Resque Scheduler authors
 - V Sreekanth
 - andreas
 - bbauer
+- camol
 - fallwith
 - gravis
 - hpoydar
