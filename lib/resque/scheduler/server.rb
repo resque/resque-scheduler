@@ -121,6 +121,10 @@ module Resque
       end
 
       module HelperMethods
+        def render_partial(partial)
+          erb partial, layout: false
+        end
+
         def format_time(t)
           t.strftime('%Y-%m-%d %H:%M:%S %z')
         end
