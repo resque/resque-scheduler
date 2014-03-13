@@ -1,5 +1,11 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 2.5.5 (2014-02-27)
+* Only showing link to job with args if job is present
+* Only showing scheduled jobs that match current env or omit env
+* Ensuring lock and acquire lua scripts are refreshed on timeout change
+* Switch to using `mono_logger` instead of stdlib `logger`
+
 ## 2.5.4 (2014-02-17)
 * Documentation updates
 
