@@ -12,3 +12,6 @@ nbproject
 /coverage/
 /.vagrant/
 /dump.rdb
+
+.env
+.env.*
