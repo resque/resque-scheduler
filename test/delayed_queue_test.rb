@@ -322,7 +322,7 @@ context 'DelayedQueue' do
     assert_equal(0, Resque.redis.keys('timestamps:*').size)
   end
 
-  test 'remove_delayed removes job and returns the count' do
+  test 'remove_delayed_job removes job and returns the count' do
     t = Time.now + 120
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
@@ -331,7 +331,7 @@ context 'DelayedQueue' do
     )
     Resque.enqueue_at(t, SomeIvarJob)
 
-    assert_equal(1, Resque.remove_delayed(SomeIvarJob))
+    assert_equal(1, Resque.remove_delayed_job(SomeIvarJob))
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"))
   end
 
@@ -349,7 +349,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'bar')
     Resque.enqueue_at(t, SomeIvarJob, 'baz')
 
-    assert_equal(0, Resque.remove_delayed(SomeIvarJob))
+    assert_equal(0, Resque.remove_delayed_job(SomeIvarJob))
   end
 
   test 'remove_delayed respected param' do
@@ -359,7 +359,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'bar')
     Resque.enqueue_at(t, SomeIvarJob, 'baz')
 
-    assert_equal(2, Resque.remove_delayed(SomeIvarJob, 'bar'))
+    assert_equal(2, Resque.remove_delayed_job(SomeIvarJob, 'bar'))
     assert_equal(1, Resque.delayed_queue_schedule_size)
   end
 
@@ -370,7 +370,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
-    assert_equal(2, Resque.remove_delayed(SomeIvarJob, 'bar'))
+    assert_equal(2, Resque.remove_delayed_job(SomeIvarJob, 'bar'))
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
