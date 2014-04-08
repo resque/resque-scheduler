@@ -124,7 +124,7 @@ module Resque
         if configured_env.nil? || env_matches?(configured_env)
           log! "Scheduling #{name} "
           interval_defined = false
-          interval_types = %w{cron every}
+          interval_types = %w(cron every)
           interval_types.each do |interval_type|
             if !config[interval_type].nil? && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])

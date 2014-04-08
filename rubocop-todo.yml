@@ -17,7 +17,7 @@ DoubleNegation:
 # Offense count: 28
 # Cop supports --auto-correct.
 LineEndConcatenation:
-  Enabled: false
+ Enabled: false
 
 # Offense count: 3
 # Cop supports --auto-correct.
@@ -27,5 +27,5 @@ NonNilCheck:
 # Offense count: 7
 # Cop supports --auto-correct.
 # Configuration parameters: PreferredDelimiters.
-PercentLiteralDelimiters:
-  Enabled: false
+#PercentLiteralDelimiters:
+#  Enabled: false
