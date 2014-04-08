@@ -11,8 +11,8 @@ DoubleNegation:
 
 # Offense count: 3
 # Configuration parameters: Exclude.
-FileName:
-  Enabled: false
+#FileName:
+#  Enabled: false
 
 # Offense count: 28
 # Cop supports --auto-correct.
