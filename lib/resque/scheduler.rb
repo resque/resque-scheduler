@@ -126,7 +126,7 @@ module Resque
           interval_defined = false
           interval_types = %w(cron every)
           interval_types.each do |interval_type|
-            if !config[interval_type].nil? && config[interval_type].length > 0
+            if !!config[interval_type] && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])
               job = rufus_scheduler.send(interval_type, *args) do
                 if master?

@@ -181,7 +181,7 @@ module Resque
         end
 
         def schedule_class(config)
-          if config['class'].nil? && !config['custom_job_class'].nil?
+          if config['class'].nil? && !!config['custom_job_class']
             config['custom_job_class']
           else
             config['class']

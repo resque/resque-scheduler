@@ -23,7 +23,7 @@ module Resque
       def setup_backgrounding
         # Need to set this here for conditional Process.daemon redirect of
         # stderr/stdout to /dev/null
-        Resque::Scheduler.quiet = !options[:quiet].nil?
+        Resque::Scheduler.quiet = !!options[:quiet]
 
         if options[:background]
           unless Process.respond_to?('daemon')
@@ -48,12 +48,12 @@ module Resque
           # to serve as an example of how to use `.configure`.
 
           c.app_name = options[:app_name]
-          c.dynamic = !options[:dynamic].nil?
+          c.dynamic = !!options[:dynamic]
           c.env = options[:env]
           c.logfile = options[:logfile]
           c.logformat = options[:logformat]
           c.poll_sleep_amount = Float(options[:poll_sleep_amount] || '5')
-          c.verbose = !options[:verbose].nil?
+          c.verbose = !!options[:verbose]
         end
       end
     end
