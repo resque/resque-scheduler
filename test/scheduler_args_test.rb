@@ -127,7 +127,7 @@ context 'scheduling jobs with arguments' do
     assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
   end
 
-  test "calls the worker without arguments when 'args' is missing " <<
+  test "calls the worker without arguments when 'args' is missing " \
        'from the config' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -136,7 +136,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker without arguments when 'args' is blank " <<
+  test "calls the worker without arguments when 'args' is blank " \
        'in the config' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -164,7 +164,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with multiple arguments when the config ' <<
+  test 'calls the worker with multiple arguments when the config ' \
        'lists an array' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -176,7 +176,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with an array when the config lists ' <<
+  test 'calls the worker with an array when the config lists ' \
        'a nested array' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -198,7 +198,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with a nested hash when the config lists ' <<
+  test 'calls the worker with a nested hash when the config lists ' \
        'a nested hash' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob

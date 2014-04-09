@@ -267,7 +267,7 @@ context 'Resque::Scheduler' do
     )
   end
 
-  test 'schedule= removes schedules not present in the given ' <<
+  test 'schedule= removes schedules not present in the given ' \
        'schedule argument' do
     Resque::Scheduler.dynamic = true
 

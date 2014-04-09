@@ -6,8 +6,8 @@
 # versions of RuboCop, may require this file to be generated again.
 
 # Offense count: 12
-DoubleNegation:
-  Enabled: false
+#DoubleNegation:
+# Enabled: false
 
 # Offense count: 3
 # Configuration parameters: Exclude.
@@ -16,8 +16,8 @@ DoubleNegation:
 
 # Offense count: 28
 # Cop supports --auto-correct.
-LineEndConcatenation:
- Enabled: false
+#LineEndConcatenation:
+# Enabled: false
 
 # Offense count: 3
 # Cop supports --auto-correct.

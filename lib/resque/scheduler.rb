@@ -141,11 +141,11 @@ module Resque
             end
           end
           unless interval_defined
-            log! "no #{interval_types.join(' / ')} found for " <<
+            log! "no #{interval_types.join(' / ')} found for " \
                  "#{config['class']} (#{name}) - skipping"
           end
         else
-          log "Skipping schedule of #{name} because configured " <<
+          log "Skipping schedule of #{name} because configured " \
               "env #{configured_env.inspect} does not match current " <<
               "env #{env.inspect}"
         end
@@ -153,7 +153,7 @@ module Resque
 
       # Returns true if the given schedule config hash matches the current env
       def rails_env_matches?(config)
-        warn '`Resque::Scheduler.rails_env_matches?` is deprecated. ' <<
+        warn '`Resque::Scheduler.rails_env_matches?` is deprecated. ' \
              'Please use `Resque::Scheduler.env_matches?` instead.'
         config['rails_env'] && env &&
           config['rails_env'].split(/[\s,]+/).include?(env)
