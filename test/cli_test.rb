@@ -22,7 +22,7 @@ context 'Cli' do
   end
 
   test 'defaults to non-verbose' do
-    assert_equal(false, !!new_cli.send(:options)[:verbose])
+    assert_equal(false, !new_cli.send(:options)[:verbose].nil?)
   end
 
   test 'accepts verbose via -v' do
@@ -43,7 +43,7 @@ context 'Cli' do
   end
 
   test 'defaults to background=false' do
-    assert_equal(false, !!new_cli.send(:options)[:background])
+    assert_equal(false, !new_cli.send(:options)[:background].nil?)
   end
 
   test 'accepts background via -B' do
@@ -137,7 +137,7 @@ context 'Cli' do
   end
 
   test 'defaults to un-quieted' do
-    assert_equal(false, !!new_cli.send(:options)[:quiet])
+    assert_equal(false, !new_cli.send(:options)[:quiet].nil?)
   end
 
   test 'accepts quiet via -q' do
@@ -195,7 +195,7 @@ context 'Cli' do
   end
 
   test 'defaults to dynamic=false' do
-    assert_equal(false, !!new_cli.send(:options)[:dynamic])
+    assert_equal(false, !new_cli.send(:options)[:dynamic].nil?)
   end
 
   test 'initializes app_name from the env' do

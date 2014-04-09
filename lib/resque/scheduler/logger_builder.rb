@@ -23,8 +23,8 @@ module Resque
       #     :quiet => false, :verbose => true, :log_dev => 'log/scheduler.log'
       #   )
       def initialize(opts = {})
-        @quiet = !!opts[:quiet]
-        @verbose = !!opts[:verbose]
+        @quiet = !opts[:quiet].nil?
+        @verbose = !opts[:verbose].nil?
         @log_dev = opts[:log_dev] || $stdout
         @format = opts[:format] || 'text'
       end

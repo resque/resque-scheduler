@@ -153,7 +153,7 @@ context 'Resque::Scheduler::Lock::Basic' do
     assert !@lock.locked?
   end
 
-  test 'you should not be able to acquire the lock if someone ' <<
+  test 'you should not be able to acquire the lock if someone ' \
        'else holds it' do
     lock_is_not_held(@lock)
 
@@ -199,7 +199,7 @@ context 'Resque::Scheduler::Lock::Resilient' do
   include LockTestHelper
 
   if !Resque::Scheduler.supports_lua?
-    puts '*** Skipping Resque::Scheduler::Lock::Resilient ' <<
+    puts '*** Skipping Resque::Scheduler::Lock::Resilient ' \
          'tests, as they require Redis >= 2.5.'
   else
     setup do
@@ -216,7 +216,7 @@ context 'Resque::Scheduler::Lock::Resilient' do
       assert !@lock.locked?, 'you should not have the lock'
     end
 
-    test 'you should not be able to acquire the lock if someone ' <<
+    test 'you should not be able to acquire the lock if someone ' \
          'else holds it' do
       lock_is_not_held(@lock)
 
@@ -247,7 +247,7 @@ context 'Resque::Scheduler::Lock::Resilient' do
       assert Resque.redis.ttl(@lock.key) > 10, 'TTL should have been updated'
     end
 
-    test 'checking the lock should not increase the TTL if we do ' <<
+    test 'checking the lock should not increase the TTL if we do ' \
          'not hold it' do
       Resque.redis.setex(@lock.key, 10, @lock.value)
       lock_is_not_held(@lock)
