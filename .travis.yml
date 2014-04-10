@@ -9,6 +9,10 @@ env:
   global:
   - RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER=1
   - JRUBY_OPTS='-Xcext.enabled=true'
+matrix:
+  allow_failures:
+  - rvm: jruby-19mode
+  - rvm: rbx
 services:
 - redis-server
 notifications:
