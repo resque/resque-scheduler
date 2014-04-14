@@ -50,7 +50,7 @@ module Resque
       attr_writer :dynamic
 
       def dynamic
-        @dynamic = !ENV['DYNAMIC_SCHEDULE'] unless @dynamic.nil?
+        @dynamic ||= !!ENV['DYNAMIC_SCHEDULE']
       end
 
       # If set, will append the app name to procline
