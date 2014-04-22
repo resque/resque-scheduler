@@ -252,7 +252,7 @@ context 'Resque::Scheduler' do
     assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
 
-  test 'update_schedule_concurency' do
+  test 'concurrent update_schedule calls' do
     Resque::Scheduler.dynamic = true
     Resque::Scheduler.load_schedule!
     jobs_count = 100
@@ -265,7 +265,7 @@ context 'Resque::Scheduler' do
     (0...jobs_count).each do |i|
       Resque.set_schedule(
         "some_ivar_job#{i}",
-        'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => "/tmp/{i}"
+        'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => "/tmp/#{i}"
       )
     end
 
