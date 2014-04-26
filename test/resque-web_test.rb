@@ -33,6 +33,12 @@ context 'on GET to /schedule with scheduled jobs' do
         'class' => 'SomeFancyJob',
         'args' => 'sparkles',
         'rails_env' => 'fancy'
+      },
+      'shared_env_job' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeSharedEnvJob',
+        'args' => '/tmp',
+        'rails_env' => 'fancy, production'
       }
     }
     Resque::Scheduler.load_schedule!
@@ -47,6 +53,10 @@ context 'on GET to /schedule with scheduled jobs' do
 
   test 'excludes jobs for other envs' do
     assert !last_response.body.include?('SomeFancyJob')
+  end
+
+  test 'includes job used in multiple environments' do
+    assert last_response.body.include?('SomeSharedEnvJob')
   end
 
   test 'allows delete when dynamic' do

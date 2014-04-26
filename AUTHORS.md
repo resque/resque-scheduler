@@ -61,6 +61,7 @@ Resque Scheduler authors
 - Vincent Zhu
 - Vladislav Shub
 - V Sreekanth
+- Warren Sangster
 - andreas
 - bbauer
 - camol

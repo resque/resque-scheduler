@@ -196,7 +196,7 @@ module Resque
 
         def scheduled_in_this_env?(name)
           return true if Resque.schedule[name]['rails_env'].nil?
-          Resque.schedule[name]['rails_env'] == Resque::Scheduler.env
+          Resque.schedule[name]['rails_env'].split(/[\s,]+/).include?(Resque::Scheduler.env)
         end
 
         private
