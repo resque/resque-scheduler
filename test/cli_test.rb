@@ -13,7 +13,7 @@ context 'Cli' do
   end
 
   test 'does not require any positional arguments' do
-    assert(!new_cli.nil?)
+    assert(!!new_cli)
   end
 
   test 'initializes verbose from the env' do

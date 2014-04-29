@@ -7,7 +7,7 @@ require 'rack/test'
 require 'resque'
 
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
-require 'resque-scheduler'
+require 'resque_scheduler'
 require 'resque/scheduler/server'
 
 unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']

@@ -22,14 +22,14 @@ module Resque
       attr_writer :verbose
 
       def verbose
-        @verbose ||= !!ENV['VERBOSE']
+        @verbose = !ENV['VERBOSE'] unless @verbose.nil?
       end
 
       # If set, produces no output
       attr_writer :quiet
 
       def quiet
-        @quiet ||= !!ENV['QUIET']
+        @quiet = !ENV['QUIET'] unless @quiet.nil?
       end
 
       # If set, will write messages to the file
