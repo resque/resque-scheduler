@@ -289,11 +289,10 @@ module Resque
       def update_schedule
         if Resque.redis.scard(:schedules_changed) > 0
           procline 'Updating schedule'
-          Resque.reload_schedule!
           loop do
             schedule_name = Resque.redis.spop(:schedules_changed)
             break unless schedule_name
-            if Resque.schedule.keys.include?(schedule_name)
+            if Resque.reload_schedule!.keys.include?(schedule_name)
               unschedule_job(schedule_name)
               load_schedule_job(schedule_name, Resque.schedule[schedule_name])
             else
