@@ -13,6 +13,8 @@ matrix:
   allow_failures:
   - rvm: jruby-19mode
   - rvm: rbx
+  # 2.1.0 is currently hosed :scream_cat:
+  - rvm: 2.1.0
 services:
 - redis-server
 notifications:
