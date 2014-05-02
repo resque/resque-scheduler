@@ -10,7 +10,7 @@ inherit_from: rubocop-todo.yml
 AllCops:
   Include:
   - Gemfile
-  - Rakefile
+  - '**/Rakefile'
   - resque-scheduler.gemspec
   - bin/resque-scheduler
 
