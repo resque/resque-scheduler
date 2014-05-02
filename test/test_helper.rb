@@ -78,6 +78,12 @@ class SomeFancyJob < SomeJob
   end
 end
 
+class SomeSharedEnvJob < SomeJob
+  def self.queue
+    :shared_job
+  end
+end
+
 class SomeQuickJob < SomeJob
   @queue = :quick
 end
