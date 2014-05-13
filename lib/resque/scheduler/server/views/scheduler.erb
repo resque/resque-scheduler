@@ -43,7 +43,7 @@
       <td style="white-space:nowrap"><%= h schedule_interval(config) %></td>
       <td><%= h schedule_class(config) %></td>
       <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
-      <td><%= h config['args'].inspect %></td>
+      <td><%= h show_job_arguments(config['args']) %></td>
       <td><%= h Resque.get_last_enqueued_at(name) || 'Never' %></td>
     </tr>
   <% end %>
