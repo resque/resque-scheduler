@@ -2,6 +2,7 @@ Resque Scheduler authors
 ========================
 
 - Aaron Suggs
+- Alex Harrison
 - Alexander Simonov
 - Andrea Campolonghi
 - Ben VandenBos
