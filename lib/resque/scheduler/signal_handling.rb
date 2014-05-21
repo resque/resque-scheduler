@@ -14,7 +14,12 @@ module Resque
       # case of sleeping, exit immediately.
       def register_signal_handlers
         %w(INT TERM USR1 USR2 QUIT).each do |sig|
-          trap(sig) { signal_queue << sig }
+          trap(sig) do
+            signal_queue << sig
+            # break sleep in the primary scheduler thread, alowing
+            # the signal queue to get processed as soon as possible.
+            @th.wakeup if @th.alive?
+          end
         end
       end
 
