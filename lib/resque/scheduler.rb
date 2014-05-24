@@ -71,7 +71,7 @@ module Resque
         if rufus_scheduler
           log! "Scheduling Info\tLast Run"
           scheduler_jobs = rufus_scheduler.all_jobs
-          scheduler_jobs.each do |k, v|
+          scheduler_jobs.each do |_k, v|
             log! "#{v.t}\t#{v.last}\t"
           end
         end
@@ -124,7 +124,7 @@ module Resque
         if configured_env.nil? || env_matches?(configured_env)
           log! "Scheduling #{name} "
           interval_defined = false
-          interval_types = %w{cron every}
+          interval_types = %w(cron every)
           interval_types.each do |interval_type|
             if !config[interval_type].nil? && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])
@@ -141,19 +141,19 @@ module Resque
             end
           end
           unless interval_defined
-            log! "no #{interval_types.join(' / ')} found for " <<
+            log! "no #{interval_types.join(' / ')} found for " \
                  "#{config['class']} (#{name}) - skipping"
           end
         else
-          log "Skipping schedule of #{name} because configured " <<
-              "env #{configured_env.inspect} does not match current " <<
+          log "Skipping schedule of #{name} because configured " \
+              "env #{configured_env.inspect} does not match current " \
               "env #{env.inspect}"
         end
       end
 
       # Returns true if the given schedule config hash matches the current env
       def rails_env_matches?(config)
-        warn '`Resque::Scheduler.rails_env_matches?` is deprecated. ' <<
+        warn '`Resque::Scheduler.rails_env_matches?` is deprecated. ' \
              'Please use `Resque::Scheduler.env_matches?` instead.'
         config['rails_env'] && env &&
           config['rails_env'].split(/[\s,]+/).include?(env)
