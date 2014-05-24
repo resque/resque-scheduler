@@ -327,9 +327,11 @@ module Resque
         @sleeping = true
         start = Time.now
         loop do
-          break if (Time.now - start) >= poll_sleep_amount
+          elapsed_sleep = (Time.now - start)
+          remaining_sleep = poll_sleep_amount - elapsed_sleep
+          break if remaining_sleep <= 0
           begin
-            sleep 0.01
+            sleep(remaining_sleep)
             handle_signals
           rescue Interrupt
             if @shutdown
