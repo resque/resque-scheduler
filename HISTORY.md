@@ -1,5 +1,23 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 3.0.0 (2014-05-27)
+* The grand re-namespacing of
+`resque_scheduler/(.*)` =&gt; `resque/scheduler/\1`
+* Cleanup of a ton of rubocop offenses
+* Vagrant setup
+* Documentation updates
+* "Refactoring"
+* Added support for last execution information through the web
+* Handling signals while "sleeping" by relying on `Thread#wakeup`
+* CodeClimate integration
+* Addition of `Resque.delayed?` and `Resque.next_delayed_schedule`
+* Testing against same rubies as resque (+ 2.1.1)
+* Renamed `Resque.set_last_run` to `Resque.last_enqueued_at`
+* Allow scheduled jobs to be deleted via resque web
+* Fixed duplicated layout for `search_form` partial template.
+* Fix issue where Web UI was ONLY showing jobs that only run in the current
+environment
+
 ## 2.5.5 (2014-02-27)
 * Only showing link to job with args if job is present
 * Only showing scheduled jobs that match current env or omit env
