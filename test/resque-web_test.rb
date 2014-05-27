@@ -86,7 +86,7 @@ context 'on GET to /delayed/jobs/:klass'do
     Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
     get(
       URI('/delayed/jobs/SomeIvarJob?args=' <<
-          URI.encode(%w{foo bar}.to_json)).to_s
+          URI.encode(%w(foo bar).to_json)).to_s
     )
   end
 
@@ -109,7 +109,7 @@ context 'on GET to /delayed/jobs/:klass'do
       Resque.enqueue_at(@t, Foo::Bar, 'foo', 'bar')
       get(
         URI('/delayed/jobs/Foo::Bar?args=' <<
-            URI.encode(%w{foo bar}.to_json)).to_s
+            URI.encode(%w(foo bar).to_json)).to_s
       )
     end
 
@@ -174,17 +174,17 @@ context 'POST /schedule/requeue' do
     assert last_response.ok?, last_response.errors
     assert last_response.body.include?('This job requires parameters')
     assert last_response.body.include?(
-      %Q[<input type="hidden" name="job_name" value="#{job_name}">]
+      %Q(<input type="hidden" name="job_name" value="#{job_name}">)
     )
 
-    Resque.schedule[job_name]['parameters'].each do |param_name, param_config|
+    Resque.schedule[job_name]['parameters'].each do |_param_name, param_config|
       assert last_response.body.include?(
         '<span style="border-bottom:1px dotted;" ' <<
         %Q[title="#{param_config['description']}">(?)</span>]
       )
       assert last_response.body.include?(
         '<input type="text" name="log_level" ' <<
-        %Q[value="#{param_config['default']}">]
+        %Q(value="#{param_config['default']}">)
       )
     end
   end

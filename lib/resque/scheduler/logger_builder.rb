@@ -50,7 +50,7 @@ module Resque
       end
 
       def text_formatter
-        proc do |severity, datetime, progname, msg|
+        proc do |severity, datetime, _progname, msg|
           "resque-scheduler: [#{severity}] #{datetime.iso8601}: #{msg}\n"
         end
       end

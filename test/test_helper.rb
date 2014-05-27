@@ -31,7 +31,7 @@ def context(*args, &block)
     def self.test(name, &block)
       define_method("test_#{name.gsub(/\W/, '_')}", &block) if block
     end
-    def self.xtest(*args)
+    def self.xtest(*_args)
     end
     def self.setup(&block)
       define_method(:setup, &block)
@@ -55,16 +55,16 @@ unless defined?(Rails)
 end
 
 class FakeCustomJobClass
-  def self.scheduled(queue, klass, *args); end
+  def self.scheduled(_queue, _klass, *_args); end
 end
 
 class FakeCustomJobClassEnqueueAt
   @queue = :test
-  def self.scheduled(queue, klass, *args); end
+  def self.scheduled(_queue, _klass, *_args); end
 end
 
 class SomeJob
-  def self.perform(repo_id, path)
+  def self.perform(_repo_id, _path)
   end
 end
 

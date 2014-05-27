@@ -50,7 +50,7 @@ module Resque
           job_name = params['job_name'] || params[:job_name]
           config = Resque.schedule[job_name]
           # Build args hash from post data (removing the job name)
-          submitted_args = params.reject do |key, value|
+          submitted_args = params.reject do |key, _value|
             key == 'job_name' || key == :job_name
           end
 
@@ -222,7 +222,7 @@ module Resque
           end
         end
 
-        def delayed_jobs_for_worker(worker)
+        def delayed_jobs_for_worker(_worker)
           [].tap do |dels|
             schedule_size = Resque.delayed_queue_schedule_size
             Resque.delayed_queue_peek(0, schedule_size).each do |d|

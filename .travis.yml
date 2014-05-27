@@ -16,7 +16,8 @@ services:
 - redis-server
 notifications:
   email:
-    recipients: daniel.buch+resque-scheduler@gmail.com
+    recipients:
+    - daniel.buch+resque-scheduler@gmail.com
 deploy:
   provider: rubygems
   api_key:
@@ -25,4 +26,4 @@ deploy:
   on:
     tags: true
     repo: resque/resque-scheduler
-    rvm: 2.0.0
+    rvm: '2.1'
