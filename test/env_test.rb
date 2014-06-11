@@ -38,4 +38,18 @@ context 'Env' do
     env = new_env(pidfile: 'derp.pid')
     env.setup
   end
+
+  test 'keep set config if no option given' do
+    Resque::Scheduler.configure {|c| c.dynamic = true}
+    env = new_env
+    env.setup
+    assert_equal(true, Resque::Scheduler.dynamic)
+  end
+
+  test 'override config if option given' do
+    Resque::Scheduler.configure {|c| c.dynamic = true}
+    env = new_env(:dynamic => false)
+    env.setup
+    assert_equal(false, Resque::Scheduler.dynamic)
+  end
 end
