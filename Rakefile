@@ -7,7 +7,7 @@ require 'yard'
 task default: [:rubocop, :test] unless RUBY_PLATFORM =~ /java/
 task default: [:test] if RUBY_PLATFORM =~ /java/
 
-Rubocop::RakeTask.new
+RuboCop::RakeTask.new
 
 Rake::TestTask.new do |t|
   t.libs << 'test'

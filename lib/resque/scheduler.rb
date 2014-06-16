@@ -206,7 +206,7 @@ module Resque
 
       def handle_errors
         yield
-      rescue Exception => e
+      rescue => e
         log_error "#{e.class.name}: #{e.message}"
       end
 
