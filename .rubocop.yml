@@ -7,28 +7,8 @@ AllCops:
   - resque-scheduler.gemspec
   - bin/resque-scheduler
 
-# Offence count: 1
-CaseEquality:
-  Enabled: false
-
-# Offence count: 2
-# Configuration parameters: CountComments.
-ClassLength:
-  Max: 130
-
-# Offence count: 3
-CyclomaticComplexity:
-  Max: 21
-
-# Offence count: 29
 Documentation:
   Enabled: false
 
-# Offence count: 17
-# Configuration parameters: CountComments.
-MethodLength:
-  Max: 145
-
-# Offence count: 1
-RescueException:
+Style/DoubleNegation:
   Enabled: false
