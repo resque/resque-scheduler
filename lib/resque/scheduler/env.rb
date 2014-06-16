@@ -43,17 +43,33 @@ module Resque
 
       def setup_scheduler_configuration
         Resque::Scheduler.configure do |c|
-          # These settings are somewhat redundant given the defaults present
-          # in the attr reader methods.  They are left here for clarity and
-          # to serve as an example of how to use `.configure`.
+          if options.key?(:app_name)
+            c.app_name = options[:app_name]
+          end
 
-          c.app_name = options[:app_name]
-          c.dynamic = !!options[:dynamic]
-          c.env = options[:env]
-          c.logfile = options[:logfile]
-          c.logformat = options[:logformat]
-          c.poll_sleep_amount = Float(options[:poll_sleep_amount] || '5')
-          c.verbose = !!options[:verbose]
+          if options.key?(:dynamic)
+            c.dynamic = !!options[:dynamic]
+          end
+
+          if options.key(:env)
+            c.env = options[:env]
+          end
+
+          if options.key?(:logfile)
+            c.logfile = options[:logfile]
+          end
+
+          if options.key?(:logformat)
+            c.logformat = options[:logformat]
+          end
+
+          if psleep = options[:poll_sleep_amount] && !psleep.nil?
+            c.poll_sleep_amount = Float(psleep)
+          end
+
+          if options.key?(:verbose)
+            c.verbose = !!options[:verbose]
+          end
         end
       end
     end
