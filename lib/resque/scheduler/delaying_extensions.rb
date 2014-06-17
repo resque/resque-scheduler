@@ -178,6 +178,10 @@ module Resque
         # so we query for all delayed job tasks and do our matching after
         # decoding the payload data
         jobs = Resque.redis.keys('delayed:*')
+
+        # Ignore redis key set by last_enqueued_at
+        jobs.reject! { |j| j.end_with?('last_enqueued_at') }
+
         jobs.each do |job|
           index = Resque.redis.llen(job) - 1
           while index >= 0
