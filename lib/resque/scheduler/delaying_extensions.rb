@@ -105,12 +105,7 @@ module Resque
       # Returns the next delayed queue timestamp
       # (don't call directly)
       def next_delayed_timestamp(at_time = nil)
-        items = redis.zrangebyscore(
-          :delayed_queue_schedule, '-inf', (at_time || Time.now).to_i,
-          limit: [0, 1]
-        )
-        timestamp = items.nil? ? nil : Array(items).first
-        timestamp.to_i unless timestamp.nil?
+        search_first_delayed_timestamp_in_range(nil, at_time || Time.now)
       end
 
       # Returns the next item to be processed for a given timestamp, nil if
@@ -145,17 +140,7 @@ module Resque
       # Given an encoded item, remove it from the delayed_queue
       def remove_delayed(klass, *args)
         search = encode(job_to_hash(klass, args))
-        timestamps = redis.smembers("timestamps:#{search}")
-
-        replies = redis.pipelined do
-          timestamps.each do |key|
-            redis.lrem(key, 0, search)
-            redis.srem("timestamps:#{search}", key)
-          end
-        end
-
-        return 0 if replies.nil? || replies.empty?
-        replies.each_slice(2).map(&:first).inject(:+)
+        remove_delayed_job(search)
       end
 
       # Given an encoded item, enqueue it now
@@ -174,17 +159,16 @@ module Resque
         fail ArgumentError, 'Please supply a block' unless block_given?
 
         destroyed = 0
-        # There is no way to search Redis list entries for a partial match,
-        # so we query for all delayed job tasks and do our matching after
-        # decoding the payload data
-        jobs = Resque.redis.keys('delayed:*')
-        jobs.each do |job|
+        start = nil
+        while start = search_first_delayed_timestamp_in_range(start, nil)
+          job = "delayed:#{start}"
+          start += 1
           index = Resque.redis.llen(job) - 1
           while index >= 0
             payload = Resque.redis.lindex(job, index)
             decoded_payload = decode(payload)
             if yield(decoded_payload['args'])
-              removed = redis.lrem job, 0, payload
+              removed = remove_delayed_job(payload)
               destroyed += removed
               index -= removed
             else
@@ -192,6 +176,7 @@ module Resque
             end
           end
         end
+
         destroyed
       end
 
@@ -254,6 +239,20 @@ module Resque
         { class: klass.to_s, args: args, queue: queue }
       end
 
+      def remove_delayed_job(encoded_job)
+        timestamps = redis.smembers("timestamps:#{encoded_job}")
+
+        replies = redis.pipelined do
+          timestamps.each do |key|
+            redis.lrem(key, 0, encoded_job)
+            redis.srem("timestamps:#{encoded_job}", key)
+          end
+        end
+
+        return 0 if replies.nil? || replies.empty?
+        replies.each_slice(2).map(&:first).inject(:+)
+      end
+
       def clean_up_timestamp(key, timestamp)
         # If the list is empty, remove it.
 
@@ -268,6 +267,18 @@ module Resque
         else
           redis.unwatch
         end
+      end
+
+      def search_first_delayed_timestamp_in_range(start_at, stop_at)
+        start_at = start_at.nil? ? '-inf' : start_at.to_i
+        stop_at = stop_at.nil? ? '+inf' : stop_at.to_i
+
+        items = redis.zrangebyscore(
+          :delayed_queue_schedule, start_at, stop_at,
+          limit: [0, 1]
+        )
+        timestamp = items.nil? ? nil : Array(items).first
+        timestamp.to_i unless timestamp.nil?
       end
 
       def plugin
