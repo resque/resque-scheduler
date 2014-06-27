@@ -1,5 +1,7 @@
 # vim:fileencoding=utf-8
 
+require 'English' # $PROCESS_ID
+
 module Resque
   module Scheduler
     class Env

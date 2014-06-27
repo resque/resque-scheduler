@@ -1,6 +1,5 @@
 # vim:fileencoding=utf-8
 
-require 'English'
 require 'resque/tasks'
 require 'resque-scheduler'
 
