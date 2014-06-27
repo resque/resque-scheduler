@@ -38,6 +38,9 @@ module Resque
       def setup_pid_file
         File.open(options[:pidfile], 'w') do |f|
           f.puts $PROCESS_ID
+          at_exit do
+            File.delete f
+          end
         end if options[:pidfile]
       end
 
