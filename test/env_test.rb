@@ -33,7 +33,7 @@ context 'Env' do
 
   test 'writes pid to pidfile when given' do
     mock_pidfile = mock('pidfile')
-    mock_pidfile.expects(:puts)
+    mock_pidfile.expects(:puts).with(Process.pid)
     File.expects(:open).with('derp.pid', 'w').yields(mock_pidfile)
     env = new_env(pidfile: 'derp.pid')
     env.setup
