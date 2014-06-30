@@ -18,7 +18,21 @@ module Resque
         setup_scheduler_configuration
       end
 
+      def cleanup
+        cleanup_pid_file
+      end
+
       private
+
+      # Returns a proc, that when called will attempt to delete the given file.
+      # This is because implementing ObjectSpace.define_finalizer is tricky.
+      # Hat-Tip to @mperham for describing in detail:
+      # http://www.mikeperham.com/2010/02/24/the-trouble-with-ruby-finalizers/
+      def self.pidfile_deleter(pidfile_path)
+        proc do
+          File.delete(pidfile_path) if File.exist?(pidfile_path)
+        end
+      end
 
       attr_reader :options
 
@@ -38,9 +52,16 @@ module Resque
       end
 
       def setup_pid_file
-        File.open(options[:pidfile], 'w') do |f|
-          f.puts $PROCESS_ID
-        end if options[:pidfile]
+        if options[:pidfile]
+          @pidfile_path = File.expand_path(options[:pidfile])
+
+          File.open(@pidfile_path, 'w') do |f|
+            f.puts $PROCESS_ID
+          end
+
+          ObjectSpace.define_finalizer(self,
+                                       Env.pidfile_deleter(@pidfile_path))
+        end
       end
 
       def setup_scheduler_configuration
@@ -72,6 +93,14 @@ module Resque
           if options.key?(:verbose)
             c.verbose = !!options[:verbose]
           end
+        end
+      end
+
+      def cleanup_pid_file
+        if @pidfile_path
+          ObjectSpace.undefine_finalizer(self)
+          Env.pidfile_deleter(@pidfile_path).call
+          @pidfile_path = nil
         end
       end
     end
