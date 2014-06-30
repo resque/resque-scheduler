@@ -10,9 +10,11 @@ Gem::Specification.new do |spec|
   spec.email = ['bvandenbos@gmail.com']
   spec.homepage = 'http://github.com/resque/resque-scheduler'
   spec.summary = 'Light weight job scheduling on top of Resque'
-  spec.description = %q(Light weight job scheduling on top of Resque.
+  spec.description = <<-DESCRIPTION
+    Light weight job scheduling on top of Resque.
     Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
-    Also supports queueing jobs on a fixed, cron-like schedule.)
+    Also supports queueing jobs on a fixed, cron-like schedule.
+  DESCRIPTION
   spec.license = 'MIT'
 
   spec.files = `git ls-files`.split("\n")

@@ -225,13 +225,13 @@ context 'on POST to /delayed/search' do
   end
 
   test 'should find matching scheduled job' do
-    post '/delayed/search' , 'search' => 'ivar'
+    post '/delayed/search', 'search' => 'ivar'
     assert last_response.status == 200
     assert last_response.body.include?('SomeIvarJob')
   end
 
   test 'should find matching queued job' do
-    post '/delayed/search' , 'search' => 'quick'
+    post '/delayed/search', 'search' => 'quick'
     assert last_response.status == 200
     assert last_response.body.include?('SomeQuickJob')
   end
