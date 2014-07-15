@@ -57,7 +57,7 @@ context 'scheduling jobs with arguments' do
 
   test 'enqueue_from_config puts stuff in resque when env matches' do
     Resque::Scheduler.env = 'production'
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
       'some_ivar_job' => {
@@ -69,7 +69,7 @@ context 'scheduling jobs with arguments' do
     }
 
     Resque::Scheduler.load_schedule!
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
       'some_ivar_job' => {
@@ -81,12 +81,12 @@ context 'scheduling jobs with arguments' do
     }
 
     Resque::Scheduler.load_schedule!
-    assert_equal(2, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(2, Resque::Scheduler.rufus_scheduler.jobs.size)
   end
 
   test 'enqueue_from_config does not enqueue when env does not match' do
     Resque::Scheduler.env = nil
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
     Resque.schedule = {
       'some_ivar_job' => {
         'cron' => '* * * * *',
@@ -97,7 +97,7 @@ context 'scheduling jobs with arguments' do
     }
 
     Resque::Scheduler.load_schedule!
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque::Scheduler.env = 'production'
     Resque.schedule = {
@@ -109,12 +109,12 @@ context 'scheduling jobs with arguments' do
       }
     }
     Resque::Scheduler.load_schedule!
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
   end
 
   test 'enqueue_from_config when env env arg is not set' do
     Resque::Scheduler.env = 'production'
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
       'some_ivar_job' => {
@@ -124,7 +124,7 @@ context 'scheduling jobs with arguments' do
       }
     }
     Resque::Scheduler.load_schedule!
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
   end
 
   test "calls the worker without arguments when 'args' is missing " \

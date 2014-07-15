@@ -70,7 +70,7 @@ module Resque
       def print_schedule
         if rufus_scheduler
           log! "Scheduling Info\tLast Run"
-          scheduler_jobs = rufus_scheduler.all_jobs
+          scheduler_jobs = rufus_scheduler.jobs
           scheduler_jobs.each do |_k, v|
             log! "#{v.t}\t#{v.last}\t"
           end
@@ -102,11 +102,14 @@ module Resque
         if args.is_a?(::Array)
           return args.first if args.size > 2 || !args.last.is_a?(::Hash)
           # symbolize keys of hash for options
-          args[1] = args[1].reduce({}) do |m, i|
+          args[2] = args[1].reduce({}) do |m, i|
             key, value = i
             m[(key.respond_to?(:to_sym) ? key.to_sym : key) || key] = value
             m
           end
+
+          args[2][:job] = true
+          args[1] = nil
         end
         args
       end
@@ -128,6 +131,10 @@ module Resque
           interval_types.each do |interval_type|
             if !config[interval_type].nil? && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])
+              if args.is_a?(::String)
+                args = [args, nil, job: true]
+              end
+
               job = rufus_scheduler.send(interval_type, *args) do
                 if master?
                   log! "queueing #{config['class']} (#{name})"
@@ -268,7 +275,7 @@ module Resque
       end
 
       def rufus_scheduler
-        @rufus_scheduler ||= Rufus::Scheduler.start_new
+        @rufus_scheduler ||= Rufus::Scheduler.new
       end
 
       # Stops old rufus scheduler and creates a new one.  Returns the new

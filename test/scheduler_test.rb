@@ -56,7 +56,7 @@ context 'Resque::Scheduler' do
   end
 
   test 'config makes it into the rufus_scheduler' do
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
       some_ivar_job: {
@@ -67,7 +67,7 @@ context 'Resque::Scheduler' do
     }
     Resque::Scheduler.load_schedule!
 
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
   end
 
@@ -83,7 +83,7 @@ context 'Resque::Scheduler' do
 
     Resque::Scheduler.load_schedule!
 
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
 
     Resque.redis.del(:schedules)
@@ -93,7 +93,7 @@ context 'Resque::Scheduler' do
 
     Resque::Scheduler.reload_schedule!
 
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     assert_equal '/tmp/2', Resque.schedule['some_ivar_job2']['args']
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job2')
@@ -107,7 +107,7 @@ context 'Resque::Scheduler' do
       'args' => '/tmp'
     )
 
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
     assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
@@ -120,11 +120,11 @@ context 'Resque::Scheduler' do
       'args' => '/tmp'
     )
 
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
     assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
     job = Resque::Scheduler.scheduled_jobs['some_ivar_job']
-    assert job.params.keys.include?(:first_in)
+    assert job.opts.keys.include?(:first_in)
   end
 
   test 'load_schedule_job with cron with options' do
@@ -135,11 +135,11 @@ context 'Resque::Scheduler' do
       'args' => '/tmp'
     )
 
-    assert_equal(1, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
     assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
     job = Resque::Scheduler.scheduled_jobs['some_ivar_job']
-    assert job.params.keys.include?(:allow_overlapping)
+    assert job.opts.keys.include?(:allow_overlapping)
   end
 
   test 'load_schedule_job without cron' do
@@ -149,7 +149,7 @@ context 'Resque::Scheduler' do
       'args' => '/tmp'
     )
 
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
     assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
@@ -162,7 +162,7 @@ context 'Resque::Scheduler' do
       'args' => '/tmp'
     )
 
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
     assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
@@ -199,7 +199,7 @@ context 'Resque::Scheduler' do
 
     Resque::Scheduler.update_schedule
 
-    assert_equal(3, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(3, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(3, Resque::Scheduler.scheduled_jobs.size)
     %w(some_ivar_job new_ivar_job stay_put_job).each do |job_name|
       assert Resque::Scheduler.scheduled_jobs.keys.include?(job_name)
@@ -271,7 +271,7 @@ context 'Resque::Scheduler' do
 
     background_delayed_update.join
     Resque::Scheduler.update_schedule
-    assert_equal(jobs_count, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(jobs_count, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(jobs_count, Resque::Scheduler.scheduled_jobs.size)
     assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
@@ -435,7 +435,7 @@ context 'Resque::Scheduler' do
 
     test 'prints schedule' do
       fake_rufus_scheduler = mock
-      fake_rufus_scheduler.expects(:all_jobs).at_least_once
+      fake_rufus_scheduler.expects(:jobs).at_least_once
         .returns(foo: OpenStruct.new(t: nil, last: nil))
       Resque::Scheduler.expects(:rufus_scheduler).at_least_once
         .returns(fake_rufus_scheduler)
