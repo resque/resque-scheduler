@@ -456,6 +456,57 @@ context 'DelayedQueue' do
     assert_equal(t.to_s, Resque.get_last_enqueued_at(SomeIvarJob))
   end
 
+  test 'remove_delayed_selection removes item by class' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, Resque.remove_delayed_selection(SomeIvarJob) { |a| a.first == 'foo' })
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'remove_delayed_selection removes item by class name as a string' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, Resque.remove_delayed_selection('SomeIvarJob') { |a| a.first == 'foo' })
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'remove_delayed_selection removes item by class name as a symbol' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, Resque.remove_delayed_selection(:SomeIvarJob) { |a| a.first == 'foo' })
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'remove_delayed_selection removes items only from matching job classes' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 1, SomeQuickJob, 'bar')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 2, SomeQuickJob, 'foo')
+
+    assert_equal(2, Resque.remove_delayed_selection(SomeIvarJob) { |a| a.first == 'foo' })
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'remove_delayed_selection removes items from matching job classes without params' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t + 1, SomeQuickJob)
+    Resque.enqueue_at(t + 2, SomeIvarJob)
+    Resque.enqueue_at(t + 3, SomeQuickJob)
+
+    assert_equal(2, Resque.remove_delayed_selection(SomeQuickJob) { |a| true })
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
   test 'remove_delayed_job_from_timestamp removes instances of jobs ' \
        'at a given timestamp' do
     t = Time.now + 120
