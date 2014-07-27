@@ -155,7 +155,7 @@ module Resque
       #
       # This allows for removal of delayed jobs that have arguments matching
       # certain criteria
-      def remove_delayed_selection
+      def remove_delayed_selection(klass = nil)
         fail ArgumentError, 'Please supply a block' unless block_given?
 
         destroyed = 0
@@ -167,7 +167,9 @@ module Resque
           while index >= 0
             payload = Resque.redis.lindex(job, index)
             decoded_payload = decode(payload)
-            if yield(decoded_payload['args'])
+            job_class = decoded_payload['class']
+            relevant_class = (klass.nil? || klass.to_s == job_class)
+            if relevant_class && yield(decoded_payload['args'])
               removed = remove_delayed_job(payload)
               destroyed += removed
               index -= removed
