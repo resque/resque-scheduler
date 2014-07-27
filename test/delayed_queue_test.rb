@@ -461,7 +461,9 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
 
-    assert_equal(1, Resque.remove_delayed_selection(SomeIvarJob) { |a| a.first == 'foo' })
+    assert_equal(1, Resque.remove_delayed_selection(SomeIvarJob) do |a|
+      a.first == 'foo'
+    end)
     assert_equal(1, Resque.count_all_scheduled_jobs)
   end
 
@@ -470,7 +472,9 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
 
-    assert_equal(1, Resque.remove_delayed_selection('SomeIvarJob') { |a| a.first == 'foo' })
+    assert_equal(1, Resque.remove_delayed_selection('SomeIvarJob') do |a|
+      a.first == 'foo'
+    end)
     assert_equal(1, Resque.count_all_scheduled_jobs)
   end
 
@@ -479,11 +483,13 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
 
-    assert_equal(1, Resque.remove_delayed_selection(:SomeIvarJob) { |a| a.first == 'foo' })
+    assert_equal(1, Resque.remove_delayed_selection(:SomeIvarJob) do |a|
+      a.first == 'foo'
+    end)
     assert_equal(1, Resque.count_all_scheduled_jobs)
   end
 
-  test 'remove_delayed_selection removes items only from matching job classes' do
+  test 'remove_delayed_selection removes items only from matching job class' do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
@@ -492,18 +498,21 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 1, SomeIvarJob, 'foo')
     Resque.enqueue_at(t + 2, SomeQuickJob, 'foo')
 
-    assert_equal(2, Resque.remove_delayed_selection(SomeIvarJob) { |a| a.first == 'foo' })
+    assert_equal(2, Resque.remove_delayed_selection(SomeIvarJob) do |a|
+      a.first == 'foo'
+    end)
     assert_equal(4, Resque.count_all_scheduled_jobs)
   end
 
-  test 'remove_delayed_selection removes items from matching job classes without params' do
+  test 'remove_delayed_selection removes items from matching job class ' \
+       'without params' do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob)
     Resque.enqueue_at(t + 1, SomeQuickJob)
     Resque.enqueue_at(t + 2, SomeIvarJob)
     Resque.enqueue_at(t + 3, SomeQuickJob)
 
-    assert_equal(2, Resque.remove_delayed_selection(SomeQuickJob) { |a| true })
+    assert_equal(2, Resque.remove_delayed_selection(SomeQuickJob) { true })
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
