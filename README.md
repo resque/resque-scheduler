@@ -44,7 +44,7 @@ To install:
 
     gem install resque-scheduler
 
-If you use a Gemfile, you may want to specify the `:require` explicitly:
+If you use a Gemfile:
 
 ```ruby
 gem 'resque-scheduler'
