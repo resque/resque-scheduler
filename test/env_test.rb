@@ -34,6 +34,10 @@ context 'Env' do
   [true, false].each do |manual_cleanup|
     desc = manual_cleanup ? 'manually' : 'automatically'
     test "writes pid to pidfile when given and cleans up #{desc}" do
+      if !manual_cleanup && %w(rbx jruby).include?(RUBY_ENGINE)
+        skip('GC cannnot be forced on this platform.')
+      end
+
       require 'weakref'
 
       options = { pidfile: 'derp.pid' }
