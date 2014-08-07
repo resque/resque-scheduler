@@ -113,6 +113,12 @@ context 'Resque::Scheduler::Locking' do
   end
 
   test 'release_master_lock should delegate to master_lock' do
+    @subject.master_lock.expects(:release)
+    @subject.release_master_lock
+  end
+
+  test 'release_master_lock! should delegate to master_lock' do
+    @subject.expects(:warn)
     @subject.master_lock.expects(:release!)
     @subject.release_master_lock!
   end

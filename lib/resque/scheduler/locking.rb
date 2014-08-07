@@ -67,7 +67,15 @@ module Resque
       end
 
       def release_master_lock!
+        warn "#{self}\#release_master_lock! is deprecated because it does " \
+             "not respect lock ownership. Use #{self}\#release_master_lock " \
+             "instead (at #{caller.first}"
+
         master_lock.release!
+      end
+
+      def release_master_lock
+        master_lock.release
       end
 
       private

@@ -336,7 +336,7 @@ module Resque
           rescue Interrupt
             if @shutdown
               Resque.clean_schedules
-              release_master_lock!
+              release_master_lock
             end
             break
           end
