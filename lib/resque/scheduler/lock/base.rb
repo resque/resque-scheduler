@@ -33,6 +33,11 @@ module Resque
           Resque.redis.del(key) == 1
         end
 
+        # Releases the lock iff we own it
+        def release
+          locked? && release!
+        end
+
         private
 
         # Extends the lock by `timeout` seconds.
