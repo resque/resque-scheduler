@@ -2,7 +2,7 @@
 require_relative 'test_helper'
 
 context 'Multi Process' do
-  test 'setting Resque.schedule= from more one process does not corrupt the schedules' do
+  test 'setting schedule= from many process does not corrupt the schedules' do
     schedules = {}
     counts  = []
     threads = []
@@ -13,7 +13,7 @@ context 'Multi Process' do
     schedule_count = 200
 
     schedule_count.times do |n|
-      schedules["job #{n}"] = {cron: "0 1 0 0 0"}
+      schedules["job #{n}"] = { cron: '0 1 0 0 0' }
     end
 
     processes.times do |n|
@@ -28,10 +28,10 @@ context 'Multi Process' do
     Resque.schedule = schedules
     counts << Resque.schedule.size
 
-    threads.each {|t| t.join}
+    threads.each { |t| t.join }
 
     counts.each_with_index do |c, i|
-      assert_equal schedule_count, c, "schedule count is incorrect (count: #{i})"
+      assert_equal schedule_count, c, "schedule count is incorrect (c: #{i})"
     end
   end
 
@@ -45,7 +45,7 @@ context 'Multi Process' do
     schedule_count = 20
 
     schedule_count.times do |n|
-      schedules["job #{n}"] = {cron: "0 1 0 0 0"}
+      schedules["job #{n}"] = { cron: '0 1 0 0 0' }
     end
 
     threads << Thread.new do
@@ -60,7 +60,7 @@ context 'Multi Process' do
       Resque.clean_schedules
     end
 
-    threads.each {|t| t.join}
+    threads.each { |t| t.join }
 
     Resque.reload_schedule!
     assert_equal schedule_count, Resque.schedule.size
