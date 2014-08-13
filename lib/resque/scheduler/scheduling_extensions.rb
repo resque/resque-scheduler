@@ -44,15 +44,33 @@ module Resque
       # param, otherwise params is passed in as the only parameter to
       # perform.
       def schedule=(schedule_hash)
-        # clean the schedules as it exists in redis
-        clean_schedules
+        # This operation tries to be as atomic as possible.
+        # It needs to read the existing schedules outside the pipeline though.
+        # This could still cause a race condition.
+        #
+        # A more robust solution would be to SCRIPT it, but that would change
+        # the required version of Redis.
 
-        schedule_hash = prepare_schedule(schedule_hash)
+        # select schedules to remove
+        if redis.exists(:schedules)
+          clean_keys = non_persistent_schedules
+        else
+          clean_keys = []
+        end
 
-        # store all schedules in redis, so we can retrieve them back
-        # everywhere.
-        schedule_hash.each do |name, job_spec|
-          set_schedule(name, job_spec)
+        # Start the atomic operation. If this is not atomic and more than one
+        # process is calling `schedule=` the clean_schedules might overlap a
+        # set_schedule and cause the schedules to become corrupt.
+        redis.pipelined do
+          clean_schedules(clean_keys)
+
+          schedule_hash = prepare_schedule(schedule_hash)
+
+          # store all schedules in redis, so we can retrieve them back
+          # everywhere.
+          schedule_hash.each do |name, job_spec|
+            set_schedule(name, job_spec)
+          end
         end
 
         # ensure only return the successfully saved data!
@@ -82,14 +100,16 @@ module Resque
       end
 
       # clean the schedules as it exists in redis, useful for first setup?
-      def clean_schedules
-        if redis.exists(:schedules)
-          redis.hkeys(:schedules).each do |key|
-            remove_schedule(key) unless schedule_persisted?(key)
-          end
+      def clean_schedules(keys = non_persistent_schedules)
+        keys.each do |key|
+          remove_schedule(key)
         end
         @schedule = nil
         true
+      end
+
+      def non_persistent_schedules
+        redis.hkeys(:schedules).select { |k| ! schedule_persisted?(k) }
       end
 
       # Create or update a schedule with the provided name and configuration.
@@ -122,11 +142,9 @@ module Resque
 
       # remove a given schedule by name
       def remove_schedule(name)
-        redis.pipelined do
-          redis.hdel(:schedules, name)
-          redis.srem(:persisted_schedules, name)
-          redis.sadd(:schedules_changed, name)
-        end
+        redis.hdel(:schedules, name)
+        redis.srem(:persisted_schedules, name)
+        redis.sadd(:schedules_changed, name)
       end
 
       private
