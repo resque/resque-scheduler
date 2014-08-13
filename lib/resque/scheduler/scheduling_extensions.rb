@@ -102,14 +102,11 @@ module Resque
       #                                     :queue => 'high',
       #                                     :args => '/tmp/poop'})
       def set_schedule(name, config)
-        existing_config = fetch_schedule(name)
         persist = config.delete(:persist) || config.delete('persist')
-        unless existing_config && existing_config == config
-          redis.pipelined do
-            redis.hset(:schedules, name, encode(config))
-            redis.sadd(:schedules_changed, name)
-            redis.sadd(:persisted_schedules, name) if persist
-          end
+        redis.pipelined do
+          redis.hset(:schedules, name, encode(config))
+          redis.sadd(:schedules_changed, name)
+          redis.sadd(:persisted_schedules, name) if persist
         end
         config
       end
