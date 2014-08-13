@@ -109,7 +109,7 @@ module Resque
       end
 
       def non_persistent_schedules
-        redis.hkeys(:schedules).select { |k| ! schedule_persisted?(k) }
+        redis.hkeys(:schedules).select { |k| !schedule_persisted?(k) }
       end
 
       # Create or update a schedule with the provided name and configuration.
