@@ -34,35 +34,4 @@ context 'Multi Process' do
       assert_equal schedule_count, c, "schedule count is incorrect (c: #{i})"
     end
   end
-
-  # This explains what is happening above.
-  # One process is calling clean_schedules while another is setting its
-  # schedules up.
-  test 'set_schedules and clean_schedules do not conflict' do
-    schedules = {}
-    threads = []
-
-    schedule_count = 20
-
-    schedule_count.times do |n|
-      schedules["job #{n}"] = { cron: '0 1 0 0 0' }
-    end
-
-    threads << Thread.new do
-      schedules.each do |name, conf|
-        Resque.set_schedule(name, conf)
-        sleep 0.1
-      end
-    end
-
-    threads << Thread.new do
-      sleep 0.5
-      Resque.clean_schedules
-    end
-
-    threads.each { |t| t.join }
-
-    Resque.reload_schedule!
-    assert_equal schedule_count, Resque.schedule.size
-  end
 end
