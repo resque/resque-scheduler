@@ -45,8 +45,8 @@ module Resque
       # perform.
       def schedule=(schedule_hash)
         # This operation tries to be as atomic as possible.
-        # It needs to read the existing schedules outside the pipeline though.
-        # This could still cause a race condition.
+        # It needs to read the existing schedules outside the transaction.
+        # Unlikely, but this could still cause a race condition.
         #
         # A more robust solution would be to SCRIPT it, but that would change
         # the required version of Redis.
@@ -58,10 +58,10 @@ module Resque
           clean_keys = []
         end
 
-        # Start the atomic operation. If this is not atomic and more than one
+        # Start the transaction. If this is not atomic and more than one
         # process is calling `schedule=` the clean_schedules might overlap a
         # set_schedule and cause the schedules to become corrupt.
-        redis.pipelined do
+        redis.multi do
           clean_schedules(clean_keys)
 
           schedule_hash = prepare_schedule(schedule_hash)
