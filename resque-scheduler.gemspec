@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rubocop'
+  spec.add_development_dependency 'rubocop', '~> 0.25.0'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'yard'
 

@@ -12,3 +12,5 @@ Documentation:
 
 Style/DoubleNegation:
   Enabled: false
+Style/PerceivedComplexity:
+  Enabled: false

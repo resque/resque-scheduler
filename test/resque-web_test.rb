@@ -174,17 +174,17 @@ context 'POST /schedule/requeue' do
     assert last_response.ok?, last_response.errors
     assert last_response.body.include?('This job requires parameters')
     assert last_response.body.include?(
-      %Q(<input type="hidden" name="job_name" value="#{job_name}">)
+      %(<input type="hidden" name="job_name" value="#{job_name}">)
     )
 
     Resque.schedule[job_name]['parameters'].each do |_param_name, param_config|
       assert last_response.body.include?(
         '<span style="border-bottom:1px dotted;" ' <<
-        %Q[title="#{param_config['description']}">(?)</span>]
+        %[title="#{param_config['description']}">(?)</span>]
       )
       assert last_response.body.include?(
         '<input type="text" name="log_level" ' <<
-        %Q(value="#{param_config['default']}">)
+        %(value="#{param_config['default']}">)
       )
     end
   end
