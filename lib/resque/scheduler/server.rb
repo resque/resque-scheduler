@@ -101,7 +101,8 @@ module Resque
         def delayed_queue_now
           timestamp = params['timestamp'].to_i
           if timestamp > 0
-            Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp)
+            next_item = Resque.next_item_for_timestamp(timestamp)
+            Resque::Scheduler.enqueue_from_config(next_item)
           end
           redirect u('/overview')
         end
