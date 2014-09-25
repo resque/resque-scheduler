@@ -75,7 +75,9 @@ namespace :resque do
 
     # you probably already have this somewhere
     Resque.redis = 'localhost:6379'
-
+  end
+  
+  task setup_schedule do
     # If you want to be able to dynamically change the schedule,
     # uncomment this line.  A dynamic schedule can be updated via the
     # Resque::Scheduler.set_schedule (and remove_schedule) methods.
@@ -95,6 +97,8 @@ namespace :resque do
     # So, something like this:
     require 'jobs'
   end
+  
+  task scheduler_setup: :setup_schedule
 end
 ```
 
