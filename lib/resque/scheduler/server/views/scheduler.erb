@@ -3,8 +3,12 @@
 <p class='intro'>
   The list below contains all scheduled jobs.  Click &quot;Queue now&quot; to queue
   a job immediately.
-  Server local time: <%= Time.now %>
-  Current master: <%= Resque.redis.get(Resque::Scheduler.master_lock.key) %>
+  <br/> Server local time: <%= Time.now %>
+  <br/> Server Environment: <%= Resque::Scheduler.env%>
+  <br/> Current master: <%= Resque.redis.get(Resque::Scheduler.master_lock.key) %>
+</p>
+<p class='intro'>
+	The highlighted jobs are skipped for current environment.
 </p>
 <div style="overflow-y: auto; width:100%; padding: 0px 5px;">
 <table>
@@ -21,9 +25,9 @@
     <th>Arguments</th>
     <th>Last Enqueued</th>
   </tr>
-  <% Resque.schedule.keys.sort.select { |n| scheduled_in_this_env?(n) }.each do |name| %>
+  <% Resque.schedule.keys.sort.each do |name| %>
     <% config = Resque.schedule[name] %>
-    <tr>
+    <tr style="<%= scheduled_in_this_env?(name) ? '' : 'color: #9F6000;background: #FEEFB3;' %>">
       <% if Resque::Scheduler.dynamic %>
         <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
           <form action="<%= u "/schedule" %>" method="post" style="margin-left: 0">
