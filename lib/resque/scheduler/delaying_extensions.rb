@@ -179,6 +179,33 @@ module Resque
         end
       end
 
+      # Given a block, find jobs that return true from a block
+      #
+      # This allows for finding of delayed jobs that have arguments matching
+      # certain criteria
+      def find_delayed_selection(klass = nil)
+        fail ArgumentError, 'Please supply a block' unless block_given?
+
+        found_jobs = []
+        start = nil
+        while start = search_first_delayed_timestamp_in_range(start, nil)
+          job = "delayed:#{start}"
+          start += 1
+          index = Resque.redis.llen(job) - 1
+          while index >= 0
+            payload = Resque.redis.lindex(job, index)
+            decoded_payload = decode(payload)
+            job_class = decoded_payload['class']
+            relevant_class = (klass.nil? || klass.to_s == job_class)
+            if relevant_class && yield(decoded_payload['args'])
+              found_jobs.push(payload)
+            end
+            index -= 1
+          end
+        end
+        found_jobs
+      end
+
       # Given a timestamp and job (klass + args) it removes all instances and
       # returns the count of jobs removed.
       #
@@ -278,29 +305,6 @@ module Resque
         )
         timestamp = items.nil? ? nil : Array(items).first
         timestamp.to_i unless timestamp.nil?
-      end
-
-      def find_delayed_selection(klass = nil)
-        fail ArgumentError, 'Please supply a block' unless block_given?
-
-        found_jobs = []
-        start = nil
-        while start = search_first_delayed_timestamp_in_range(start, nil)
-          job = "delayed:#{start}"
-          start += 1
-          index = Resque.redis.llen(job) - 1
-          while index >= 0
-            payload = Resque.redis.lindex(job, index)
-            decoded_payload = decode(payload)
-            job_class = decoded_payload['class']
-            relevant_class = (klass.nil? || klass.to_s == job_class)
-            if relevant_class && yield(decoded_payload['args'])
-              found_jobs.push(payload)
-            end
-            index -= 1
-          end
-        end
-        found_jobs
       end
 
       def plugin
