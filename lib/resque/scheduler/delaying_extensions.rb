@@ -183,7 +183,7 @@ module Resque
       #
       # This allows for finding of delayed jobs that have arguments matching
       # certain criteria
-      def find_delayed_selection(klass = nil)
+      def find_delayed_selection(klass = nil, &block)
         fail ArgumentError, 'Please supply a block' unless block_given?
 
         found_jobs = []
@@ -195,9 +195,7 @@ module Resque
           while index >= 0
             payload = Resque.redis.lindex(job, index)
             decoded_payload = decode(payload)
-            job_class = decoded_payload['class']
-            relevant_class = (klass.nil? || klass.to_s == job_class)
-            if relevant_class && yield(decoded_payload['args'])
+            if payload_matches_selection?(decoded_payload, klass, &block)
               found_jobs.push(payload)
             end
             index -= 1
@@ -305,6 +303,13 @@ module Resque
         )
         timestamp = items.nil? ? nil : Array(items).first
         timestamp.to_i unless timestamp.nil?
+      end
+
+      def payload_matches_selection?(decoded_payload, klass)
+        return false if decoded_payload.nil?
+        job_class = decoded_payload['class']
+        relevant_class = (klass.nil? || klass.to_s == job_class)
+        relevant_class && yield(decoded_payload['args'])
       end
 
       def plugin
