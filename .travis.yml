@@ -35,3 +35,4 @@ deploy:
     tags: true
     repo: resque/resque-scheduler
     rvm: 2.1.5
+    all_branches: true
