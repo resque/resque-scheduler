@@ -224,7 +224,7 @@ context 'Resque::Scheduler' do
 
     Resque::Scheduler.update_schedule
 
-    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
     assert_equal([], Resque::Scheduler.scheduled_jobs.keys)
     assert_equal 0, Resque.redis.scard(:schedules_changed)
