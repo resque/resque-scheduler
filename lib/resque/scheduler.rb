@@ -292,7 +292,8 @@ module Resque
           loop do
             schedule_name = Resque.redis.spop(:schedules_changed)
             break unless schedule_name
-            if Resque.reload_schedule!.keys.include?(schedule_name)
+            Resque.reload_schedule!
+            if Resque.schedule.keys.include?(schedule_name)
               unschedule_job(schedule_name)
               load_schedule_job(schedule_name, Resque.schedule[schedule_name])
             else

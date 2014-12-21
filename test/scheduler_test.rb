@@ -210,6 +210,26 @@ context 'Resque::Scheduler' do
     assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
 
+  test 'update_schedule when all jobs have been removed' do
+    Resque::Scheduler.dynamic = true
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp'
+      }
+    }
+
+    Resque::Scheduler.load_schedule!
+
+    Resque.remove_schedule('some_ivar_job')
+
+    Resque::Scheduler.update_schedule
+
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.all_jobs.size)
+    assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
+    assert_equal([], Resque::Scheduler.scheduled_jobs.keys)
+    assert_equal 0, Resque.redis.scard(:schedules_changed)
+  end
+
   test 'update_schedule with mocks' do
     Resque::Scheduler.dynamic = true
     Resque.schedule = {
