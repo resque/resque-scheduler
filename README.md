@@ -151,7 +151,7 @@ default `'text'`)
 of `MonoLogger::DEBUG`, default `false`)
 
 
-### Resque Pool integration 
+### Resque Pool integration
 
 For normal work with the
 [resque-pool](https://github.com/nevans/resque-pool) gem, add the
@@ -602,9 +602,9 @@ vagrant up
 ### Deployment Notes
 
 It is recommended that a production deployment of resque_scheduler be hosted on
-a dedicated Redis database.  While making and managing scheduled tasks, 
-resque_scheudler currently scans the entire Redis keyspace, which may cause latency 
-and stability issues if resque_scheduler is hosted on a Redis instance storing a large 
+a dedicated Redis database.  While making and managing scheduled tasks,
+resque_scheudler currently scans the entire Redis keyspace, which may cause latency
+and stability issues if resque_scheduler is hosted on a Redis instance storing a large
 number of keys (such as those written by a different system hosted on the same Redis instance).
 
 ### Contributing
