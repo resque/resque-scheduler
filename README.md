@@ -11,14 +11,6 @@ resque-scheduler
 Resque-scheduler is an extension to [Resque](http://github.com/resque/resque)
 that adds support for queueing items in the future.
 
-This table explains the version requirements for redis
-
-| resque-scheduler version | required redis gem version|
-|:-------------------------|----------------------:|
-| ~> 2.0                   | >= 3.0.0              |
-| >= 0.0.1                 | ~> 1.3                |
-
-
 Job scheduling is supported in two different way: Recurring (scheduled) and
 Delayed.
 
@@ -468,7 +460,9 @@ run, leading to undesired behaviour. To allow different scheduler configs run at
 on one redis, you can either namespace your redis connections, or supply an environment variable
 to split the shared lock key resque-scheduler uses thus:
 
-    RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
+``` bash
+RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
+```
 
 ### resque-web Additions
 
@@ -606,11 +600,34 @@ vagrant up
 
 ### Deployment Notes
 
-It is recommended that a production deployment of resque_scheduler be hosted on
-a dedicated Redis database.  While making and managing scheduled tasks,
-resque_scheudler currently scans the entire Redis keyspace, which may cause latency
-and stability issues if resque_scheduler is hosted on a Redis instance storing a large
-number of keys (such as those written by a different system hosted on the same Redis instance).
+It is recommended that a production deployment of `resque-scheduler` be hosted
+on a dedicated Redis database.  While making and managing scheduled tasks,
+`resque-scheduler` currently scans the entire Redis keyspace, which may cause
+latency and stability issues if `resque-scheduler` is hosted on a Redis instance
+storing a large number of keys (such as those written by a different system
+hosted on the same Redis instance).
+
+#### Compatibility Notes
+
+Different versions of the `redis` and `rufus-scheduler` gems are needed
+depending on your version of `resque-scheduler`.  This is typically not a
+problem with `resque-scheduler` itself, but when mixing dependencies with an
+existing application.
+
+This table explains the version requirements for redis gem
+
+| resque-scheduler | redis gem  |
+|:-----------------|-----------:|
+| `~> 2.0`         | `>= 3.0.0` |
+| `>= 0.0.1`       | `~> 1.3`   |
+
+This table explains the version requirements for rufus-scheduler
+
+| resque-scheduler | rufus-scheduler |
+|:-----------------|----------------:|
+| `~> 4.0`         | `~> 3.0`        |
+| `< 4.0`          | `~> 2.0`        |
+
 
 ### Contributing
 

@@ -1,5 +1,12 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 4.0.0 (2014-12-21)
+* Bump rufus-scheduler dependency to `~> 3.0`
+* Address warning from redis-namespace related to `#unwatch`
+* Show current master in the web UI
+* Bugfix related to schedule check when no jobs are in the queue
+* Documentation updates
+
 ## 3.1.0 (2014-12-21)
 * Note in README.md about production redis deployment configuration
 * Bugfix to only override configuration options if provided
