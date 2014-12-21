@@ -122,7 +122,7 @@ module Resque
       attr_reader :argv, :env
 
       def runtime_env
-        Resque::Scheduler::Env.new(options)
+        @runtime_env ||= Resque::Scheduler::Env.new(options)
       end
 
       def option_parser
