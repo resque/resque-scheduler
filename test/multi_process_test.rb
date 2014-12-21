@@ -28,7 +28,7 @@ context 'Multi Process' do
     Resque.schedule = schedules
     counts << Resque.schedule.size
 
-    threads.each { |t| t.join }
+    threads.each(&:join)
 
     counts.each_with_index do |c, i|
       assert_equal schedule_count, c, "schedule count is incorrect (c: #{i})"

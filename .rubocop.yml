@@ -12,5 +12,5 @@ Documentation:
 
 Style/DoubleNegation:
   Enabled: false
-Style/PerceivedComplexity:
+Metrics/PerceivedComplexity:
   Enabled: false

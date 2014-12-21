@@ -31,49 +31,6 @@ context 'Env' do
     env.setup
   end
 
-  [true, false].each do |manual_cleanup|
-    desc = manual_cleanup ? 'manually' : 'automatically'
-    test "writes pid to pidfile when given and cleans up #{desc}" do
-      if !manual_cleanup && %w(rbx jruby).include?(RUBY_ENGINE)
-        skip('GC cannnot be forced on this platform.')
-      end
-
-      require 'weakref'
-
-      options = { pidfile: 'derp.pid' }
-      pidfile_path = File.expand_path(options[:pidfile])
-
-      mock_pidfile = mock('pidfile')
-      mock_pidfile.expects(:puts).with(Process.pid)
-      File.expects(:open).with(pidfile_path, 'w').yields(mock_pidfile)
-
-      env = new_env(options)
-      env_weakref = WeakRef.new(env)
-      env.setup
-
-      # When the pidfile gets cleaned up, we should get a delete
-      File.expects(:exist?).with(pidfile_path).returns(true).once
-      File.expects(:delete).with(pidfile_path).returns(true).once
-
-      env.cleanup if manual_cleanup
-
-      # we want env to go out of scope so we can GC it
-      # and validate that the pidfile got cleaned up
-      # rubocop:disable Lint/UselessAssignment
-      env = nil
-      # rubocop:enable Lint/UselessAssignment
-
-      # Force GC to kickoff the finalizer
-      gc_was_disabled = GC.enable
-      10.times do
-        GC.start
-        break unless env_weakref.weakref_alive?
-        sleep 0.1
-      end
-      GC.disable if gc_was_disabled
-    end
-  end
-
   test 'keep set config if no option given' do
     Resque::Scheduler.configure { |c| c.dynamic = true }
     env = new_env

@@ -25,7 +25,7 @@ class RedisInstance
     end
 
     def stop!
-      $stdout.puts "Sending TERM to Redis (#{pid})..."
+      $stdout.puts "Sending TERM to Redis (#{pid})..." if $stdout.tty?
       Process.kill('TERM', pid)
 
       @port = nil
