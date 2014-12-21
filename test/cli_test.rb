@@ -153,8 +153,8 @@ context 'Cli' do
   end
 
   test 'initializes logfile from the env' do
-    cli = new_cli([], 'LOGFILE' => 'derp.log')
-    assert_equal('derp.log', cli.send(:options)[:logfile])
+    cli = new_cli([], 'LOGFILE' => 'example.log')
+    assert_equal('example.log', cli.send(:options)[:logfile])
   end
 
   test 'defaults to nil logfile' do

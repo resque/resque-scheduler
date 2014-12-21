@@ -418,8 +418,8 @@ context 'Resque::Scheduler' do
   end
 
   test 'procline contains env when present' do
-    Resque::Scheduler.env = 'derp'
-    assert Resque::Scheduler.send(:build_procline, 'cage') =~ /\[derp\]: cage/
+    Resque::Scheduler.env = 'xyz'
+    assert Resque::Scheduler.send(:build_procline, 'cage') =~ /\[xyz\]: cage/
   end
 
   test 'procline omits env when absent' do

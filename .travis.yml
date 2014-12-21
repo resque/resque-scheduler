@@ -1,17 +1,25 @@
 language: ruby
+sudo: false
 rvm:
-- '1.9.3'
-- '2.1'
-- 'jruby-19mode'
-- 'rbx'
+- 1.9.3
+# temporarily test on these 2.1.x patch releases to see when the pid file
+# cleanup started breaking
+- 2.1.0
+- 2.1.1
+- 2.1.2
+- 2.1.3
+- 2.1.4
+- 2.1.5
+- jruby-19mode
+- rbx
 env:
   global:
   - RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER=1
   - JRUBY_OPTS='-Xcext.enabled=true'
 matrix:
   allow_failures:
-  - rvm: 'jruby-19mode'
-  - rvm: 'rbx'
+  - rvm: jruby-19mode
+  - rvm: rbx
 services:
 - redis-server
 notifications:

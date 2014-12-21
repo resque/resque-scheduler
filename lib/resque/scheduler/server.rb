@@ -142,7 +142,7 @@ module Resque
           dels = delayed_jobs_for_worker(worker)
           results += dels.select do |j|
             j['class'].downcase.include?(worker) &&
-              j.merge!('where_at' => 'delayed')
+            j.merge!('where_at' => 'delayed')
           end
 
           Resque.queues.each do |queue|
@@ -150,7 +150,7 @@ module Resque
             queued = [queued] unless queued.is_a?(Array)
             results += queued.select do |j|
               j['class'].downcase.include?(worker) &&
-                j.merge!('queue' => queue, 'where_at' => 'queued')
+              j.merge!('queue' => queue, 'where_at' => 'queued')
             end
           end
 
@@ -210,7 +210,7 @@ module Resque
             working = [*Resque.working]
             work = working.select do |w|
               w.job && w.job['payload'] &&
-                w.job['payload']['class'].downcase.include?(worker)
+              w.job['payload']['class'].downcase.include?(worker)
             end
             work.each do |w|
               results += [

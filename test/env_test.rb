@@ -40,7 +40,7 @@ context 'Env' do
 
       require 'weakref'
 
-      options = { pidfile: 'derp.pid' }
+      options = { pidfile: 'example.pid' }
       pidfile_path = File.expand_path(options[:pidfile])
 
       mock_pidfile = mock('pidfile')

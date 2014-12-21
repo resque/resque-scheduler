@@ -7,6 +7,7 @@ module Resque
     class Env
       def initialize(options)
         @options = options
+        @pidfile_path = nil
       end
 
       def setup
@@ -52,16 +53,17 @@ module Resque
       end
 
       def setup_pid_file
-        if options[:pidfile]
-          @pidfile_path = File.expand_path(options[:pidfile])
+        return unless options[:pidfile]
 
-          File.open(@pidfile_path, 'w') do |f|
-            f.puts $PROCESS_ID
-          end
+        @pidfile_path = File.expand_path(options[:pidfile])
 
-          ObjectSpace.define_finalizer(self,
-                                       Env.pidfile_deleter(@pidfile_path))
+        File.open(@pidfile_path, 'w') do |f|
+          f.puts $PROCESS_ID
         end
+
+        ObjectSpace.define_finalizer(
+          self, Env.pidfile_deleter(@pidfile_path)
+        )
       end
 
       def setup_scheduler_configuration
@@ -97,11 +99,11 @@ module Resque
       end
 
       def cleanup_pid_file
-        if @pidfile_path
-          ObjectSpace.undefine_finalizer(self)
-          Env.pidfile_deleter(@pidfile_path).call
-          @pidfile_path = nil
-        end
+        return unless @pidfile_path
+
+        ObjectSpace.undefine_finalizer(self)
+        Env.pidfile_deleter(@pidfile_path).call
+        @pidfile_path = nil
       end
     end
   end
