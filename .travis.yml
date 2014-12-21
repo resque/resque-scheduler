@@ -2,7 +2,6 @@ language: ruby
 sudo: false
 rvm:
 - 1.9.3
-- 2.1.2
 - 2.1.5
 - jruby-19mode
 - rbx
@@ -20,6 +19,13 @@ notifications:
   email:
     recipients:
     - daniel.buch+resque-scheduler@gmail.com
+    on_success: change
+    on_failure: change
+  irc:
+    channels:
+    - 'chat.freenode.net#resque'
+    on_success: change
+    on_failure: change
 deploy:
   provider: rubygems
   api_key:
@@ -28,4 +34,4 @@ deploy:
   on:
     tags: true
     repo: resque/resque-scheduler
-    rvm: '2.1'
+    rvm: 2.1.5
