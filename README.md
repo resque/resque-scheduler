@@ -75,7 +75,7 @@ namespace :resque do
     # you probably already have this somewhere
     Resque.redis = 'localhost:6379'
   end
-  
+
   task :setup_schedule => :setup do
     require 'resque-scheduler'
 
@@ -98,7 +98,7 @@ namespace :resque do
     # So, something like this:
     require 'jobs'
   end
-  
+
   task :scheduler_setup => :setup_schedule
 end
 ```
