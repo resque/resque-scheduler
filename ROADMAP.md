@@ -1,4 +1,4 @@
-TODO for v3.1.0
+TODO for v4.0.0
 ===============
 
 - Compatibility with Resque 2
