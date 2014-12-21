@@ -256,18 +256,18 @@ module Resque
       end
 
       def clean_up_timestamp(key, timestamp)
-        # If the list is empty, remove it.
-
         # Use a watch here to ensure nobody adds jobs to this delayed
         # queue while we're removing it.
-        redis.watch key
-        if 0 == redis.llen(key).to_i
-          redis.multi do
-            redis.del key
-            redis.zrem :delayed_queue_schedule, timestamp.to_i
+        redis.watch(key) do
+          if redis.llen(key).to_i == 0
+            # If the list is empty, remove it.
+            redis.multi do
+              redis.del(key)
+              redis.zrem(:delayed_queue_schedule, timestamp.to_i)
+            end
+          else
+            redis.redis.unwatch
           end
-        else
-          redis.unwatch
         end
       end
 
