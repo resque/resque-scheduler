@@ -1,7 +1,7 @@
 <h1>Delayed Jobs</h1>
 <%- size = resque.delayed_queue_schedule_size %>
 
-<%= render_partial File.read(File.join(File.dirname(__FILE__), 'server/views/search_form.erb')) %>
+<%= scheduler_view :search_form, layout: false %>
 
 <p class='intro'>
   This list below contains the timestamps for scheduled delayed jobs.
@@ -57,4 +57,3 @@
 <% end %>
 
 <%= partial :next_more, :start => start, :size => size %>
-

@@ -7,6 +7,10 @@ require 'json'
 module Resque
   module Scheduler
     module Server
+      unless defined?(::Resque::Scheduler::Server::VIEW_PATH)
+        VIEW_PATH = File.join(File.dirname(__FILE__), 'server', 'views')
+      end
+
       def self.included(base)
         base.class_eval do
           helpers { include HelperMethods }
@@ -121,10 +125,6 @@ module Resque
       end
 
       module HelperMethods
-        def render_partial(partial)
-          erb partial, layout: false
-        end
-
         def format_time(t)
           t.strftime('%Y-%m-%d %H:%M:%S %z')
         end
@@ -201,6 +201,11 @@ module Resque
 
         def rails_env(name)
           Resque.schedule[name]['rails_env']
+        end
+
+        def scheduler_view(filename, options = {}, locals = {})
+          source = File.read(File.join(VIEW_PATH, "#{filename}.erb"))
+          erb source, options, locals
         end
 
         private
