@@ -1,5 +1,5 @@
 <h1>Search Results</h1>
-<%= erb File.read(File.join(File.dirname(__FILE__), 'server/views/search_form.erb')) %>
+<%= scheduler_view :search_form %>
 <hr>
 <% delayed = @jobs.select { |j| j['where_at'] == 'delayed' } %>
 <h1>Delayed jobs</h1>

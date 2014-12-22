@@ -5,6 +5,9 @@ require 'json'
 # Extend Resque::Server to add tabs
 module ResqueScheduler
   module Server
+    unless defined?(::ResqueScheduler::Server::VIEW_PATH)
+      VIEW_PATH = File.join(File.dirname(__FILE__), 'server', 'views')
+    end
     def self.included(base)
       base.class_eval do
         helpers do
@@ -86,6 +89,10 @@ module ResqueScheduler
           def scheduled_in_this_env?(name)
             return true if Resque.schedule[name]['rails_env'].nil?
             Resque.schedule[name]['rails_env'] == Resque::Scheduler.env
+          end
+
+          def scheduler_view filename, options = {}, locals = {}
+            erb(File.read(File.join(VIEW_PATH, "#{filename}.erb")), options, locals)
           end
         end
 
