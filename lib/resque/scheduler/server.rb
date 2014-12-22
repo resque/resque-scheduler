@@ -7,6 +7,10 @@ require 'json'
 module Resque
   module Scheduler
     module Server
+      unless defined?(::Resque::Scheduler::Server::VIEW_PATH)
+        VIEW_PATH = File.join(File.dirname(__FILE__), 'server', 'views')
+      end
+
       def self.included(base)
         base.class_eval do
           helpers { include HelperMethods }
@@ -201,6 +205,10 @@ module Resque
 
         def rails_env(name)
           Resque.schedule[name]['rails_env']
+        end
+
+        def scheduler_view(filename, options = {}, locals = {})
+          erb(File.read(File.join(VIEW_PATH, "#{filename}.erb")), options, locals)
         end
 
         private
