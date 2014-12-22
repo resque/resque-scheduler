@@ -10,9 +10,9 @@ Gem::Specification.new do |spec|
   spec.email       = ['bvandenbos@gmail.com']
   spec.homepage    = 'http://github.com/resque/resque-scheduler'
   spec.summary     = 'Light weight job scheduling on top of Resque'
-  spec.description = %q{Light weight job scheduling on top of Resque.
+  spec.description = 'Light weight job scheduling on top of Resque.
     Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
-    Also supports queueing jobs on a fixed, cron-like schedule.}
+    Also supports queueing jobs on a fixed, cron-like schedule.'
   spec.license = 'MIT'
 
   spec.files         = `git ls-files`.split("\n")
@@ -26,8 +26,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'json' if RUBY_VERSION < '1.9'
-  spec.add_development_dependency 'rubocop' unless RUBY_VERSION < '1.9'
   spec.add_development_dependency 'simplecov' unless RUBY_VERSION < '1.9'
+
+  spec.add_development_dependency 'rubocop', '~> 0.28.0' unless RUBY_VERSION < '1.9'
 
   spec.add_runtime_dependency 'mono_logger', '~> 1.0'
   spec.add_runtime_dependency 'redis', '~> 3.0.4'
