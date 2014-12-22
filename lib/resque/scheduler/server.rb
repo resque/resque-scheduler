@@ -125,10 +125,6 @@ module Resque
       end
 
       module HelperMethods
-        def render_partial(partial)
-          erb partial, layout: false
-        end
-
         def format_time(t)
           t.strftime('%Y-%m-%d %H:%M:%S %z')
         end
@@ -208,7 +204,8 @@ module Resque
         end
 
         def scheduler_view(filename, options = {}, locals = {})
-          erb(File.read(File.join(VIEW_PATH, "#{filename}.erb")), options, locals)
+          source = File.read(File.join(VIEW_PATH, "#{filename}.erb"))
+          erb source, options, locals
         end
 
         private
