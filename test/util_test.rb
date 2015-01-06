@@ -1,4 +1,5 @@
 # vim:fileencoding=utf-8
+require_relative 'test_helper'
 
 describe 'Util' do
   def util

@@ -1,5 +1,8 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
+# Running tests in this file alone without this next line fails. This is despite
+# the load path being set correctly in the test_helper file. No idea why.
+require 'resque/scheduler/env'
 
 describe 'Env' do
   def new_env(options = {})
