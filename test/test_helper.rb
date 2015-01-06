@@ -1,15 +1,10 @@
 # vim:fileencoding=utf-8
 require 'simplecov'
 
-require 'test/unit'
-require 'mocha/setup'
-require 'rack/test'
 require 'resque'
-
-$LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
-require 'resque-scheduler'
-require 'resque/scheduler/server'
-
+# This bit needs to be above the minitest require, because otherwise, the
+# at_exit calls are in the wrong order and Redis shuts down before the tests
+# run.
 unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   # Start our own Redis when the tests start. RedisInstance will take care of
   # starting and stopping.
@@ -17,34 +12,17 @@ unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   RedisInstance.run!
 end
 
-at_exit { exit MiniTest::Unit.new.run(ARGV) || 0 }
+require 'minitest/autorun'
+require 'mocha/setup'
+require 'rack/test'
 
-##
-# test/spec/mini 3
-# original work: http://gist.github.com/25455
-# forked and modified: https://gist.github.com/meatballhat/8906709
-#
-def context(*args, &block)
-  return super unless (name = args.first) && block
-  require 'test/unit'
-  klass = Class.new(Test::Unit::TestCase) do
-    def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/, '_')}", &block) if block
-    end
-    def self.xtest(*_args)
-    end
-    def self.setup(&block)
-      define_method(:setup, &block)
-    end
-    def self.teardown(&block)
-      define_method(:teardown, &block)
-    end
-  end
-  (class << klass; self end).send(:define_method, :name) do
-    name.gsub(/\W/, '_')
-  end
-  klass.class_eval(&block)
-end
+$LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
+require 'resque-scheduler'
+# require 'resque/scheduler/server'
+
+# minitest/autorun does this now.
+# at_exit { exit MiniTest::Unit.new.run(ARGV) || 0 }
+
 
 unless defined?(Rails)
   module Rails

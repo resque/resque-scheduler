@@ -1,8 +1,8 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
 
-context 'Resque::Scheduler' do
-  setup do
+describe 'Resque::Scheduler' do
+  before do
     Resque::Scheduler.configure do |c|
       c.dynamic = false
       c.quiet = true
@@ -14,7 +14,7 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
   end
 
-  test 'enqueue constantizes' do
+  it 'enqueue constantizes' do
     Resque::Scheduler.env = 'production'
     config = {
       'cron' => '* * * * *',
@@ -27,7 +27,7 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.enqueue_from_config(config)
   end
 
-  test 'enqueue runs hooks' do
+  it 'enqueue runs hooks' do
     Resque::Scheduler.env = 'production'
     config = {
       'cron' => '* * * * *',
@@ -45,7 +45,7 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.enqueue_from_config(config)
   end
 
-  test 'enqueue_from_config respects queue params' do
+  it 'enqueue_from_config respects queue params' do
     config = {
       'cron' => '* * * * *',
       'class' => 'SomeIvarJob',
@@ -55,7 +55,7 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.enqueue_from_config(config)
   end
 
-  test 'config makes it into the rufus_scheduler' do
+  it 'config makes it into the rufus_scheduler' do
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
@@ -71,7 +71,7 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
   end
 
-  test 'can reload schedule' do
+  it 'can reload schedule' do
     Resque::Scheduler.dynamic = true
     Resque.schedule = {
       'some_ivar_job' => {
@@ -99,7 +99,7 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job2')
   end
 
-  test 'load_schedule_job loads a schedule' do
+  it 'load_schedule_job loads a schedule' do
     Resque::Scheduler.load_schedule_job(
       'some_ivar_job',
       'cron' => '* * * * *',
@@ -112,7 +112,7 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
-  test 'load_schedule_job with every with options' do
+  it 'load_schedule_job with every with options' do
     Resque::Scheduler.load_schedule_job(
       'some_ivar_job',
       'every' => ['30s', { 'first_in' => '60s' }],
@@ -127,7 +127,7 @@ context 'Resque::Scheduler' do
     assert job.opts.keys.include?(:first_in)
   end
 
-  test 'load_schedule_job with cron with options' do
+  it 'load_schedule_job with cron with options' do
     Resque::Scheduler.load_schedule_job(
       'some_ivar_job',
       'cron' => ['* * * * *', { 'allow_overlapping' => 'true' }],
@@ -142,7 +142,7 @@ context 'Resque::Scheduler' do
     assert job.opts.keys.include?(:allow_overlapping)
   end
 
-  test 'load_schedule_job without cron' do
+  it 'load_schedule_job without cron' do
     Resque::Scheduler.load_schedule_job(
       'some_ivar_job',
       'class' => 'SomeIvarJob',
@@ -154,7 +154,7 @@ context 'Resque::Scheduler' do
     assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
-  test 'load_schedule_job with an empty cron' do
+  it 'load_schedule_job with an empty cron' do
     Resque::Scheduler.load_schedule_job(
       'some_ivar_job',
       'cron' => '',
@@ -167,7 +167,7 @@ context 'Resque::Scheduler' do
     assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
-  test 'update_schedule' do
+  it 'update_schedule' do
     Resque::Scheduler.dynamic = true
     Resque.schedule = {
       'some_ivar_job' => {
@@ -210,7 +210,7 @@ context 'Resque::Scheduler' do
     assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
 
-  test 'update_schedule when all jobs have been removed' do
+  it 'update_schedule when all jobs have been removed' do
     Resque::Scheduler.dynamic = true
     Resque.schedule = {
       'some_ivar_job' => {
@@ -230,7 +230,7 @@ context 'Resque::Scheduler' do
     assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
 
-  test 'update_schedule with mocks' do
+  it 'update_schedule with mocks' do
     Resque::Scheduler.dynamic = true
     Resque.schedule = {
       'some_ivar_job' => {
@@ -272,7 +272,7 @@ context 'Resque::Scheduler' do
     assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
 
-  test 'concurrent update_schedule calls' do
+  it 'concurrent update_schedule calls' do
     Resque::Scheduler.dynamic = true
     Resque::Scheduler.load_schedule!
     jobs_count = 100
@@ -296,7 +296,7 @@ context 'Resque::Scheduler' do
     assert_equal 0, Resque.redis.scard(:schedules_changed)
   end
 
-  test 'schedule= sets the schedule' do
+  it 'schedule= sets the schedule' do
     Resque::Scheduler.dynamic = true
     Resque.schedule = {
       'my_ivar_job' => {
@@ -311,7 +311,7 @@ context 'Resque::Scheduler' do
     )
   end
 
-  test 'schedule= removes schedules not present in the given ' \
+  it 'schedule= removes schedules not present in the given ' \
        'schedule argument' do
     Resque::Scheduler.dynamic = true
 
@@ -333,7 +333,7 @@ context 'Resque::Scheduler' do
     )
   end
 
-  test "schedule= uses job name as 'class' argument if it's missing" do
+  it "schedule= uses job name as 'class' argument if it's missing" do
     Resque::Scheduler.dynamic = true
     Resque.schedule = { 'SomeIvarJob' => {
       'cron' => '* * * * *', 'args' => '/tmp/75'
@@ -345,7 +345,7 @@ context 'Resque::Scheduler' do
     assert_equal('SomeIvarJob', Resque.schedule['SomeIvarJob']['class'])
   end
 
-  test 'schedule= does not mutate argument' do
+  it 'schedule= does not mutate argument' do
     schedule = { 'SomeIvarJob' => {
       'cron' => '* * * * *', 'args' => '/tmp/75'
     } }
@@ -353,7 +353,7 @@ context 'Resque::Scheduler' do
     assert !schedule['SomeIvarJob'].key?('class')
   end
 
-  test 'set_schedule can set an individual schedule' do
+  it 'set_schedule can set an individual schedule' do
     Resque.set_schedule(
       'some_ivar_job',
       'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/22'
@@ -365,7 +365,7 @@ context 'Resque::Scheduler' do
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job')
   end
 
-  test 'fetch_schedule returns a schedule' do
+  it 'fetch_schedule returns a schedule' do
     Resque.redis.hset(:schedules, 'some_ivar_job2', Resque.encode(
       'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/33'
     ))
@@ -375,7 +375,7 @@ context 'Resque::Scheduler' do
     )
   end
 
-  test 'remove_schedule removes a schedule' do
+  it 'remove_schedule removes a schedule' do
     Resque.set_schedule(
       'some_ivar_job3',
       'cron' => '* * * * *',
@@ -390,7 +390,7 @@ context 'Resque::Scheduler' do
     assert_equal [], Resque.redis.smembers(:persisted_schedules)
   end
 
-  test 'persisted schedules' do
+  it 'persisted schedules' do
     Resque.set_schedule(
       'some_ivar_job',
       'cron' => '* * * * *',
@@ -419,41 +419,40 @@ context 'Resque::Scheduler' do
     assert_equal(nil, Resque.schedule['some_job'])
   end
 
-  test 'adheres to lint' do
-    assert_nothing_raised do
-      Resque::Plugin.lint(Resque::Scheduler)
-      Resque::Plugin.lint(Resque::Scheduler::Extension)
-    end
+  # The failure to raise an error is implicit here.
+  it 'adheres to lint' do
+    Resque::Plugin.lint(Resque::Scheduler)
+    Resque::Plugin.lint(Resque::Scheduler::Extension)
   end
 
-  test 'procline contains app_name when present' do
+  it 'procline contains app_name when present' do
     Resque::Scheduler.app_name = 'foo'
     assert Resque::Scheduler.send(:build_procline, 'bar') =~ /\[foo\]:/
   end
 
-  test 'procline omits app_name when absent' do
+  it 'procline omits app_name when absent' do
     Resque::Scheduler.app_name = nil
     assert Resque::Scheduler.send(:build_procline, 'bar') =~
       /#{Resque::Scheduler.send(:internal_name)}: bar/
   end
 
-  test 'procline contains env when present' do
+  it 'procline contains env when present' do
     Resque::Scheduler.env = 'xyz'
     assert Resque::Scheduler.send(:build_procline, 'cage') =~ /\[xyz\]: cage/
   end
 
-  test 'procline omits env when absent' do
+  it 'procline omits env when absent' do
     Resque::Scheduler.env = nil
     assert Resque::Scheduler.send(:build_procline, 'cage') =~
       /#{Resque::Scheduler.send(:internal_name)}: cage/
   end
 
-  context 'printing schedule' do
-    setup do
+  describe 'printing schedule' do
+    before do
       Resque::Scheduler.expects(:log!).at_least_once
     end
 
-    test 'prints schedule' do
+    it 'prints schedule' do
       fake_rufus_scheduler = mock
       fake_rufus_scheduler.expects(:jobs).at_least_once
         .returns(foo: OpenStruct.new(t: nil, last: nil))

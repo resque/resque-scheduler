@@ -2,8 +2,8 @@
 
 require_relative 'test_helper'
 
-context 'scheduling jobs with arguments' do
-  setup do
+describe 'scheduling jobs with arguments' do
+  before do
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.configure do |c|
       c.dynamic = false
@@ -12,7 +12,7 @@ context 'scheduling jobs with arguments' do
     end
   end
 
-  test 'enqueue_from_config puts stuff in resque without class loaded' do
+  it 'enqueue_from_config puts stuff in resque without class loaded' do
     Resque::Job.stubs(:create).once.returns(true)
       .with('joes_queue', 'UndefinedJob', '/tmp')
     Resque::Scheduler.enqueue_from_config(
@@ -23,7 +23,7 @@ context 'scheduling jobs with arguments' do
     )
   end
 
-  test 'enqueue_from_config with_every_syntax' do
+  it 'enqueue_from_config with_every_syntax' do
     Resque::Job.stubs(:create).once.returns(true)
       .with('james_queue', 'JamesJob', '/tmp')
     Resque::Scheduler.enqueue_from_config(
@@ -34,7 +34,7 @@ context 'scheduling jobs with arguments' do
     )
   end
 
-  test 'enqueue_from_config puts jobs in the resque queue' do
+  it 'enqueue_from_config puts jobs in the resque queue' do
     Resque::Job.stubs(:create).once.returns(true)
       .with(:ivar, SomeIvarJob, '/tmp')
     Resque::Scheduler.enqueue_from_config(
@@ -44,7 +44,7 @@ context 'scheduling jobs with arguments' do
     )
   end
 
-  test 'enqueue_from_config with custom_class_job in resque' do
+  it 'enqueue_from_config with custom_class_job in resque' do
     FakeCustomJobClass.stubs(:scheduled).once.returns(true)
       .with(:ivar, 'SomeIvarJob', '/tmp')
     Resque::Scheduler.enqueue_from_config(
@@ -55,7 +55,7 @@ context 'scheduling jobs with arguments' do
     )
   end
 
-  test 'enqueue_from_config puts stuff in resque when env matches' do
+  it 'enqueue_from_config puts stuff in resque when env matches' do
     Resque::Scheduler.env = 'production'
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
@@ -84,7 +84,7 @@ context 'scheduling jobs with arguments' do
     assert_equal(2, Resque::Scheduler.rufus_scheduler.jobs.size)
   end
 
-  test 'enqueue_from_config does not enqueue when env does not match' do
+  it 'enqueue_from_config does not enqueue when env does not match' do
     Resque::Scheduler.env = nil
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
     Resque.schedule = {
@@ -112,7 +112,7 @@ context 'scheduling jobs with arguments' do
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
   end
 
-  test 'enqueue_from_config when env env arg is not set' do
+  it 'enqueue_from_config when env env arg is not set' do
     Resque::Scheduler.env = 'production'
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
@@ -127,7 +127,7 @@ context 'scheduling jobs with arguments' do
     assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
   end
 
-  test "calls the worker without arguments when 'args' is missing " \
+  it "calls the worker without arguments when 'args' is missing " \
        'from the config' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -136,7 +136,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test "calls the worker without arguments when 'args' is blank " \
+  it "calls the worker without arguments when 'args' is blank " \
        'in the config' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -146,7 +146,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with a string when the config lists a string' do
+  it 'calls the worker with a string when the config lists a string' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args: string
@@ -155,7 +155,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with a Fixnum when the config lists an integer' do
+  it 'calls the worker with a Fixnum when the config lists an integer' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args: 1
@@ -164,7 +164,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with multiple arguments when the config ' \
+  it 'calls the worker with multiple arguments when the config ' \
        'lists an array' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -176,7 +176,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with an array when the config lists ' \
+  it 'calls the worker with an array when the config lists ' \
        'a nested array' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -188,7 +188,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with a hash when the config lists a hash' do
+  it 'calls the worker with a hash when the config lists a hash' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
       args:
@@ -198,7 +198,7 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'calls the worker with a nested hash when the config lists ' \
+  it 'calls the worker with a nested hash when the config lists ' \
        'a nested hash' do
     Resque::Scheduler.enqueue_from_config(YAML.load(<<-YAML))
       class: SomeIvarJob
@@ -211,11 +211,11 @@ context 'scheduling jobs with arguments' do
     Resque.reserve('ivar').perform
   end
 
-  test 'poll_sleep_amount defaults to 5' do
+  it 'poll_sleep_amount defaults to 5' do
     assert_equal 5, Resque::Scheduler.poll_sleep_amount
   end
 
-  test 'poll_sleep_amount is settable' do
+  it 'poll_sleep_amount is settable' do
     Resque::Scheduler.poll_sleep_amount = 1
     assert_equal 1, Resque::Scheduler.poll_sleep_amount
   end

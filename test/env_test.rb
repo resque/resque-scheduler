@@ -1,18 +1,18 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
 
-context 'Env' do
+describe 'Env' do
   def new_env(options = {})
     Resque::Scheduler::Env.new(options)
   end
 
-  test 'daemonizes when background is true' do
+  it 'daemonizes when background is true' do
     Process.expects(:daemon)
     env = new_env(background: true)
     env.setup
   end
 
-  test 'reconnects redis when background is true' do
+  it 'reconnects redis when background is true' do
     Process.stubs(:daemon)
     mock_redis_client = mock('redis_client')
     mock_redis = mock('redis')
@@ -23,7 +23,7 @@ context 'Env' do
     env.setup
   end
 
-  test 'aborts when background is given and Process does not support daemon' do
+  it 'aborts when background is given and Process does not support daemon' do
     Process.stubs(:daemon)
     Process.expects(:respond_to?).with('daemon').returns(false)
     env = new_env(background: true)
@@ -31,14 +31,14 @@ context 'Env' do
     env.setup
   end
 
-  test 'keep set config if no option given' do
+  it 'keep set config if no option given' do
     Resque::Scheduler.configure { |c| c.dynamic = true }
     env = new_env
     env.setup
     assert_equal(true, Resque::Scheduler.dynamic)
   end
 
-  test 'override config if option given' do
+  it 'override config if option given' do
     Resque::Scheduler.configure { |c| c.dynamic = true }
     env = new_env(dynamic: false)
     env.setup
