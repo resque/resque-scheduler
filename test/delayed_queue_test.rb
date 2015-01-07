@@ -264,7 +264,6 @@ describe 'DelayedQueue' do
     end
   end
 
-  # TODO fails randomly due ot ordering. Test with --seed 3421
   it 'enqueue_delayed_items_for_timestamp creates jobs ' \
        'and empties the delayed queue' do
     t = Time.now + 60
