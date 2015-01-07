@@ -6,6 +6,8 @@ describe 'Util' do
     Resque::Scheduler::Util
   end
 
+  before { reset_resque_scheduler }
+
   it 'constantizing' do
     assert util.constantize('Resque::Scheduler') == Resque::Scheduler
   end

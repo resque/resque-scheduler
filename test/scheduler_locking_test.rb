@@ -9,6 +9,7 @@ end
 
 describe '#master_lock_key' do
   before do
+    reset_resque_scheduler
     @subject = Class.new { extend Resque::Scheduler::Locking }
   end
 
@@ -24,6 +25,7 @@ describe '#master_lock_key' do
 
   describe 'with a prefix set via ENV' do
     before do
+      reset_resque_scheduler
       ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = 'my.prefix'
       @subject = Class.new { extend Resque::Scheduler::Locking }
     end
@@ -43,6 +45,7 @@ describe '#master_lock_key' do
 
   describe 'with a namespace set for resque' do
     before do
+      reset_resque_scheduler
       Resque.redis.namespace = 'my.namespace'
       @subject = Class.new { extend Resque::Scheduler::Locking }
     end
@@ -60,6 +63,7 @@ describe '#master_lock_key' do
 
     describe 'with a prefix set via ENV' do
       before do
+        reset_resque_scheduler
         Resque.redis.namespace = 'my.namespace'
         ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = 'my.prefix'
         @subject = Class.new { extend Resque::Scheduler::Locking }
@@ -83,6 +87,7 @@ end
 
 describe 'Resque::Scheduler::Locking' do
   before do
+    reset_resque_scheduler
     @subject = Class.new { extend Resque::Scheduler::Locking }
   end
 
@@ -128,6 +133,7 @@ end
 
 describe 'Resque::Scheduler::Lock::Base' do
   before do
+    reset_resque_scheduler
     @lock = Resque::Scheduler::Lock::Base.new('test_lock_key')
   end
 
@@ -148,6 +154,7 @@ describe 'Resque::Scheduler::Lock::Basic' do
   include LockTestHelper
 
   before do
+    reset_resque_scheduler
     @lock = Resque::Scheduler::Lock::Basic.new('test_lock_key')
   end
 
@@ -211,6 +218,7 @@ describe 'Resque::Scheduler::Lock::Resilient' do
          'tests, as they require Redis >= 2.5.'
   else
     before do
+      reset_resque_scheduler
       @lock = Resque::Scheduler::Lock::Resilient.new('test_resilient_lock')
     end
 

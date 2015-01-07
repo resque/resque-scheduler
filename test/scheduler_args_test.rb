@@ -4,10 +4,8 @@ require_relative 'test_helper'
 
 describe 'scheduling jobs with arguments' do
   before do
-    Resque::Scheduler.clear_schedule!
+    reset_resque_scheduler
     Resque::Scheduler.configure do |c|
-      c.dynamic = false
-      c.quiet = true
       c.poll_sleep_amount = nil
     end
   end

@@ -2,6 +2,9 @@
 require_relative 'test_helper'
 
 describe 'Cli' do
+
+  before { reset_resque_scheduler }
+
   def mock_runtime_env
     mock.tap { |m| m.stubs(:setup) }
   end

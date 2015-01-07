@@ -6,6 +6,9 @@ require_relative 'test_helper'
 require 'resque/scheduler/env'
 
 describe 'Env' do
+
+  before { reset_resque_scheduler }
+
   def new_env(options = {})
     Resque::Scheduler::Env.new(options)
   end

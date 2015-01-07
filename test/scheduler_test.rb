@@ -3,15 +3,7 @@ require_relative 'test_helper'
 
 describe 'Resque::Scheduler' do
   before do
-    Resque::Scheduler.configure do |c|
-      c.dynamic = false
-      c.quiet = true
-      c.env = nil
-      c.app_name = nil
-    end
-    Resque.redis.flushall
-    Resque::Scheduler.clear_schedule!
-    Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
+    reset_resque_scheduler
   end
 
   it 'enqueue constantizes' do
@@ -449,6 +441,7 @@ describe 'Resque::Scheduler' do
 
   describe 'printing schedule' do
     before do
+      reset_resque_scheduler
       Resque::Scheduler.expects(:log!).at_least_once
     end
 

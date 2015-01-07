@@ -3,11 +3,10 @@ require_relative 'test_helper'
 
 describe 'Resque::Scheduler' do
   before do
+    reset_resque_scheduler
+
     ENV['VERBOSE'] = nil
     nullify_logger
-    Resque::Scheduler.dynamic = false
-    Resque.redis.flushall
-    Resque::Scheduler.clear_schedule!
   end
 
   after { restore_devnull_logfile }
@@ -33,7 +32,10 @@ describe 'Resque::Scheduler' do
       ENV['RAILS_ENV'] = nil
     end
 
-    before { wipe }
+    before do
+      reset_resque_scheduler
+      wipe
+    end
     after { wipe }
 
     it 'uses the value if set' do
@@ -53,7 +55,10 @@ describe 'Resque::Scheduler' do
   end
 
   describe 'logger default settings' do
-    before { nullify_logger }
+    before do
+      reset_resque_scheduler
+      nullify_logger
+    end
     after { restore_devnull_logfile }
 
     it 'uses STDOUT' do
@@ -73,7 +78,10 @@ describe 'Resque::Scheduler' do
   end
 
   describe 'logger custom settings' do
-    before { nullify_logger }
+    before do
+      reset_resque_scheduler
+      nullify_logger
+    end
     after { restore_devnull_logfile }
 
     it 'uses logfile' do
@@ -98,6 +106,7 @@ describe 'Resque::Scheduler' do
 
   describe 'logger with json formatter' do
     before do
+      reset_resque_scheduler
       nullify_logger
       Resque::Scheduler.logformat = 'json'
       $stdout = StringIO.new
@@ -115,6 +124,7 @@ describe 'Resque::Scheduler' do
 
   describe 'logger with text formatter' do
     before do
+      reset_resque_scheduler
       nullify_logger
       Resque::Scheduler.logformat = 'text'
       $stdout = StringIO.new

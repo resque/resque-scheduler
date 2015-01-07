@@ -20,8 +20,6 @@ $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
 require 'resque/scheduler/server'
 
-at_exit { exit MiniTest.run(ARGV) || 0 }
-
 unless defined?(Rails)
   module Rails
     class << self
@@ -105,6 +103,34 @@ end
 def restore_devnull_logfile
   nullify_logger
   ENV['LOGFILE'] = '/dev/null'
+end
+
+# Tests need to avoid leaking configuration into the environment so that they
+# do not cause failures due to ordering. This function should be run after every
+# test.
+def reset_resque_scheduler
+
+  # Scheduler test
+  Resque::Scheduler.configure do |c|
+    c.dynamic = false
+    c.quiet = true
+    c.env = nil
+    c.app_name = nil
+    c.poll_sleep_amount = nil
+  end
+  Resque.redis.flushall
+  Resque::Scheduler.clear_schedule!
+  Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
+
+  # When run with --seed  3432, the bottom test fails without the next line:
+  # Minitest::Assertion: [SystemExit] exception expected, not
+  # Class : <ArgumentError>
+  # Message : <"\"0\" is not in range 1..31">
+  # No problem when run in isolation
+  Resque.schedule = {} # Schedule leaks out from other tests without this.
+
+  Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
+
 end
 
 restore_devnull_logfile
