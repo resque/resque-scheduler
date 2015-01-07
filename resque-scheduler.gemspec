@@ -33,6 +33,10 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'yard'
+  spec.add_development_dependency 'rails', '~> 4.2.0'
+  spec.add_development_dependency 'resque-web'
+  spec.add_development_dependency 'sqlite3'
+
 
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.

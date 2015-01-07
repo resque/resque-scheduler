@@ -418,25 +418,33 @@ describe 'Resque::Scheduler' do
   end
 
   it 'procline contains app_name when present' do
-    Resque::Scheduler.app_name = 'foo'
-    assert Resque::Scheduler.send(:build_procline, 'bar') =~ /\[foo\]:/
+    Rails.stub(:env, nil) do
+      Resque::Scheduler.app_name = 'foo'
+      assert Resque::Scheduler.send(:build_procline, 'bar') =~ /\[foo\]:/
+    end
   end
 
   it 'procline omits app_name when absent' do
-    Resque::Scheduler.app_name = nil
-    assert Resque::Scheduler.send(:build_procline, 'bar') =~
-      /#{Resque::Scheduler.send(:internal_name)}: bar/
+    Rails.stub(:env, nil) do
+      Resque::Scheduler.app_name = nil
+      assert Resque::Scheduler.send(:build_procline, 'bar') =~
+        /#{Resque::Scheduler.send(:internal_name)}: bar/, "Got #{Resque::Scheduler.send(:build_procline, 'bar')}, instead of #{Resque::Scheduler.send(:internal_name)}: bar"
+    end
   end
 
   it 'procline contains env when present' do
-    Resque::Scheduler.env = 'xyz'
-    assert Resque::Scheduler.send(:build_procline, 'cage') =~ /\[xyz\]: cage/
+    Rails.stub(:env, nil) do
+      Resque::Scheduler.env = 'xyz'
+      assert Resque::Scheduler.send(:build_procline, 'cage') =~ /\[xyz\]: cage/
+    end
   end
 
   it 'procline omits env when absent' do
-    Resque::Scheduler.env = nil
-    assert Resque::Scheduler.send(:build_procline, 'cage') =~
-      /#{Resque::Scheduler.send(:internal_name)}: cage/
+    Rails.stub(:env, nil) do
+      Resque::Scheduler.env = nil
+      assert Resque::Scheduler.send(:build_procline, 'cage') =~
+        /#{Resque::Scheduler.send(:internal_name)}: cage/
+    end
   end
 
   describe 'printing schedule' do

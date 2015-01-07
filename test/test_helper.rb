@@ -1,10 +1,18 @@
 # vim:fileencoding=utf-8
 require 'simplecov'
 
-require 'resque'
-# This bit needs to be above the minitest require, because otherwise, the
+
+ENV["RAILS_ENV"] = "test"
+require File.expand_path("../../test/dummy/config/environment.rb", __FILE__)
+ActiveRecord::Migrator.migrations_paths = [File.expand_path("../../test/dummy/db/migrate", __FILE__)]
+ActiveRecord::Migrator.migrations_paths << File.expand_path('../../db/migrate', __FILE__)
+
+
+# This bit needs to be above the minitest require (in rails/test_help), but
+# after the Rails app is started. This is because otherwise, the
 # at_exit calls are in the wrong order and Redis shuts down before the tests
 # run.
+require 'resque'
 unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   # Start our own Redis when the tests start. RedisInstance will take care of
   # starting and stopping.
@@ -12,7 +20,10 @@ unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   RedisInstance.run!
 end
 
-require 'minitest/autorun'
+require "rails/test_help"
+
+require "minitest/spec"
+require "minitest/mock"
 require 'mocha/setup'
 require 'rack/test'
 

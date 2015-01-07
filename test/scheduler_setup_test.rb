@@ -28,7 +28,6 @@ describe 'Resque::Scheduler' do
   describe 'when getting the env' do
     def wipe
       Resque::Scheduler.env = nil
-      Rails.env = nil
       ENV['RAILS_ENV'] = nil
     end
 
@@ -39,18 +38,23 @@ describe 'Resque::Scheduler' do
     after { wipe }
 
     it 'uses the value if set' do
-      Resque::Scheduler.env = 'foo'
-      assert_equal('foo', Resque::Scheduler.env)
+      Rails.stub(:env, nil) do
+        Resque::Scheduler.env = 'foo'
+        assert_equal('foo', Resque::Scheduler.env)
+      end
     end
 
     it 'uses Rails.env if present' do
-      Rails.env = 'bar'
-      assert_equal('bar', Resque::Scheduler.env)
+      Rails.stub(:env, 'bar') do
+        assert_equal('bar', Resque::Scheduler.env)
+      end
     end
 
     it 'uses $RAILS_ENV if present' do
-      ENV['RAILS_ENV'] = 'baz'
-      assert_equal('baz', Resque::Scheduler.env)
+      Rails.stub(:env, nil) do
+        ENV['RAILS_ENV'] = 'baz'
+        assert_equal('baz', Resque::Scheduler.env)
+      end
     end
   end
 
