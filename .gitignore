@@ -16,4 +16,4 @@ nbproject
 .env
 .env.*
 
-/test/dummy/log
+/test/dummy/log/
