@@ -105,8 +105,8 @@ def restore_devnull_logfile
   ENV['LOGFILE'] = '/dev/null'
 end
 
-# Tests need to avoid leaking configuration into the environment so that they
-# do not cause failures due to ordering. This function should be run after every
+# Tests need to avoid leaking configuration into the environment, so that they
+# do not cause failures due to ordering. This function should be run before every
 # test.
 def reset_resque_scheduler
 
