@@ -18,7 +18,7 @@ module Resque
             signal_queue << sig
             # break sleep in the primary scheduler thread, alowing
             # the signal queue to get processed as soon as possible.
-            @th.wakeup if @th.alive?
+            @th.wakeup if @th && @th.alive?
           end
         end
       end
