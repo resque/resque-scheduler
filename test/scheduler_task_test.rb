@@ -10,6 +10,14 @@ describe 'Resque::Scheduler' do
     Resque.redis.flushall
     Resque::Scheduler.quiet = true
     Resque::Scheduler.clear_schedule!
+
+    # When run with --seed  3432, the bottom test fails without the next line:
+    # Minitest::Assertion: [SystemExit] exception expected, not
+    # Class : <ArgumentError>
+    # Message : <"\"0\" is not in range 1..31">
+    # No problem when run in isolation
+    Resque.schedule = {} # Schedule leaks out from other tests without this.
+
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
     Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
   end

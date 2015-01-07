@@ -18,11 +18,9 @@ require 'rack/test'
 
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
-# require 'resque/scheduler/server'
+require 'resque/scheduler/server'
 
-# minitest/autorun does this now.
-# at_exit { exit MiniTest::Unit.new.run(ARGV) || 0 }
-
+at_exit { exit MiniTest.run(ARGV) || 0 }
 
 unless defined?(Rails)
   module Rails
