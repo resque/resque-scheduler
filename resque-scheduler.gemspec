@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'json'
   spec.add_development_dependency 'kramdown'
   spec.add_development_dependency 'minitest', '~> 5.0'
+  spec.add_development_dependency 'minitest-rails'
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'rack-test'
@@ -35,6 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rails', '~> 4.2.0'
   spec.add_development_dependency 'resque-web'
   spec.add_development_dependency 'sqlite3'
+  spec.add_development_dependency 'capybara'
 
 
   # We pin rubocop because new cops have a tendency to result in false-y

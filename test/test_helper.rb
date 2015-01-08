@@ -27,6 +27,11 @@ require "minitest/mock"
 require 'mocha/setup'
 require 'rack/test'
 
+require 'capybara/rails'
+Capybara.default_driver = :rack_test
+Capybara.default_selector = :css
+require_relative 'support/integration_case'
+
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
 require 'resque/scheduler/server'
