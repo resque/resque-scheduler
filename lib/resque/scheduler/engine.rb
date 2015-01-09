@@ -19,6 +19,6 @@ module ResqueWeb::Plugins::ResqueScheduler
 
   def self.tabs
     [{'schedule' => Engine.app.url_helpers.schedules_path}]
-
   end
+
 end

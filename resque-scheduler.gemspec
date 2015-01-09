@@ -37,6 +37,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'resque-web'
   spec.add_development_dependency 'sqlite3'
   spec.add_development_dependency 'capybara'
+  spec.add_development_dependency 'launchy'
 
 
   # We pin rubocop because new cops have a tendency to result in false-y

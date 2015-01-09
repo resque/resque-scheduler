@@ -32,6 +32,10 @@ Capybara.default_driver = :rack_test
 Capybara.default_selector = :css
 require_relative 'support/integration_case'
 
+# Filter out Minitest backtrace while allowing backtrace from other libraries
+# to be shown.
+Minitest.backtrace_filter = Minitest::BacktraceFilter.new
+
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
 require 'resque/scheduler/server'
