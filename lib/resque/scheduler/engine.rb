@@ -11,6 +11,20 @@ module ResqueWeb::Plugins::ResqueScheduler
 
   Engine.routes do
     resources :schedules, only: [:index, :destroy]
+
+    get 'schedule', to: 'schedules#index'
+    post 'schedule/requeue', to: 'schedules#requeue'
+    post 'schedule/requeue_with_params', to: 'schedule#requeue_with_params'
+    delete 'schedule', to: 'schedules#destroy'
+
+    get 'delayed', to: 'delayed#index', as: 'delayed'
+    get 'delayed/jobs/:klass', to: 'delayed#jobs_klass', as: 'delayed_job_class'
+    post 'delayed/search', to: 'delayed#search'
+    get 'delayed/:timestamp', to: 'delayed#timestamp'
+    post 'delayed/queue_now', to: 'delayed#queue_now'
+    post 'delayed/cancel_now', to: 'delayed#cancel_now'
+    post '/delayed/clear', to: 'delayed#clear'
+
   end
 
   def self.engine_path
@@ -18,7 +32,8 @@ module ResqueWeb::Plugins::ResqueScheduler
   end
 
   def self.tabs
-    [{'schedule' => Engine.app.url_helpers.schedules_path}]
+    [{'schedule' => Engine.app.url_helpers.schedules_path,
+      'delayed' => Engine.app.url_helpers.delayed_path}]
   end
 
 end
