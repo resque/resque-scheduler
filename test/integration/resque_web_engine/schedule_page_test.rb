@@ -1,6 +1,6 @@
-require_relative '../test_helper'
+require_relative '../../test_helper'
 
-class ResqueWebEngineTest < ActionDispatch::IntegrationTest
+class ScheduleTest < ActionDispatch::IntegrationTest
   fixtures :all
 
   def visit_scheduler_page
@@ -40,6 +40,13 @@ class ResqueWebEngineTest < ActionDispatch::IntegrationTest
     }
     Resque::Scheduler.load_schedule!
     visit_scheduler_page
+  end
+
+
+  test 'Link to Schedule page in navigation works' do
+    visit '/resque_web'
+    click_link 'Schedule'
+    assert page.has_css? 'h1', 'Schedule'
   end
 
   test '200' do

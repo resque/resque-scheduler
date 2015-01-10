@@ -94,6 +94,14 @@ class JobWithParams
   end
 end
 
+module Foo
+  class Bar
+    def self.queue
+      'bar'
+    end
+  end
+end
+
 JobWithoutParams = Class.new(JobWithParams)
 
 %w(
