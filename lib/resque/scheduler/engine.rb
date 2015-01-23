@@ -21,7 +21,7 @@ module ResqueWeb::Plugins::ResqueScheduler
     get 'delayed/jobs/:klass', to: 'delayed#jobs_klass', as: 'delayed_job_class'
     post 'delayed/search', to: 'delayed#search', as: 'delayed_search'
     get 'delayed/:timestamp', to: 'delayed#timestamp'
-    post 'delayed/queue_now', to: 'delayed#queue_now'
+    post 'delayed/queue_now', to: 'delayed#queue_now', as: 'queue_now'
     post 'delayed/cancel_now', to: 'delayed#cancel_now', as: 'cancel_now'
     post '/delayed/clear', to: 'delayed#clear', as: 'clear'
 

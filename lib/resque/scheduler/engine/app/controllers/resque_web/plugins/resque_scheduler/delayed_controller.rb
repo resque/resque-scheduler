@@ -32,6 +32,15 @@ module ResqueWeb::Plugins::ResqueScheduler
       redirect_to Engine.app.url_helpers.delayed_path
     end
 
+    def queue_now
+      timestamp = params['timestamp'].to_i
+      if timestamp > 0
+        Resque::Scheduler.enqueue_delayed_items_for_timestamp(timestamp)
+      end
+      redirect_to ResqueWeb::Engine.app.url_helpers.overview_path
+    end
+
+
     protected
 
     def find_job(worker)
