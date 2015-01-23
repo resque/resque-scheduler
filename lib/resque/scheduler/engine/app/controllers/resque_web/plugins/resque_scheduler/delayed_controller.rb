@@ -27,6 +27,11 @@ module ResqueWeb::Plugins::ResqueScheduler
       redirect_to Engine.app.url_helpers.delayed_path
     end
 
+    def clear
+      Resque.reset_delayed_queue
+      redirect_to Engine.app.url_helpers.delayed_path
+    end
+
     protected
 
     def find_job(worker)

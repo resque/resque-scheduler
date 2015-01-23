@@ -23,7 +23,7 @@ module ResqueWeb::Plugins::ResqueScheduler
     get 'delayed/:timestamp', to: 'delayed#timestamp'
     post 'delayed/queue_now', to: 'delayed#queue_now'
     post 'delayed/cancel_now', to: 'delayed#cancel_now', as: 'cancel_now'
-    post '/delayed/clear', to: 'delayed#clear'
+    post '/delayed/clear', to: 'delayed#clear', as: 'clear'
 
   end
 
