@@ -40,6 +40,9 @@ module ResqueWeb::Plugins::ResqueScheduler
       redirect_to ResqueWeb::Engine.app.url_helpers.overview_path
     end
 
+    def timestamp
+      @timestamp = params[:timestamp].to_i
+    end
 
     protected
 
