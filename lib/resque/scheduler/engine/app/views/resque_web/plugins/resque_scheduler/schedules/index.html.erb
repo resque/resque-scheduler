@@ -27,7 +27,7 @@
       <tr>
         <% if Resque::Scheduler.dynamic %>
           <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
-            <form action="<%= u "/schedule" %>" method="post" style="margin-left: 0">
+            <form action="<%= schedule_path %>" method="post" style="margin-left: 0">
               <input type="hidden" name="job_name" value="<%= h name %>">
               <input type="hidden" name="_method" value="delete">
               <input type="submit" value="Delete">
@@ -35,7 +35,7 @@
           </td>
         <% end %>
         <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
-          <form action="<%= u "/schedule/requeue" %>" method="post" style="margin-left: 0">
+          <form action="<%= requeue_path %>" method="post" style="margin-left: 0">
             <input type="hidden" name="job_name" value="<%= h name %>">
             <input type="submit" value="Queue now">
           </form>

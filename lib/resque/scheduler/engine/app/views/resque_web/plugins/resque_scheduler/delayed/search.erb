@@ -14,7 +14,7 @@
   <% delayed.each do |job| %>
       <tr>
         <td>
-          <form action="<%= u "/delayed/queue_now" %>" method="post">
+          <form action="<%= queue_now_path %>" method="post">
             <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
             <input type="submit" value="Queue now">
           </form>

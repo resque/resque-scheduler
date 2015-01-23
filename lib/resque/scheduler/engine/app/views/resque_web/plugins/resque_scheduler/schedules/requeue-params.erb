@@ -4,7 +4,7 @@
    This job requires parameters:
 </p>
 
-<form style="float:left" action="<%= u "/schedule/requeue_with_params" %>" method="post">
+<form style="float:left" action="<%= requeue_with_params_path %>" method="post">
   <table>
   <% @parameters.each do |key, value| %>
   <% value ||= {} %>
