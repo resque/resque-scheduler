@@ -5,7 +5,7 @@ module ResqueWeb::Plugins::ResqueScheduler
     fixtures :all
 
     def visit_scheduler_page
-      visit '/resque_web/scheduler/schedules'
+      visit Engine.app.url_helpers.schedules_path
     end
 
     setup do
