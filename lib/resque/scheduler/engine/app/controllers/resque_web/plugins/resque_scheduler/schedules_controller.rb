@@ -11,7 +11,7 @@ module ResqueWeb::Plugins::ResqueScheduler
         job_name = params['job_name'] || params[:job_name]
         Resque.remove_schedule(job_name)
       end
-      redirect schedules_path
+      redirect_to ResqueWeb::Engine.app.url_helpers.overview_path
     end
 
     def requeue
@@ -19,12 +19,30 @@ module ResqueWeb::Plugins::ResqueScheduler
       config = Resque.schedule[@job_name]
       @parameters = config['parameters'] || config[:parameters]
       if @parameters
-        render_template 'requeue-params'
+        render 'requeue-params'
       else
         Resque::Scheduler.enqueue_from_config(config)
-        redirect overview_path
+        redirect_to ResqueWeb::Engine.app.url_helpers.overview_path
       end
     end
 
+    def requeue_with_params
+      job_name = params['job_name'] || params[:job_name]
+      config = Resque.schedule[job_name]
+      # Build args hash from post data (removing the job name)
+      submitted_args = params.reject do |key, _value|
+        %w[job_name action controller].include?(key)
+      end
+
+      # Merge constructed args hash with existing args hash for
+      # the job, if it exists
+      config_args = config['args'] || config[:args] || {}
+      config_args = config_args.merge(submitted_args)
+
+      # Insert the args hash into config and queue the resque job
+      config = config.merge('args' => config_args)
+      Resque::Scheduler.enqueue_from_config(config)
+      redirect_to ResqueWeb::Engine.app.url_helpers.overview_path
+    end
   end
 end

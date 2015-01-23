@@ -117,6 +117,32 @@ JobWithoutParams = Class.new(JobWithParams)
   ENV[envvar] = nil
 end
 
+module Test
+  RESQUE_SCHEDULE = {
+      'job_without_params' => {
+          'cron' => '* * * * *',
+          'class' => 'JobWithoutParams',
+          'args' => {
+              'host' => 'localhost'
+          },
+          'rails_env' => 'production'
+      },
+      'job_with_params' => {
+          'every' => '1m',
+          'class' => 'JobWithParams',
+          'args' => {
+              'host' => 'localhost'
+          },
+          'parameters' => {
+              'log_level' => {
+                  'description' => 'The level of logging',
+                  'default' => 'warn'
+              }
+          }
+      }
+  }
+end
+
 def nullify_logger
   Resque::Scheduler.configure do |c|
     c.quiet = nil

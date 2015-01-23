@@ -13,8 +13,8 @@ module ResqueWeb::Plugins::ResqueScheduler
     resources :schedules, only: [:index, :destroy]
 
     get 'schedule', to: 'schedules#index'
-    post 'schedule/requeue', to: 'schedules#requeue'
-    post 'schedule/requeue_with_params', to: 'schedule#requeue_with_params'
+    post 'schedule/requeue', to: 'schedules#requeue', as: 'requeue'
+    post 'schedule/requeue_with_params', to: 'schedules#requeue_with_params', as: 'requeue_with_params'
     delete 'schedule', to: 'schedules#destroy'
 
     get 'delayed', to: 'delayed#index', as: 'delayed'
