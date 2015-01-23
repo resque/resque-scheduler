@@ -10,12 +10,11 @@ module ResqueWeb::Plugins::ResqueScheduler
   end
 
   Engine.routes do
-    resources :schedules, only: [:index, :destroy]
 
-    get 'schedule', to: 'schedules#index'
+    get 'schedule', to: 'schedules#index', as: 'schedules'
     post 'schedule/requeue', to: 'schedules#requeue', as: 'requeue'
     post 'schedule/requeue_with_params', to: 'schedules#requeue_with_params', as: 'requeue_with_params'
-    delete 'schedule', to: 'schedules#destroy'
+    delete 'schedule', to: 'schedules#destroy', as: 'schedule'
 
     get 'delayed', to: 'delayed#index', as: 'delayed'
     get 'delayed/jobs/:klass', to: 'delayed#jobs_klass', as: 'delayed_job_class'

@@ -11,7 +11,7 @@ module ResqueWeb::Plugins::ResqueScheduler
         job_name = params['job_name'] || params[:job_name]
         Resque.remove_schedule(job_name)
       end
-      redirect_to ResqueWeb::Engine.app.url_helpers.overview_path
+      redirect_to Engine.app.url_helpers.schedules_path
     end
 
     def requeue
