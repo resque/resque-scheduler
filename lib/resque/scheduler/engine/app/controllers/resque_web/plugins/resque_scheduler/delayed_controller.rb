@@ -19,6 +19,14 @@ module ResqueWeb::Plugins::ResqueScheduler
       @jobs = find_job(params[:search])
     end
 
+    def cancel_now
+      klass = Resque::Scheduler::Util.constantize(params['klass'])
+      timestamp = params['timestamp']
+      args = Resque.decode params['args']
+      Resque.remove_delayed_job_from_timestamp(timestamp, klass, *args)
+      redirect_to Engine.app.url_helpers.delayed_path
+    end
+
     protected
 
     def find_job(worker)

@@ -1,4 +1,4 @@
-<form method="POST" action="<%= u 'delayed/search' %>">
+<form method="POST" action="<%= Engine.app.url_helpers.delayed_search_path %>">
   <input type='input' name='search' value="<%= params[:search] %>"/>
   <input type='submit' value='Search'/>
 </form>
