@@ -38,7 +38,6 @@ Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
-require 'resque/scheduler/server'
 
 unless defined?(Rails)
   module Rails

@@ -30,8 +30,8 @@
         </form>
       </td>
       <td><a href="<%= delayed_path timestamp: timestamp %>"><%= format_time(Time.at(timestamp)) %></a></td>
-      <td><%= delayed_timestamp_size = resque.delayed_timestamp_size(timestamp) %></td>
-      <% job = resque.delayed_timestamp_peek(timestamp, 0, 1).first %>
+      <td><%= delayed_timestamp_size = Resque.delayed_timestamp_size(timestamp) %></td>
+      <% job = Resque.delayed_timestamp_peek(timestamp, 0, 1).first %>
       <td>
         <% if job && delayed_timestamp_size == 1 %>
           <%= h(job['class']) %>
