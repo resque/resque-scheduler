@@ -8,7 +8,7 @@
   Current master: <%= Resque.redis.get(Resque::Scheduler.master_lock.key) %>
 </p>
 <div style="overflow-y: auto; width:100%; padding: 0px 5px;">
-  <table>
+  <table class="table table-bordered">
     <tr>
       <% if Resque::Scheduler.dynamic %>
         <th></th>
