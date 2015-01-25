@@ -427,8 +427,10 @@ describe 'Resque::Scheduler' do
   it 'procline omits app_name when absent' do
     Rails.stub(:env, nil) do
       Resque::Scheduler.app_name = nil
-      assert Resque::Scheduler.send(:build_procline, 'bar') =~
-        /#{Resque::Scheduler.send(:internal_name)}: bar/, "Got #{Resque::Scheduler.send(:build_procline, 'bar')}, instead of #{Resque::Scheduler.send(:internal_name)}: bar"
+      regexp = /#{Resque::Scheduler.send(:internal_name)}: bar/
+      message = "Got #{Resque::Scheduler.send(:build_procline, 'bar')}, "\
+        "instead of #{Resque::Scheduler.send(:internal_name)}: bar"
+      assert Resque::Scheduler.send(:build_procline, 'bar') =~ regexp, message
     end
   end
 

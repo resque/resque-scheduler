@@ -39,7 +39,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'capybara'
   spec.add_development_dependency 'launchy'
 
-
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.
   spec.add_development_dependency 'rubocop', '~> 0.28.0'

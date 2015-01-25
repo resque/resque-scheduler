@@ -2,7 +2,6 @@
 require_relative 'test_helper'
 
 describe 'Multi Process' do
-
   before { reset_resque_scheduler }
 
   it 'setting schedule= from many process does not corrupt the schedules' do

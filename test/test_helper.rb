@@ -1,12 +1,16 @@
 # vim:fileencoding=utf-8
 require 'simplecov'
 
-
-ENV["RAILS_ENV"] = "test"
-require File.expand_path("../../test/dummy/config/environment.rb", __FILE__)
-ActiveRecord::Migrator.migrations_paths = [File.expand_path("../../test/dummy/db/migrate", __FILE__)]
-ActiveRecord::Migrator.migrations_paths << File.expand_path('../../db/migrate', __FILE__)
-
+ENV['RAILS_ENV'] = 'test'
+require File.expand_path('../../test/dummy/config/environment.rb', __FILE__)
+ActiveRecord::Migrator.migrations_paths = [File.expand_path(
+                                              '../../test/dummy/db/migrate',
+                                              __FILE__
+                                            )]
+ActiveRecord::Migrator.migrations_paths << File.expand_path(
+                                             '../../db/migrate',
+                                             __FILE__
+                                            )
 
 # This bit needs to be above the minitest require (in rails/test_help), but
 # after the Rails app is started. This is because otherwise, the
@@ -20,10 +24,10 @@ unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   RedisInstance.run!
 end
 
-require "rails/test_help"
+require 'rails/test_help'
 
-require "minitest/spec"
-require "minitest/mock"
+require 'minitest/spec'
+require 'minitest/mock'
 require 'mocha/setup'
 require 'rack/test'
 
@@ -118,27 +122,27 @@ end
 
 module Test
   RESQUE_SCHEDULE = {
-      'job_without_params' => {
-          'cron' => '* * * * *',
-          'class' => 'JobWithoutParams',
-          'args' => {
-              'host' => 'localhost'
-          },
-          'rails_env' => 'production'
+    'job_without_params' => {
+      'cron' => '* * * * *',
+      'class' => 'JobWithoutParams',
+      'args' => {
+        'host' => 'localhost'
       },
-      'job_with_params' => {
-          'every' => '1m',
-          'class' => 'JobWithParams',
-          'args' => {
-              'host' => 'localhost'
-          },
-          'parameters' => {
-              'log_level' => {
-                  'description' => 'The level of logging',
-                  'default' => 'warn'
-              }
-          }
+      'rails_env' => 'production'
+    },
+    'job_with_params' => {
+      'every' => '1m',
+      'class' => 'JobWithParams',
+      'args' => {
+        'host' => 'localhost'
+      },
+      'parameters' => {
+        'log_level' => {
+          'description' => 'The level of logging',
+          'default' => 'warn'
+        }
       }
+    }
   }
 end
 
@@ -159,10 +163,9 @@ def restore_devnull_logfile
 end
 
 # Tests need to avoid leaking configuration into the environment, so that they
-# do not cause failures due to ordering. This function should be run before every
-# test.
+# do not cause failures due to ordering. This function should be run before
+# every test.
 def reset_resque_scheduler
-
   # Scheduler test
   Resque::Scheduler.configure do |c|
     c.dynamic = false
@@ -183,7 +186,6 @@ def reset_resque_scheduler
   Resque.schedule = {} # Schedule leaks out from other tests without this.
 
   Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
-
 end
 
 restore_devnull_logfile
