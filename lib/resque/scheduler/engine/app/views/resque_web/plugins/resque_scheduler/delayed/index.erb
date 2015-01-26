@@ -26,7 +26,7 @@
       <td>
         <form action="<%= queue_now_path %>" method="post">
           <input type="hidden" name="timestamp" value="<%= timestamp.to_i %>">
-          <input type="submit" value="Queue now">
+          <input type="submit" value="Queue now" class="btn btn-default">
         </form>
       </td>
       <td><a href="<%= delayed_path timestamp: timestamp %>"><%= format_time(Time.at(timestamp)) %></a></td>
