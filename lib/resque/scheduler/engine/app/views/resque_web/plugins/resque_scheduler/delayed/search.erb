@@ -3,7 +3,7 @@
 <hr>
 <% delayed = @jobs.select { |j| j['where_at'] == 'delayed' } %>
 <h1>Delayed jobs</h1>
-<table class='jobs'>
+<table class="jobs table table-bordered">
   <tr>
     <th></th>
     <th></th>
@@ -16,7 +16,7 @@
         <td>
           <form action="<%= queue_now_path %>" method="post">
             <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
-            <input type="submit" value="Queue now">
+            <input type="submit" value="Queue now" class="btn btn-default">
           </form>
         </td>
         <td>
@@ -37,7 +37,7 @@
 
 <% queued = @jobs.select { |j| j['where_at'] == 'queued' } %>
 <h1>Queued jobs</h1>
-<table class='jobs'>
+<table class='jobs table table-bordered'>
   <tr>
     <th>Queue</th>
     <th>Class</th>
@@ -54,7 +54,7 @@
 
 <% working = @jobs.select { |j| j['where_at'] == 'working' } %>
 <h1>Working jobs</h1>
-<table class='jobs'>
+<table class='jobs table table-bordered'>
   <tr>
     <th>Queue</th>
     <th>Class</th>
