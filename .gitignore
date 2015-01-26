@@ -15,3 +15,5 @@ nbproject
 
 .env
 .env.*
+
+/test/dummy/log/

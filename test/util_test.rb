@@ -1,11 +1,14 @@
 # vim:fileencoding=utf-8
+require_relative 'test_helper'
 
-context 'Util' do
+describe 'Util' do
   def util
     Resque::Scheduler::Util
   end
 
-  test 'constantizing' do
+  before { reset_resque_scheduler }
+
+  it 'constantizing' do
     assert util.constantize('Resque::Scheduler') == Resque::Scheduler
   end
 end

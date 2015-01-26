@@ -1,8 +1,10 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
 
-context 'Multi Process' do
-  test 'setting schedule= from many process does not corrupt the schedules' do
+describe 'Multi Process' do
+  before { reset_resque_scheduler }
+
+  it 'setting schedule= from many process does not corrupt the schedules' do
     schedules = {}
     counts  = []
     threads = []
