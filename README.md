@@ -439,7 +439,7 @@ end
 *>= 2.0.1 only.  Prior to 2.0.1, it is not recommended to run multiple resque-scheduler processes and will result in duplicate jobs.*
 
 You may want to have resque-scheduler running on multiple machines for
-redudancy.  Electing a master and failover is built in and default.  Simply
+redundancy.  Electing a master and failover is built in and default.  Simply
 run resque-scheduler on as many machine as you want pointing to the same
 redis instance and schedule.  The scheduler processes will use redis to
 elect a master process and detect failover when the master dies.  Precautions are
