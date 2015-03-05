@@ -147,6 +147,17 @@ default `'text'`)
 * `VERBOSE` - Maximize log verbosity if non-empty (equivalent to a level
 of `MonoLogger::DEBUG`, default `false`)
 
+*Warning: If you use a different redis database, other than the default database (0), to store your redis jobs, you will have store the Resque.redis into the initializer file*
+
+```
+resque-scheduler [other options] --initializer-path script/resque-scheduler.init.rb
+```
+
+```ruby
+# script/resque-scheduler.init.rb
+require 'resque'
+Resque.redis = Redis.connect url: 'redis://localhost:6379/X'.freeze  # Where X is the selected redis database number
+```
 
 ### Resque Pool integration
 
