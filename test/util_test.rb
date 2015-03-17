@@ -8,4 +8,10 @@ context 'Util' do
   test 'constantizing' do
     assert util.constantize('Resque::Scheduler') == Resque::Scheduler
   end
+
+  module ReSchedulIzer; end
+
+  test 'constantizing with a dash' do
+    assert util.constantize('re-schedul-izer') == ReSchedulIzer
+  end
 end

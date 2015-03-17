@@ -32,9 +32,7 @@ module Resque
       end
 
       def self.classify(dashed_word)
-        dashed_word.split('-').each do|part|
-          part[0] = part[0].chr.upcase
-        end.join
+        dashed_word.split('-').map(&:capitalize).join
       end
     end
   end
