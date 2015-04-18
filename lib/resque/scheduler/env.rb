@@ -56,24 +56,14 @@ module Resque
 
       def setup_scheduler_configuration
         Resque::Scheduler.configure do |c|
-          if (app_name = options[:app_name]) && !app_name.nil?
-            c.app_name = app_name
+          [:app_name, :env, :logfile, :logformat].each do |sym|
+            if (v = options[sym]) && !v.nil?
+              c.public_send "#{sym}=", v
+            end
           end
 
           if (dynamic = options[:dynamic]) && !dynamic.nil?
             c.dynamic = !!dynamic
-          end
-
-          if (env = options[:env]) && !env.nil?
-            c.env = env
-          end
-
-          if (logfile = options[:logfile]) && !logfile.nil?
-            c.logfile = logfile
-          end
-
-          if (logformat = options[:logformat]) && !logformat.nil?
-            c.logformat = logformat
           end
 
           if (psleep = options[:poll_sleep_amount]) && !psleep.nil?
