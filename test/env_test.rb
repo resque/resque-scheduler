@@ -44,4 +44,11 @@ context 'Env' do
     env.setup
     assert_equal(false, Resque::Scheduler.dynamic)
   end
+
+  test 'does not override config if it is nil' do
+    Resque::Scheduler.configure { |c| c.dynamic = true }
+    env = new_env(dynamic: nil)
+    env.setup
+    assert_equal(true, Resque::Scheduler.dynamic)
+  end
 end
