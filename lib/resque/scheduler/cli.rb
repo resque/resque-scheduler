@@ -136,7 +136,9 @@ module Resque
 
       def options
         @options ||= {}.tap do |o|
-          CLI_OPTIONS_ENV_MAPPING.map { |key, envvar| o[key] = env[envvar] }
+          CLI_OPTIONS_ENV_MAPPING.each do |key, envvar|
+            o[key] = env[envvar] if env.include?(envvar)
+          end
         end
       end
     end
