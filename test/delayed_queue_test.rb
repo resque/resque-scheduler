@@ -516,6 +516,286 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
+  test 'enqueue_delayed_selection enqueues multiple items matching ' \
+       'arguments at same timestamp' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'monkey')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'platypus')
+    Resque.enqueue_at(t, SomeIvarJob, 'baz')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
+
+    assert_equal(5, Resque.enqueue_delayed_selection { |a| a.first == 'bar' })
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection enqueues single item matching arguments' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
+
+    assert_equal(1, Resque.enqueue_delayed_selection { |a| a.first == 'foo' })
+    assert_equal(3, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection enqueues multiple items matching arguments' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
+
+    assert_equal(2, Resque.enqueue_delayed_selection { |a| a.first == 'bar' })
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection enqueues multiple items matching ' \
+       'arguments as hash' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, foo: 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, foo: 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, foo: 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, foo: 'baz')
+
+    assert_equal(
+        2, Resque.enqueue_delayed_selection { |a| a.first['foo'] == 'bar' }
+    )
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection ignores jobs with no arguments' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t + 1, SomeIvarJob)
+    Resque.enqueue_at(t + 2, SomeIvarJob)
+    Resque.enqueue_at(t + 3, SomeIvarJob)
+
+    assert_equal(0, Resque.enqueue_delayed_selection { |a| a.first == 'bar' })
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+  end
+
+  test "enqueue_delayed_selection doesn't enqueue items it shouldn't" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
+
+    assert_equal(0, Resque.enqueue_delayed_selection { |a| a.first == 'qux' })
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection ignores last_enqueued_at redis key' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.last_enqueued_at(SomeIvarJob, t)
+
+    assert_equal(0, Resque.enqueue_delayed_selection { |a| a.first == 'bar' })
+    assert_equal(t.to_s, Resque.get_last_enqueued_at(SomeIvarJob))
+  end
+
+  test 'enqueue_delayed_selection enqueues item by class' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, Resque.enqueue_delayed_selection(SomeIvarJob) do |a|
+      a.first == 'foo'
+    end)
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection enqueues item by class name as a string' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, Resque.enqueue_delayed_selection('SomeIvarJob') do |a|
+      a.first == 'foo'
+    end)
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection enqueues item by class name as a symbol' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, Resque.enqueue_delayed_selection(:SomeIvarJob) do |a|
+      a.first == 'foo'
+    end)
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection enqueues items only from' \
+       'matching job class' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 1, SomeQuickJob, 'bar')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 2, SomeQuickJob, 'foo')
+
+    assert_equal(2, Resque.enqueue_delayed_selection(SomeIvarJob) do |a|
+      a.first == 'foo'
+    end)
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'enqueue_delayed_selection enqueues items from matching job class ' \
+       'without params' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t + 1, SomeQuickJob)
+    Resque.enqueue_at(t + 2, SomeIvarJob)
+    Resque.enqueue_at(t + 3, SomeQuickJob)
+
+    assert_equal(2, Resque.enqueue_delayed_selection(SomeQuickJob) { true })
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+  end
+
+  test 'find_delayed_selection finds multiple items matching ' \
+       'arguments at same timestamp' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'monkey')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'platypus')
+    Resque.enqueue_at(t, SomeIvarJob, 'baz')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
+    Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
+
+    assert_equal(5, (Resque.find_delayed_selection do |a|
+      a.first == 'bar'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds single item matching arguments' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
+
+    assert_equal(1, (Resque.find_delayed_selection do |a|
+      a.first == 'foo'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds multiple items matching arguments' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
+
+    assert_equal(2, (Resque.find_delayed_selection do |a|
+      a.first == 'bar'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds multiple items matching ' \
+       'arguments as hash' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, foo: 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, foo: 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, foo: 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, foo: 'baz')
+
+    assert_equal(
+        2, (Resque.find_delayed_selection do |a|
+          a.first['foo'] == 'bar'
+        end).length
+    )
+  end
+
+  test 'find_delayed_selection ignores jobs with no arguments' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t + 1, SomeIvarJob)
+    Resque.enqueue_at(t + 2, SomeIvarJob)
+    Resque.enqueue_at(t + 3, SomeIvarJob)
+
+    assert_equal(0, (Resque.find_delayed_selection do |a|
+      a.first == 'bar'
+    end).length)
+  end
+
+  test "find_delayed_selection doesn't find items it shouldn't" do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
+
+    assert_equal(0, (Resque.find_delayed_selection do |a|
+      a.first == 'qux'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds item by class' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, (Resque.find_delayed_selection(SomeIvarJob) do |a|
+      a.first == 'foo'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds item by class name as a string' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, (Resque.find_delayed_selection('SomeIvarJob') do |a|
+      a.first == 'foo'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds item by class name as a symbol' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+
+    assert_equal(1, (Resque.find_delayed_selection(:SomeIvarJob) do |a|
+      a.first == 'foo'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds items only from' \
+       'matching job class' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t, SomeQuickJob, 'foo')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t + 1, SomeQuickJob, 'bar')
+    Resque.enqueue_at(t + 1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t + 2, SomeQuickJob, 'foo')
+
+    assert_equal(2, (Resque.find_delayed_selection(SomeIvarJob) do |a|
+      a.first == 'foo'
+    end).length)
+  end
+
+  test 'find_delayed_selection finds items from matching job class ' \
+       'without params' do
+    t = Time.now + 120
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t + 1, SomeQuickJob)
+    Resque.enqueue_at(t + 2, SomeIvarJob)
+    Resque.enqueue_at(t + 3, SomeQuickJob)
+
+    assert_equal(
+        2, (Resque.find_delayed_selection(SomeQuickJob) { true }).length
+    )
+  end
+
   test 'remove_delayed_job_from_timestamp removes instances of jobs ' \
        'at a given timestamp' do
     t = Time.now + 120

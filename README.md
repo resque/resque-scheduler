@@ -220,6 +220,17 @@ Resque.remove_delayed_selection { |args| args[0]['account_id'] == current_accoun
 Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
 ```
 
+If you need to enqueue immediately a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
+
+``` ruby
+# after you've enqueued a job like:
+Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
+# enqueue immediately jobs matching just the account:
+Resque.enqueue_delayed_selection { |args| args[0]['account_id'] == current_account.id }
+# or enqueue immediately jobs matching just the user:
+Resque.enqueue_delayed_selection { |args| args[0]['user_id'] == current_user.id }
+```
+
 ### Scheduled Jobs (Recurring Jobs)
 
 Scheduled (or recurring) jobs are logically no different than a standard cron

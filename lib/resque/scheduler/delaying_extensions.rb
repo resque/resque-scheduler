@@ -158,7 +158,35 @@ module Resque
       def remove_delayed_selection(klass = nil)
         fail ArgumentError, 'Please supply a block' unless block_given?
 
-        destroyed = 0
+        found_jobs = find_delayed_selection(klass) { |args| yield(args) }
+        found_jobs.reduce(0) do |sum, encoded_job|
+          sum + remove_delayed_job(encoded_job)
+        end
+      end
+
+      # Given a block, enqueue jobs now that return true from a block
+      #
+      # This allows for enqueuing of delayed jobs that have arguments matching
+      # certain criteria
+      def enqueue_delayed_selection(klass = nil)
+        fail ArgumentError, 'Please supply a block' unless block_given?
+
+        found_jobs = find_delayed_selection(klass) { |args| yield(args) }
+        found_jobs.reduce(0) do |sum, encoded_job|
+          decoded_job = decode(encoded_job)
+          klass = Util.constantize(decoded_job['class'])
+          sum + enqueue_delayed(klass, *decoded_job['args'])
+        end
+      end
+
+      # Given a block, find jobs that return true from a block
+      #
+      # This allows for finding of delayed jobs that have arguments matching
+      # certain criteria
+      def find_delayed_selection(klass = nil, &block)
+        fail ArgumentError, 'Please supply a block' unless block_given?
+
+        found_jobs = []
         start = nil
         while start = search_first_delayed_timestamp_in_range(start, nil)
           job = "delayed:#{start}"
@@ -167,19 +195,13 @@ module Resque
           while index >= 0
             payload = Resque.redis.lindex(job, index)
             decoded_payload = decode(payload)
-            job_class = decoded_payload['class']
-            relevant_class = (klass.nil? || klass.to_s == job_class)
-            if relevant_class && yield(decoded_payload['args'])
-              removed = remove_delayed_job(payload)
-              destroyed += removed
-              index -= removed
-            else
-              index -= 1
+            if payload_matches_selection?(decoded_payload, klass, &block)
+              found_jobs.push(payload)
             end
+            index -= 1
           end
         end
-
-        destroyed
+        found_jobs
       end
 
       # Given a timestamp and job (klass + args) it removes all instances and
@@ -281,6 +303,13 @@ module Resque
         )
         timestamp = items.nil? ? nil : Array(items).first
         timestamp.to_i unless timestamp.nil?
+      end
+
+      def payload_matches_selection?(decoded_payload, klass)
+        return false if decoded_payload.nil?
+        job_class = decoded_payload['class']
+        relevant_class = (klass.nil? || klass.to_s == job_class)
+        relevant_class && yield(decoded_payload['args'])
       end
 
       def plugin
