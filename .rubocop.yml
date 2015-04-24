@@ -14,3 +14,5 @@ Style/DoubleNegation:
   Enabled: false
 Metrics/PerceivedComplexity:
   Enabled: false
+Metrics/ClassLength:
+  Max: 110

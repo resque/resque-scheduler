@@ -223,4 +223,9 @@ context 'Cli' do
     Resque::Scheduler.expects(:run)
     Resque::Scheduler::Cli.run!([], {})
   end
+
+  test 'does not create keys for unspecified environment variables' do
+    cli = new_cli([], 'DYNAMIC_SCHEDULE' => 'true')
+    assert_equal({ dynamic: 'true' }, cli.send(:options))
+  end
 end
