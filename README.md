@@ -91,7 +91,7 @@ namespace :resque do
     require 'jobs'
   end
 
-  task :scheduler_setup => :setup_schedule
+  task :scheduler => :setup_schedule
 end
 ```
 
@@ -180,7 +180,7 @@ a worker is available (just like any other resque job).
 
 NOTE: The job does not fire **exactly** at the time supplied.  Rather, once that
 time is in the past, the job moves from the delayed queue to the actual resque
-work queue and will be completed as workers as free to process it.
+work queue and will be completed as workers are free to process it.
 
 Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
 job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a
