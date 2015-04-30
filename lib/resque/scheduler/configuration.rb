@@ -13,7 +13,7 @@ module Resque
 
       def env
         return @env if @env
-        @env ||= Rails.env if defined?(Rails)
+        @env ||= Rails.env if defined?(Rails) && Rails.respond_to?(:env)
         @env ||= ENV['RAILS_ENV']
         @env
       end
