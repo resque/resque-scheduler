@@ -1,6 +1,7 @@
 # vim:fileencoding=utf-8
 require 'simplecov'
-
+require 'minitest/autorun'
+require 'minitest/unit'
 require 'test/unit'
 require 'mocha/setup'
 require 'rack/test'
@@ -16,8 +17,6 @@ unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   require File.expand_path('../support/redis_instance', __FILE__)
   RedisInstance.run!
 end
-
-at_exit { exit MiniTest::Unit.new.run(ARGV) || 0 }
 
 ##
 # test/spec/mini 3
