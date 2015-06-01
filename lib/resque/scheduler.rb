@@ -231,7 +231,7 @@ module Resque
         params = args.is_a?(Hash) ? [args] : Array(args)
         queue = job_config['queue'] ||
                 job_config[:queue] ||
-                Resque.queue_from_class(klass)
+                klass.queue_name
         # Support custom job classes like those that inherit from
         # Resque::JobWithStatus (resque-status)
         job_klass = job_config['custom_job_class']

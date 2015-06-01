@@ -16,43 +16,51 @@ context 'Resque::Scheduler' do
 
   test 'enqueue constantizes' do
     Resque::Scheduler.env = 'production'
+
+    mock = Minitest::Mock.new().expect(:perform_later, true, ['/tmp'])
+    ActiveJob::ConfiguredJob.stubs(:new).with(SomeRealClass, queue: 'some_real_queue').returns(mock)
+
     config = {
       'cron' => '* * * * *',
       'class' => 'SomeRealClass',
       'args' => '/tmp'
     }
-    Resque::Job.expects(:create).with(
-      SomeRealClass.queue, SomeRealClass, '/tmp'
-    )
     Resque::Scheduler.enqueue_from_config(config)
+    mock.verify
   end
 
   test 'enqueue runs hooks' do
     Resque::Scheduler.env = 'production'
+    mock = Minitest::Mock.new()
+
+    mock.expect(:perform_later, true, ['/tmp'])
+    SomeRealClass.expects(:before_delayed_enqueue_example).with('/tmp')
+    SomeRealClass.expects(:before_enqueue_example).with('/tmp')
+    SomeRealClass.expects(:after_enqueue_example).with('/tmp')
+    ActiveJob::ConfiguredJob.stubs(:new).with(SomeRealClass, queue: 'some_real_queue').returns(mock)
+
+
     config = {
       'cron' => '* * * * *',
       'class' => 'SomeRealClass',
       'args' => '/tmp'
     }
 
-    Resque::Job.expects(:create).with(
-      SomeRealClass.queue, SomeRealClass, '/tmp'
-    )
-    SomeRealClass.expects(:before_delayed_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:before_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:after_enqueue_example).with('/tmp')
-
     Resque::Scheduler.enqueue_from_config(config)
+    mock.verify
   end
 
   test 'enqueue_from_config respects queue params' do
+    mock = Minitest::Mock.new().expect(:perform_later, true, [])
+    ActiveJob::ConfiguredJob.stubs(:new).with(DummyJob, queue: 'high').returns(mock)
+
     config = {
       'cron' => '* * * * *',
-      'class' => 'SomeIvarJob',
+      'class' => 'DummyJob',
       'queue' => 'high'
     }
-    Resque.expects(:enqueue_to).with('high', SomeIvarJob)
     Resque::Scheduler.enqueue_from_config(config)
+    mock.verify
   end
 
   test 'config makes it into the rufus_scheduler' do
