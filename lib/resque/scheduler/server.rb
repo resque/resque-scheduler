@@ -130,9 +130,7 @@ module Resque
         end
 
         def queue_from_class_name(class_name)
-          Resque.queue_from_class(
-            Resque::Scheduler::Util.constantize(class_name)
-          )
+          Resque::Scheduler::Util.constantize(class_name).queue_name
         end
 
         def find_job(worker)

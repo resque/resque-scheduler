@@ -110,9 +110,16 @@ class SomeQuickJob < SomeJob
   @queue = :quick
 end
 
-class SomeRealClass
-  def self.queue
-    :some_real_queue
+class SomeRealClass < ActiveJob::Base
+  queue_as :some_real_queue
+  def perform(argv)
+  end
+
+  def self.before_delayed_enqueue_example(*args)
+  end
+  def self.before_enqueue_example(*args)
+  end
+  def self.after_enqueue_example(*args)
   end
 end
 

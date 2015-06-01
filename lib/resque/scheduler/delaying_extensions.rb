@@ -11,9 +11,9 @@ module Resque
       # for queueing.  Until timestamp is in the past, the job will
       # sit in the schedule list.
       def enqueue_at(timestamp, klass, *args)
-        validate(klass)
+        validate(klass, klass.queue_name)
         enqueue_at_with_queue(
-          queue_from_class(klass), timestamp, klass, *args
+          klass.queue_name, timestamp, klass, *args
         )
       end
 
@@ -256,7 +256,7 @@ module Resque
       private
 
       def job_to_hash(klass, args)
-        { class: klass.to_s, args: args, queue: queue_from_class(klass) }
+        { class: klass.to_s, args: args, queue: klass.queue_name }
       end
 
       def job_to_hash_with_queue(queue, klass, args)

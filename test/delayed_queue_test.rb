@@ -12,7 +12,7 @@ context 'DelayedQueue' do
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
-      queue: Resque.queue_from_class(SomeIvarJob)
+      queue: SomeIvarJob.queue_name
     )
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i,
@@ -96,7 +96,7 @@ context 'DelayedQueue' do
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
-      queue: Resque.queue_from_class(SomeIvarJob)
+      queue: SomeIvarJob.queue_name
     )
 
     assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i,
@@ -136,7 +136,7 @@ context 'DelayedQueue' do
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
-      queue: Resque.queue_from_class(SomeIvarJob)
+      queue: SomeIvarJob.queue_name
     )
 
     Resque.enqueue_at(timestamp, SomeIvarJob, 'path')
@@ -327,7 +327,7 @@ context 'DelayedQueue' do
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: [],
-      queue: Resque.queue_from_class(SomeIvarJob)
+      queue: SomeIvarJob.queue_name
     )
     Resque.enqueue_at(t, SomeIvarJob)
 
