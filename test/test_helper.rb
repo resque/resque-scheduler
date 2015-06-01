@@ -53,7 +53,7 @@ unless defined?(Rails)
   end
 end
 
-class FakeCustomJobClass
+class FakeCustomJobClass  < ActiveJob::Base
   def self.scheduled(_queue, _klass, *_args); end
 end
 
@@ -62,13 +62,32 @@ class FakeCustomJobClassEnqueueAt
   def self.scheduled(_queue, _klass, *_args); end
 end
 
-class SomeJob
-  def self.perform(_repo_id, _path)
-  end
+class SomeJob < ActiveJob::Base
+  def perform(_repo_id, _path); end
+end
+
+class SomeJobArray < ActiveJob::Base
+  queue_as :ivar
+  def perform(arr); end
+end
+
+class SomeJobString < ActiveJob::Base
+  queue_as :ivar
+  def perform(str); end
+end
+
+class SomeJobHash < ActiveJob::Base
+  queue_as :ivar
+  def perform(hash); end
+end
+
+class SomeJobFixnum < ActiveJob::Base
+  queue_as :ivar
+  def perform(fixnum); end
 end
 
 class SomeIvarJob < SomeJob
-  @queue = :ivar
+  queue_as :ivar
 end
 
 class SomeFancyJob < SomeJob

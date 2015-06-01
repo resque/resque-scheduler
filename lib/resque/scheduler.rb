@@ -264,12 +264,12 @@ module Resque
             if klass.respond_to?(:scheduled)
               klass.scheduled(queue, klass_name, *params)
             else
-              Resque.enqueue_to(queue, klass, *params)
+              klass.set(queue: queue).perform_later(*params)
             end
           else
             # This will not run the before_hooks in rescue, but will at least
             # queue the job.
-            Resque::Job.create(queue, klass, *params)
+            raise Resque::NoClassError.new("#{klass} not found")
           end
         end
       end
