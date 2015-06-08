@@ -57,8 +57,8 @@ class FakeCustomJobClass  < ActiveJob::Base
   def self.scheduled(_queue, _klass, *_args); end
 end
 
-class FakeCustomJobClassEnqueueAt
-  @queue = :test
+class FakeCustomJobClassEnqueueAt  < ActiveJob::Base
+  queue_as :test
   def self.scheduled(_queue, _klass, *_args); end
 end
 
@@ -107,7 +107,7 @@ class SomeSharedEnvJob < SomeJob
 end
 
 class SomeQuickJob < SomeJob
-  @queue = :quick
+  queue_as :quick
 end
 
 class SomeRealClass < ActiveJob::Base

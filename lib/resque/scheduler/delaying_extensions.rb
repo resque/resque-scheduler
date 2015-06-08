@@ -11,9 +11,14 @@ module Resque
       # for queueing.  Until timestamp is in the past, the job will
       # sit in the schedule list.
       def enqueue_at(timestamp, klass, *args)
-        validate(klass, klass.queue_name)
+        begin
+          queue = klass.queue_name
+        rescue NoMethodError => exception
+          raise Resque::NoQueueError.new("not valid class: #{klass}")
+        end
+        validate(klass, queue)
         enqueue_at_with_queue(
-          klass.queue_name, timestamp, klass, *args
+          queue, timestamp, klass, *args
         )
       end
 
@@ -33,7 +38,7 @@ module Resque
           if klass.respond_to?(:scheduled)
             klass.scheduled(queue, klass.to_s, *args)
           else
-            Resque::Job.create(queue, klass, *args)
+            klass.set(queue: queue).perform_now(*args)
           end
         else
           delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
