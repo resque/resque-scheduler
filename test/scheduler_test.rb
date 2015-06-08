@@ -30,24 +30,28 @@ context 'Resque::Scheduler' do
   end
 
   test 'enqueue runs hooks' do
-    Resque::Scheduler.env = 'production'
-    mock = Minitest::Mock.new()
-
-    mock.expect(:perform_later, true, ['/tmp'])
     SomeRealClass.expects(:before_delayed_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:before_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:after_enqueue_example).with('/tmp')
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeRealClass, queue: 'some_real_queue').returns(mock)
+    $mock_before_enqueue = Minitest::Mock.new().expect(:run, true)
+    $mock_after_enqueue = Minitest::Mock.new().expect(:run, true)
 
+    class SomeRealClass < ActiveJob::Base
+      before_enqueue do |job|
+        $mock_before_enqueue.run
+      end
+
+      after_enqueue do |job|
+        $mock_after_enqueue.run
+      end
+    end
+    ActiveJob::ConfiguredJob.stubs(:new).with(SomeRealClass, queue: 'some_real_queue').returns(SomeRealClass)
 
     config = {
       'cron' => '* * * * *',
       'class' => 'SomeRealClass',
       'args' => '/tmp'
     }
-
     Resque::Scheduler.enqueue_from_config(config)
-    mock.verify
+    [$mock_before_enqueue, $mock_after_enqueue].map(&:verify)
   end
 
   test 'enqueue_from_config respects queue params' do

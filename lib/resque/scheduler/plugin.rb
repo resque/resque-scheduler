@@ -18,14 +18,6 @@ module Resque
       def self.run_before_delayed_enqueue_hooks(klass, *args)
         run_hooks(klass, 'before_delayed_enqueue', *args)
       end
-
-      def self.run_before_schedule_hooks(klass, *args)
-        run_hooks(klass, 'before_schedule', *args)
-      end
-
-      def self.run_after_schedule_hooks(klass, *args)
-        run_hooks(klass, 'after_schedule', *args)
-      end
     end
   end
 end

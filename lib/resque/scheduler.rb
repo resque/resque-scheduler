@@ -232,6 +232,7 @@ module Resque
         queue = job_config['queue'] ||
                 job_config[:queue] ||
                 klass.queue_name
+
         # Support custom job classes like those that inherit from
         # Resque::JobWithStatus (resque-status)
         job_klass = job_config['custom_job_class']
@@ -247,7 +248,7 @@ module Resque
           rescue NameError
             # Note that the custom job class (job_config['custom_job_class'])
             # is the one enqueued
-            Resque::Job.create(queue, job_klass, *params)
+            job_klass.perform_later(*params)
           end
         else
           # Hack to avoid havoc for people shoving stuff into queues
