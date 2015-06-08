@@ -19,8 +19,8 @@
 #
 # The perform method of this class will be invoked from a Resque worker.
 
-class FixSchedulesJob
-  @queue = :send_emails
+class FixSchedulesJob < ActiveJob::Base
+  queue_as :send_emails
 
   # Fix email sending schedules. Any user which does not have scheduled
   # sending of emails will be detected, and the missing scheduled job
@@ -28,7 +28,7 @@ class FixSchedulesJob
   #
   # This method is intended to be invoked from Resque, which means it is
   # performed in the background.
-  def self.perform
+  def perform
     users_unscheduled = []
 
     User.all.each do |user|
