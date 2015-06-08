@@ -2,46 +2,50 @@
 require_relative 'test_helper'
 
 require 'resque/server/test_helper'
-
+def setup_schedule
+  Resque::Scheduler.env = 'production'
+  Resque.schedule = {
+    'some_ivar_job' => {
+      'cron' => '* * * * *',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp',
+      'rails_env' => 'production'
+    },
+    'some_other_job' => {
+      'every' => ['1m', ['1h']],
+      'queue' => 'high',
+      'custom_job_class' => 'SomeOtherJob',
+      'args' => {
+        'b' => 'blah'
+      }
+    },
+    'some_fancy_job' => {
+      'every' => ['1m'],
+      'queue' => 'fancy',
+      'class' => 'SomeFancyJob',
+      'args' => 'sparkles',
+      'rails_env' => 'fancy'
+    },
+    'shared_env_job' => {
+      'cron' => '* * * * *',
+      'class' => 'SomeSharedEnvJob',
+      'args' => '/tmp',
+      'rails_env' => 'fancy, production'
+    }
+  }
+  Resque::Scheduler.load_schedule!
+end
 context 'on GET to /schedule' do
   setup { get '/schedule' }
 
-  test('is 200') { assert last_response.ok? }
+  test('is 200') {
+    assert last_response.ok?
+  }
 end
 
 context 'on GET to /schedule with scheduled jobs' do
   setup do
-    Resque::Scheduler.env = 'production'
-    Resque.schedule = {
-      'some_ivar_job' => {
-        'cron' => '* * * * *',
-        'class' => 'SomeIvarJob',
-        'args' => '/tmp',
-        'rails_env' => 'production'
-      },
-      'some_other_job' => {
-        'every' => ['1m', ['1h']],
-        'queue' => 'high',
-        'custom_job_class' => 'SomeOtherJob',
-        'args' => {
-          'b' => 'blah'
-        }
-      },
-      'some_fancy_job' => {
-        'every' => ['1m'],
-        'queue' => 'fancy',
-        'class' => 'SomeFancyJob',
-        'args' => 'sparkles',
-        'rails_env' => 'fancy'
-      },
-      'shared_env_job' => {
-        'cron' => '* * * * *',
-        'class' => 'SomeSharedEnvJob',
-        'args' => '/tmp',
-        'rails_env' => 'fancy, production'
-      }
-    }
-    Resque::Scheduler.load_schedule!
+    setup_schedule
     get '/schedule'
   end
 
@@ -75,7 +79,10 @@ context 'on GET to /schedule with scheduled jobs' do
 end
 
 context 'on GET to /delayed' do
-  setup { get '/delayed' }
+  setup do
+    setup_schedule
+    get '/delayed'
+  end
 
   test('is 200') { assert last_response.ok? }
 end
@@ -100,10 +107,8 @@ context 'on GET to /delayed/jobs/:klass'do
     setup do
       @t = Time.now + 3600
       module Foo
-        class Bar
-          def self.queue
-            'bar'
-          end
+        class Bar < ActiveJob::Base
+          queue_as :bar
         end
       end
       Resque.enqueue_at(@t, Foo::Bar, 'foo', 'bar')
@@ -220,25 +225,38 @@ end
 context 'on POST to /delayed/search' do
   setup do
     t = Time.now + 60
-    Resque.enqueue_at(t, SomeIvarJob)
-    Resque.enqueue(SomeQuickJob)
+    SomeIvarJob.set(wait_until: t).perform_later("a", "b")
+    SomeQuickJob.perform_later()
+    setup_schedule
   end
 
   test 'should find matching scheduled job' do
     post '/delayed/search', 'search' => 'ivar'
-    assert last_response.status == 200
+
+    assert last_response.status == 200, "expected 200 status, got #{last_response.status}"
     assert last_response.body.include?('SomeIvarJob')
+
   end
 
   test 'should find matching queued job' do
     post '/delayed/search', 'search' => 'quick'
-    assert last_response.status == 200
+
+    assert last_response.status == 200, "expected 200 status, got #{last_response.status}"
     assert last_response.body.include?('SomeQuickJob')
   end
 end
 
 context 'on POST to /delayed/cancel_now' do
-  setup { post '/delayed/cancel_now' }
+  setup {
+    t = Time.now + 60
+    SomeIvarJob.set(wait_until: t).perform_later("a", "b")
+
+    post '/delayed/cancel_now', {
+      'klass'     => 'SomeIvarJob',
+      'timestamp' => t,
+      'args'      => Resque.encode(['a', 'b'])
+    }
+  }
 
   test 'redirects to overview' do
     assert last_response.status == 302
@@ -247,7 +265,10 @@ context 'on POST to /delayed/cancel_now' do
 end
 
 context 'on POST to /delayed/clear' do
-  setup { post '/delayed/clear' }
+  setup {
+    setup_schedule
+    post '/delayed/clear'
+  }
 
   test 'redirects to delayed' do
     assert last_response.status == 302

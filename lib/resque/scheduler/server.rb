@@ -133,13 +133,47 @@ module Resque
           Resque::Scheduler::Util.constantize(class_name).queue_name
         end
 
+        # given an active_job_wrapper {
+        #   "class"=>"ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper",
+        #   "args"=>[
+        #     {
+        #       "job_class"=>"SomeQuickJob",
+        #       "job_id"=>"2b031483-09f6-45bc-98ea-cc15059fb464",
+        #       "queue_name"=>"quick",
+        #       "arguments"=>[]
+        #     }
+        #   ]
+        # }
+        # returns {
+        #   "job_class"=>"SomeQuickJob",
+        #   "job_id"=>"2b031483-09f6-45bc-98ea-cc15059fb464",
+        #   "queue_name"=>"quick",
+        #   "arguments"=>[]
+        # }
+        def deserialize_active_job(active_job_wrapper)
+          active_job_wrapper["args"].first
+        end
+
+        # given an active_job_wrapper {
+        # returns a mix of active_job/resque to ui compat
+        def serialize_as_resque_job(active_job_wrapper)
+          aj = deserialize_active_job(active_job_wrapper)
+
+          {
+            'queue' => aj['queue_name'],
+            'args'  => aj['arguments'],
+            'class' => aj['job_class']
+          }.merge!(active_job_wrapper)
+        end
+
         def find_job(worker)
           worker = worker.downcase
           results = working_jobs_for_worker(worker)
 
           dels = delayed_jobs_for_worker(worker)
           results += dels.select do |j|
-            j['class'].downcase.include?(worker) &&
+            aj = deserialize_active_job(j)
+            aj['job_class'].downcase.include?(worker) &&
             j.merge!('where_at' => 'delayed')
           end
 
@@ -147,12 +181,13 @@ module Resque
             queued = Resque.peek(queue, 0, Resque.size(queue))
             queued = [queued] unless queued.is_a?(Array)
             results += queued.select do |j|
-              j['class'].downcase.include?(worker) &&
+              aj = deserialize_active_job(j)
+              aj['job_class'].downcase.include?(worker) &&
               j.merge!('queue' => queue, 'where_at' => 'queued')
             end
           end
 
-          results
+          results.map{|j| serialize_as_resque_job(j) }
         end
 
         def schedule_interval(config)

@@ -27,29 +27,6 @@ context 'scheduling jobs with arguments' do
         )
       end
     end
-
-    # do not enqueue an undefined job
-    test 'enqueue_from_config raises an ArgumentError if' \
-      'job signature is not respected [void argv]' do
-      config = YAML.load(%Q(
-        class: SomeIvarJob
-      ))
-
-      assert_raise ArgumentError do
-        Resque::Scheduler.enqueue_from_config(config)
-      end
-    end
-
-    test 'enqueue_from_config raises an ArgumentError if' \
-      'job signature is not respected [incomplete argv]' do
-      crappy_config = YAML.load(%Q(
-        class: SomeIvarJob
-        args:
-      ))
-      assert_raise ArgumentError do
-        Resque::Scheduler.enqueue_from_config(crappy_config)
-      end
-    end
   end
 
 
@@ -63,6 +40,29 @@ context 'scheduling jobs with arguments' do
       'args' => '/tmp',
       'queue' => 'james_queue'
     )
+    mock.verify
+  end
+
+  # do not enqueue an undefined job
+  test 'enqueue_from_config without args create a ConfiguredJob' do
+    mock = Minitest::Mock.new().expect(:perform_later, true, [])
+    ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock)
+    config = YAML.load(%Q(
+      class: SomeIvarJob
+    ))
+
+    Resque::Scheduler.enqueue_from_config(config)
+    mock.verify
+  end
+
+  test 'enqueue_from_config with empty array args create a ConfiguredJob' do
+    mock = Minitest::Mock.new().expect(:perform_later, true, [])
+    ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock)
+    crappy_config = YAML.load(%Q(
+      class: SomeIvarJob
+      args:
+    ))
+    Resque::Scheduler.enqueue_from_config(crappy_config)
     mock.verify
   end
 

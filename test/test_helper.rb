@@ -11,6 +11,7 @@ $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
 require 'resque/scheduler/server'
 
+ActiveJob::Base.queue_adapter = :resque
 unless ENV['RESQUE_SCHEDULER_DISABLE_TEST_REDIS_SERVER']
   # Start our own Redis when the tests start. RedisInstance will take care of
   # starting and stopping.
@@ -95,15 +96,11 @@ class SomeIvarJob < SomeJob
 end
 
 class SomeFancyJob < SomeJob
-  def self.queue
-    :fancy
-  end
+  queue_as :fancy
 end
 
 class SomeSharedEnvJob < SomeJob
-  def self.queue
-    :shared_job
-  end
+  queue_as :shared_job
 end
 
 class SomeQuickJob < SomeJob
@@ -124,7 +121,7 @@ class SomeRealClass < ActiveJob::Base
 end
 
 class JobWithParams
-  def self.perform(*args)
+  def perform(*args)
     @args = args
   end
 end
