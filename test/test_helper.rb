@@ -113,7 +113,7 @@ class SomeRealClass < ActiveJob::Base
   end
 end
 
-class JobWithParams
+class JobWithParams < ActiveJob::Base
   def perform(*args)
     @args = args
   end
