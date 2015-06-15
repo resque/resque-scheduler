@@ -73,22 +73,22 @@ end
 
 class SomeJobArray < ActiveJob::Base
   queue_as :ivar
-  def perform(arr); end
+  def perform(_arr); end
 end
 
 class SomeJobString < ActiveJob::Base
   queue_as :ivar
-  def perform(str); end
+  def perform(_str); end
 end
 
 class SomeJobHash < ActiveJob::Base
   queue_as :ivar
-  def perform(hash); end
+  def perform(_hash); end
 end
 
 class SomeJobFixnum < ActiveJob::Base
   queue_as :ivar
-  def perform(fixnum); end
+  def perform(_fixnum); end
 end
 
 class SomeIvarJob < SomeJob
@@ -109,7 +109,7 @@ end
 
 class SomeRealClass < ActiveJob::Base
   queue_as :some_real_queue
-  def perform(argv)
+  def perform(_argv)
   end
 end
 

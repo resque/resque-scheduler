@@ -38,9 +38,7 @@ end
 context 'on GET to /schedule' do
   setup { get '/schedule' }
 
-  test('is 200') {
-    assert last_response.ok?
-  }
+  test('is 200') { assert last_response.ok? }
 end
 
 context 'on GET to /schedule with scheduled jobs' do
@@ -225,38 +223,39 @@ end
 context 'on POST to /delayed/search' do
   setup do
     t = Time.now + 60
-    SomeIvarJob.set(wait_until: t).perform_later("a", "b")
-    SomeQuickJob.perform_later()
+    SomeIvarJob.set(wait_until: t).perform_later('a', 'b')
+    SomeQuickJob.perform_later
     setup_schedule
   end
 
   test 'should find matching scheduled job' do
     post '/delayed/search', 'search' => 'ivar'
 
-    assert last_response.status == 200, "expected 200 status, got #{last_response.status}"
+    assert last_response.status == 200, "expected 200 status, \
+                                        got #{last_response.status}"
     assert last_response.body.include?('SomeIvarJob')
-
   end
 
   test 'should find matching queued job' do
     post '/delayed/search', 'search' => 'quick'
 
-    assert last_response.status == 200, "expected 200 status, got #{last_response.status}"
+    assert last_response.status == 200, "expected 200 status, \
+                                        got #{last_response.status}"
     assert last_response.body.include?('SomeQuickJob')
   end
 end
 
 context 'on POST to /delayed/cancel_now' do
-  setup {
+  setup do
     t = Time.now + 60
-    SomeIvarJob.set(wait_until: t).perform_later("a", "b")
-
-    post '/delayed/cancel_now', {
+    SomeIvarJob.set(wait_until: t).perform_later('a', 'b')
+    params = {
       'klass'     => 'SomeIvarJob',
       'timestamp' => t,
-      'args'      => Resque.encode(['a', 'b'])
+      'args'      => Resque.encode(%w(a b))
     }
-  }
+    post '/delayed/cancel_now', params
+  end
 
   test 'redirects to overview' do
     assert last_response.status == 302
@@ -265,10 +264,10 @@ context 'on POST to /delayed/cancel_now' do
 end
 
 context 'on POST to /delayed/clear' do
-  setup {
+  setup do
     setup_schedule
     post '/delayed/clear'
-  }
+  end
 
   test 'redirects to delayed' do
     assert last_response.status == 302

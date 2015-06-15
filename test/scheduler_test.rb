@@ -17,8 +17,9 @@ context 'Resque::Scheduler' do
   test 'enqueue constantizes' do
     Resque::Scheduler.env = 'production'
 
-    mock = Minitest::Mock.new().expect(:perform_later, true, ['/tmp'])
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeRealClass, queue: 'some_real_queue').returns(mock)
+    mock = Minitest::Mock.new.expect(:perform_later, true, ['/tmp'])
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(SomeRealClass, queue: 'some_real_queue').returns(mock)
 
     config = {
       'cron' => '* * * * *',
@@ -31,19 +32,21 @@ context 'Resque::Scheduler' do
 
   test 'enqueue runs hooks' do
     SomeRealClass.expects(:before_delayed_enqueue_example).with('/tmp')
-    $mock_before_enqueue = Minitest::Mock.new().expect(:run, true)
-    $mock_after_enqueue = Minitest::Mock.new().expect(:run, true)
 
     class SomeRealClass < ActiveJob::Base
-      before_enqueue do |job|
-        $mock_before_enqueue.run
+      MOCK_BEFORE_ENQUEUE = Minitest::Mock.new.expect(:run, true)
+      MOCK_AFTER_ENQUEUE = Minitest::Mock.new.expect(:run, true)
+
+      before_enqueue do
+        MOCK_BEFORE_ENQUEUE.run
       end
 
-      after_enqueue do |job|
-        $mock_after_enqueue.run
+      after_enqueue do
+        MOCK_AFTER_ENQUEUE.run
       end
     end
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeRealClass, queue: 'some_real_queue').returns(SomeRealClass)
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(SomeRealClass, queue: 'some_real_queue').returns(SomeRealClass)
 
     config = {
       'cron' => '* * * * *',
@@ -51,12 +54,16 @@ context 'Resque::Scheduler' do
       'args' => '/tmp'
     }
     Resque::Scheduler.enqueue_from_config(config)
-    [$mock_before_enqueue, $mock_after_enqueue].map(&:verify)
+    [
+      SomeRealClass::MOCK_BEFORE_ENQUEUE,
+      SomeRealClass::MOCK_AFTER_ENQUEUE
+    ].map(&:verify)
   end
 
   test 'enqueue_from_config respects queue params' do
-    mock = Minitest::Mock.new().expect(:perform_later, true, [])
-    ActiveJob::ConfiguredJob.stubs(:new).with(DummyJob, queue: 'high').returns(mock)
+    mock = Minitest::Mock.new.expect(:perform_later, true, [])
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(DummyJob, queue: 'high').returns(mock)
 
     config = {
       'cron' => '* * * * *',

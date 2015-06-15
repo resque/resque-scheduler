@@ -151,7 +151,7 @@ module Resque
         #   "arguments"=>[]
         # }
         def deserialize_active_job(active_job_wrapper)
-          active_job_wrapper["args"].first
+          active_job_wrapper['args'].first
         end
 
         # given an active_job_wrapper {
@@ -187,7 +187,7 @@ module Resque
             end
           end
 
-          results.map{|j| serialize_as_resque_job(j) }
+          results.map { |j| serialize_as_resque_job(j) }
         end
 
         def schedule_interval(config)

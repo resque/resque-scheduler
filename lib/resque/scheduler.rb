@@ -270,7 +270,7 @@ module Resque
           else
             # This will not run the before_hooks in rescue, but will at least
             # queue the job.
-            raise Resque::NoClassError.new("#{klass} not found")
+            fail Resque::NoClassError, "#{klass} not found"
           end
         end
       end

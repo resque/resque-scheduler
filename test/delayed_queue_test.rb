@@ -226,10 +226,11 @@ context 'DelayedQueue' do
   end
 
   test 'handle_delayed_item with items' do
-    mock = Minitest::Mock.new()
+    mock = Minitest::Mock.new
     mock.expect(:perform_now, true, [])
     mock.expect(:perform_now, true, [])
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock).twice
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(SomeIvarJob, queue: 'ivar').returns(mock).twice
 
     t = Time.now - 60 # in the past
 
@@ -242,8 +243,9 @@ context 'DelayedQueue' do
   end
 
   test 'handle_delayed_items with items in the future' do
-    mock = Minitest::Mock.new().expect(:perform_later, true, [])
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock).twice
+    mock = Minitest::Mock.new.expect(:perform_later, true, [])
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(SomeIvarJob, queue: 'ivar').returns(mock).twice
 
     t = Time.now + 60 # in the future
     Resque.enqueue_at(t, SomeIvarJob)
@@ -255,8 +257,8 @@ context 'DelayedQueue' do
 
   test 'calls klass#scheduled when enqueuing jobs if it exists' do
     t = Time.now - 60
-    FakeCustomJobClassEnqueueAt.expects(:scheduled)
-      .once.with("test", FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
+    FakeCustomJobClassEnqueueAt.expects(:scheduled).once
+      .with('test', FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
     Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
   end
 
@@ -277,10 +279,11 @@ context 'DelayedQueue' do
   test 'enqueue_delayed_items_for_timestamp creates jobs ' \
        'and empties the delayed queue' do
     # 2 SomeIvarJob jobs should be created in the "ivar" queue
-    mock = Minitest::Mock.new()
+    mock = Minitest::Mock.new
     mock.expect(:perform_later, true, [])
     mock.expect(:perform_later, true, [])
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock).twice
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(SomeIvarJob, queue: 'ivar').returns(mock).twice
 
     t = Time.now + 60
 
@@ -296,11 +299,12 @@ context 'DelayedQueue' do
 
   test 'enqueue_delayed creates jobs and empties the delayed queue' do
     t = Time.now + 60
-    mock = Minitest::Mock.new()
+    mock = Minitest::Mock.new
     mock.expect(:perform_later, true, ['bar'])
     mock.expect(:perform_later, true, ['bar'])
 
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock)
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(SomeIvarJob, queue: 'ivar').returns(mock)
 
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
     Resque.enqueue_at(t, SomeIvarJob, 'bar')
@@ -315,8 +319,9 @@ context 'DelayedQueue' do
 
   test 'handle_delayed_items works with out specifying queue ' \
        '(upgrade case)' do
-    mock = Minitest::Mock.new().expect(:perform_later, true, [])
-    ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock)
+    mock = Minitest::Mock.new.expect(:perform_later, true, [])
+    ActiveJob::ConfiguredJob.stubs(:new)
+      .with(SomeIvarJob, queue: 'ivar').returns(mock)
 
     t = Time.now - 60
     Resque.delayed_push(t, class: 'SomeIvarJob')
@@ -883,8 +888,9 @@ context 'DelayedQueue' do
 
   test 'inlining jobs with Resque.inline config' do
     begin
-      mock = Minitest::Mock.new().expect(:perform_now, true, ['foo', 'bar'])
-      ActiveJob::ConfiguredJob.stubs(:new).with(SomeIvarJob, queue: 'ivar').returns(mock).once
+      mock = Minitest::Mock.new.expect(:perform_now, true, %w(foo bar))
+      ActiveJob::ConfiguredJob.stubs(:new)
+        .with(SomeIvarJob, queue: 'ivar').returns(mock).once
 
       Resque.inline = true
       timestamp = Time.now + 120

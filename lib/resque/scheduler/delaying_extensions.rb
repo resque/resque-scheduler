@@ -13,8 +13,8 @@ module Resque
       def enqueue_at(timestamp, klass, *args)
         begin
           queue = klass.queue_name
-        rescue NoMethodError => exception
-          raise Resque::NoQueueError.new("not valid class: #{klass}")
+        rescue NoMethodError
+          raise Resque::NoQueueError, "not valid class: #{klass}"
         end
         validate(klass, queue)
         enqueue_at_with_queue(
