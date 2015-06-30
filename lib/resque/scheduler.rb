@@ -214,7 +214,7 @@ module Resque
       def handle_errors
         yield
       rescue => e
-        log_error "#{e.class.name}: #{e.message}"
+        log_error "#{e.class.name}: #{e.message} - #{e.backtrace.join("\n")}"
       end
 
       # Enqueues a job based on a config hash
@@ -251,6 +251,13 @@ module Resque
             job_klass.perform_later(*params)
           end
         else
+          if klass == ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper && args
+            job = ActiveJob::Base.deserialize(args[0])
+            # force deserialization of job arguments to call enqueue
+            # https://github.com/rails/rails/blob/master/activejob/lib/active_job/core.rb#L102
+            job.send :deserialize_arguments_if_needed
+            klass = job.class
+          end
           # Hack to avoid havoc for people shoving stuff into queues
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another.
@@ -262,7 +269,10 @@ module Resque
             # If the class is a custom job class, call self#scheduled on it.
             # This allows you to do things like Resque.enqueue_at(timestamp,
             # CustomJobClass). Otherwise, pass off to Resque.
-            if klass.respond_to?(:scheduled)
+            if job
+              log "About to queue ActiveJob: #{job.class}"
+              job.enqueue
+            elsif klass.respond_to?(:scheduled)
               klass.scheduled(queue, klass_name, *params)
             else
               klass.set(queue: queue).perform_later(*params)
