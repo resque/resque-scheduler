@@ -253,6 +253,9 @@ module Resque
         else
           if klass == ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper && args
             job = ActiveJob::Base.deserialize(args[0])
+            # force deserialization of job arguments to call enqueue
+            # https://github.com/rails/rails/blob/master/activejob/lib/active_job/core.rb#L102
+            job.send :deserialize_arguments_if_needed
             klass = job.class
           end
           # Hack to avoid havoc for people shoving stuff into queues
