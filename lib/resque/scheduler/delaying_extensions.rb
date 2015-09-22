@@ -155,13 +155,27 @@ module Resque
       #
       # This allows for removal of delayed jobs that have arguments matching
       # certain criteria
+      #
+      # Give you only the arguments passed to the jobs at its creation :
+      #   For a job : Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
+      #   Give you {account_id: 42, user_id: 42}
+      #
       def remove_delayed_selection(klass = nil)
-        fail ArgumentError, 'Please supply a block' unless block_given?
+        abstract_remove_delayed_selection(find_delayed_selection(klass) { |payload| yield(payload['args']) })
+      end
 
-        found_jobs = find_delayed_selection(klass) { |args| yield(args) }
-        found_jobs.reduce(0) do |sum, encoded_job|
-          sum + remove_delayed_job(encoded_job)
-        end
+      # Given a block, remove jobs that return true from a block
+      #
+      # This allows for removal of delayed jobs that have arguments matching
+      # certain criteria
+      #
+      # Give you the arguments passed to the jobs at its creation.
+      #   For a job : Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
+      #   Give you {class: 'SendFollowUpEmail', args: {account_id: 42, user_id: 42}}
+      #
+      # Usefull if, in your passed block, you want to match by class (not only args) !
+      def remove_delayed_selection_with_all_job_infos
+        abstract_remove_delayed_selection(find_delayed_selection { |payload| yield(payload) })
       end
 
       # Given a block, enqueue jobs now that return true from a block
@@ -307,14 +321,24 @@ module Resque
 
       def payload_matches_selection?(decoded_payload, klass)
         return false if decoded_payload.nil?
-        job_class = decoded_payload['class']
-        relevant_class = (klass.nil? || klass.to_s == job_class)
-        relevant_class && yield(decoded_payload['args'])
+        relevant_class = (klass.nil? || klass.to_s == decoded_payload['class'])
+        relevant_class && yield(decoded_payload)
       end
 
       def plugin
         Resque::Scheduler::Plugin
       end
+
+      private
+
+        def abstract_remove_delayed_selection(found_jobs)
+          fail ArgumentError, 'Please supply a block' unless block_given?
+
+          found_jobs.reduce(0) do |sum, encoded_job|
+            sum + remove_delayed_job(encoded_job)
+          end
+        end
+
     end
   end
 end
