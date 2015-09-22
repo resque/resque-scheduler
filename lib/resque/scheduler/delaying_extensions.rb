@@ -172,7 +172,7 @@ module Resque
       #
       # This allows for removal of delayed jobs matching certain criteria
       #
-      # Give you the arguments passed to the jobs at its creation.
+      # Give you all the infos of the job.
       #   For example, with the following job:
       #
       #     Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => 0, :user_id => 1)
