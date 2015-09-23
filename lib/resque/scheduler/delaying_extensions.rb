@@ -172,9 +172,9 @@ module Resque
       #
       def remove_delayed_selection(klass = nil)
         abstract_remove_delayed_selection(
-          find_delayed_selection(klass) { |payload|
+          find_delayed_selection(klass) do |payload|
             yield(payload['args'])
-          }
+          end
         )
       end
 
@@ -213,7 +213,9 @@ module Resque
       #
       def remove_delayed_selection_with_all_job_infos
         abstract_remove_delayed_selection(
-          find_delayed_selection { |payload| yield(payload) }
+          find_delayed_selection do |payload|
+            yield(payload)
+          end
         )
       end
 
@@ -377,7 +379,6 @@ module Resque
           sum + remove_delayed_job(encoded_job)
         end
       end
-
     end
   end
 end
