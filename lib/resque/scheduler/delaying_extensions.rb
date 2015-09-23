@@ -375,8 +375,6 @@ module Resque
       private
 
       def abstract_remove_delayed_selection(found_jobs)
-        fail ArgumentError, 'Please supply a block' unless block_given?
-
         found_jobs.reduce(0) do |sum, encoded_job|
           sum + remove_delayed_job(encoded_job)
         end
