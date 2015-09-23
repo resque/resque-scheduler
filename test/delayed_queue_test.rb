@@ -671,7 +671,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
 
     assert_equal(5, (Resque.find_delayed_selection do |a|
-      a.first == 'bar'
+      a['args'].first == 'bar'
     end).length)
   end
 
@@ -683,7 +683,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(1, (Resque.find_delayed_selection do |a|
-      a.first == 'foo'
+      a['args'].first == 'foo'
     end).length)
   end
 
@@ -695,7 +695,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(2, (Resque.find_delayed_selection do |a|
-      a.first == 'bar'
+      a['args'].first == 'bar'
     end).length)
   end
 
@@ -709,7 +709,7 @@ context 'DelayedQueue' do
 
     assert_equal(
         2, (Resque.find_delayed_selection do |a|
-          a.first['foo'] == 'bar'
+          a['args'].first['foo'] == 'bar'
         end).length
     )
   end
@@ -722,7 +722,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob)
 
     assert_equal(0, (Resque.find_delayed_selection do |a|
-      a.first == 'bar'
+      a['args'].first == 'bar'
     end).length)
   end
 
@@ -734,7 +734,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(0, (Resque.find_delayed_selection do |a|
-      a.first == 'qux'
+      a['args'].first == 'qux'
     end).length)
   end
 
@@ -744,7 +744,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
 
     assert_equal(1, (Resque.find_delayed_selection(SomeIvarJob) do |a|
-      a.first == 'foo'
+      a['args'].first == 'foo'
     end).length)
   end
 
@@ -754,7 +754,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
 
     assert_equal(1, (Resque.find_delayed_selection('SomeIvarJob') do |a|
-      a.first == 'foo'
+      a['args'].first == 'foo'
     end).length)
   end
 
@@ -764,7 +764,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
 
     assert_equal(1, (Resque.find_delayed_selection(:SomeIvarJob) do |a|
-      a.first == 'foo'
+      a['args'].first == 'foo'
     end).length)
   end
 
@@ -779,7 +779,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 2, SomeQuickJob, 'foo')
 
     assert_equal(2, (Resque.find_delayed_selection(SomeIvarJob) do |a|
-      a.first == 'foo'
+      a['args'].first == 'foo'
     end).length)
   end
 
