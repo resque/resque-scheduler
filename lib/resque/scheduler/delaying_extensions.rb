@@ -225,6 +225,18 @@ module Resque
         )
       end
 
+      def change_delayed_timestamp(timestamp)
+        fail ArgumentError, 'Please supply a block' unless block_given?
+
+        found_jobs = find_delayed_selection do |payload|
+          yield(payload)
+        end
+        abstract_remove_delayed_selection(found_jobs)
+        found_jobs.each do |encoded_job|
+          delayed_push(timestamp, encoded_job, false)
+        end
+      end
+
       # Given a block, enqueue jobs now that return true from a block
       #
       # This allows for enqueuing of delayed jobs that have arguments matching
