@@ -171,6 +171,8 @@ module Resque
       #     [{"account_id": 0, "user_id": 1}]
       #
       def remove_delayed_selection(klass = nil)
+        fail ArgumentError, 'Please supply a block' unless block_given?
+
         abstract_remove_delayed_selection(
           find_delayed_selection(klass) do |payload|
             yield(payload['args'])
@@ -212,6 +214,8 @@ module Resque
       #   }
       #
       def remove_delayed_selection_with_all_job_infos
+        fail ArgumentError, 'Please supply a block' unless block_given?
+
         abstract_remove_delayed_selection(
           find_delayed_selection do |payload|
             yield(payload)
