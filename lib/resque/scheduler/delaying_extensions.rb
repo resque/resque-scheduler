@@ -153,19 +153,29 @@ module Resque
 
       # Given a block, remove jobs that return true from a block
       #
-      # This allows for removal of delayed jobs that have arguments matching certain criteria
+      # This allows for removal of delayed jobs that have arguments matching
+      # certain criteria
       #
       # Give you only the arguments passed to the jobs at its creation :
       #   For example, with the following job:
       #
-      #     Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => 0, :user_id => 1)
+      #     Resque.enqueue_at(
+      #       5.days.from_now,
+      #       SendFollowUpEmail,
+      #       :account_id => 0,
+      #       :user_id => 1
+      #     )
       #
       #   It gives you this as parameter for your block:
       #
       #     [{"account_id": 0, "user_id": 1}]
       #
       def remove_delayed_selection(klass = nil)
-        abstract_remove_delayed_selection(find_delayed_selection(klass) { |payload| yield(payload['args']) })
+        abstract_remove_delayed_selection(
+          find_delayed_selection(klass) { |payload|
+            yield(payload['args'])
+          }
+        )
       end
 
       # Given a block, remove jobs that return true from a block
@@ -175,21 +185,36 @@ module Resque
       # Give you all the infos of the job.
       #   For example, with the following job:
       #
-      #     Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => 0, :user_id => 1)
+      #     Resque.enqueue_at(
+      #       5.days.from_now,
+      #       SendFollowUpEmail,
+      #       :account_id => 0,
+      #       :user_id => 1
+      #     )
       #
       #   It gives you this as parameter for your block:
       #
-      #     {"class": "SendFollowUpEmail", "args": [{"account_id": 1, "user_id": 1}], ,"queue": "queue_name"}
+      #     {
+      #       "class": "SendFollowUpEmail",
+      #       "args": [{"account_id": 1, "user_id": 1}],
+      #       "queue": "queue_name"
+      #     }
       #
-      # Usefull if, in your passed block, you want to match by class and/or queue (not only args) !
+      # Usefull if, in your passed block, you want to match by
+      # class and/or queue (not only args) !
+      #
       # For example:
       #
       #   Resque.remove_delayed_selection_with_all_job_infos { |job|
-      #     (job["class"] == 'SendFollowUpEmail' || job["class"] == SendFollowUpSms) && job["args"][0]['account_id'] == current_account.id]
+      #     [SendFollowUpEmail, SendFollowUpSms].any? { |klass|
+      #       klass.to_s == job["class"]
+      #     } && job["args"][0]['account_id'] == current_account.id]
       #   }
       #
       def remove_delayed_selection_with_all_job_infos
-        abstract_remove_delayed_selection(find_delayed_selection { |payload| yield(payload) })
+        abstract_remove_delayed_selection(
+          find_delayed_selection { |payload| yield(payload) }
+        )
       end
 
       # Given a block, enqueue jobs now that return true from a block
@@ -345,13 +370,13 @@ module Resque
 
       private
 
-        def abstract_remove_delayed_selection(found_jobs)
-          fail ArgumentError, 'Please supply a block' unless block_given?
+      def abstract_remove_delayed_selection(found_jobs)
+        fail ArgumentError, 'Please supply a block' unless block_given?
 
-          found_jobs.reduce(0) do |sum, encoded_job|
-            sum + remove_delayed_job(encoded_job)
-          end
+        found_jobs.reduce(0) do |sum, encoded_job|
+          sum + remove_delayed_job(encoded_job)
         end
+      end
 
     end
   end
