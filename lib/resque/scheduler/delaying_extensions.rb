@@ -225,6 +225,12 @@ module Resque
         )
       end
 
+      # Given a block, change the execution date of jobs that
+      # return true from a block
+      #
+      # Same signature that the
+      # #remove_delayed_selection_with_all_job_infos method
+      #
       def change_delayed_timestamp(timestamp)
         fail ArgumentError, 'Please supply a block' unless block_given?
 
