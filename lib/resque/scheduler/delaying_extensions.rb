@@ -231,7 +231,7 @@ module Resque
       # Same signature that the
       # #remove_delayed_selection_with_all_job_infos method
       #
-      def change_delayed_timestamp(timestamp)
+      def change_delayed_selection_timestamp(timestamp)
         fail ArgumentError, 'Please supply a block' unless block_given?
 
         found_jobs = find_delayed_selection do |payload|
