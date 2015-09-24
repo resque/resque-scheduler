@@ -231,10 +231,11 @@ module Resque
         found_jobs = find_delayed_selection do |payload|
           yield(payload)
         end
-        abstract_remove_delayed_selection(found_jobs)
+        count = abstract_remove_delayed_selection(found_jobs)
         found_jobs.each do |encoded_job|
           delayed_push(timestamp, encoded_job, false)
         end
+        count
       end
 
       # Given a block, enqueue jobs now that return true from a block
