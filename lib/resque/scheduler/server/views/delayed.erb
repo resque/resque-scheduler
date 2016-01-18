@@ -3,6 +3,10 @@
 
 <%= scheduler_view :search_form, layout: false %>
 
+<p style="font-color: red; font-weight: bold;">
+    <%= @error_message %>
+</p>
+
 <p class='intro'>
   This list below contains the timestamps for scheduled delayed jobs.
   Server local time: <%= Time.now %>
