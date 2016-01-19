@@ -107,7 +107,7 @@ module Resque
           formatted_time = Time.at(timestamp).to_default_s
 
           if timestamp > 0
-            unless enqueue_next_item(timestamp)
+            unless Resque::Scheduler.enqueue_next_item(timestamp)
               @error_message = "Unable to remove item at #{formatted_time}"
             end
           else
