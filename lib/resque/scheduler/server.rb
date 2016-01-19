@@ -104,12 +104,14 @@ module Resque
 
         def delayed_queue_now
           timestamp = params['timestamp'].to_i
+          formatted_time = Time.at(timestamp).to_default_s
+
           if timestamp > 0
-            unless Resque.next_item_for_timestamp(timestamp)
-              @error_message = "Unable to remove item at #{Time.at(timestamp).to_s}"
+            unless enqueue_next_item(timestamp)
+              @error_message = "Unable to remove item at #{formatted_time}"
             end
           else
-            @error_message = "Incorrect timestamp #{Time.at(timestamp).to_s}"
+            @error_message = "Incorrect timestamp #{formatted_time}"
           end
 
           erb scheduler_template('delayed')
