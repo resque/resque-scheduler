@@ -104,8 +104,7 @@ module Resque
 
         def delayed_queue_now
           timestamp = params['timestamp'].to_i
-          formatted_time = Time.at(timestamp).to_default_s
-
+          formatted_time = Time.at(timestamp).strftime '%Y-%m-%d %H:%M:%S %z'
           if timestamp > 0
             unless Resque::Scheduler.enqueue_next_item(timestamp)
               @error_message = "Unable to remove item at #{formatted_time}"

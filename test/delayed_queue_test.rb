@@ -265,6 +265,15 @@ context 'DelayedQueue' do
     end
   end
 
+  test 'enqueue_next_item picks one job' do
+    t = Time.now + 60
+
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque::Scheduler.enqueue_next_item(t)
+    assert_equal(1, Resque.delayed_timestamp_peek(t, 0, 3).length)
+  end
+
   test 'enqueue_delayed_items_for_timestamp creates jobs ' \
        'and empties the delayed queue' do
     t = Time.now + 60
