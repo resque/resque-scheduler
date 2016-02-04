@@ -3,6 +3,7 @@ sudo: false
 rvm:
 - 1.9.3
 - 2.1.5
+- 2.4.0-dev
 - jruby-19mode
 - rbx
 env:
