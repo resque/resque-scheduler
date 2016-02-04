@@ -22,22 +22,22 @@ Gem::Specification.new do |spec|
   spec.test_files = spec.files.grep(/^test\//)
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'bundler'
-  spec.add_development_dependency 'json'
-  spec.add_development_dependency 'kramdown'
-  spec.add_development_dependency 'mocha'
-  spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'rack-test'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'simplecov'
-  spec.add_development_dependency 'yard'
+  spec.add_development_dependency 'bundler', '~> 0'
+  spec.add_development_dependency 'json', '~> 0'
+  spec.add_development_dependency 'kramdown', '~> 0'
+  spec.add_development_dependency 'mocha', '~> 0'
+  spec.add_development_dependency 'pry', '~> 0'
+  spec.add_development_dependency 'rack-test', '~> 0'
+  spec.add_development_dependency 'rake', '~> 0'
+  spec.add_development_dependency 'simplecov', '~> 0'
+  spec.add_development_dependency 'yard', '~> 0'
 
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.
   spec.add_development_dependency 'rubocop', '~> 0.28.0'
 
-  spec.add_runtime_dependency 'mono_logger', '~> 1.0'
-  spec.add_runtime_dependency 'redis', '~> 3.0'
+  spec.add_runtime_dependency 'mono_logger', '~> 1.1'
+  spec.add_runtime_dependency 'redis', '~> 3.2'
   spec.add_runtime_dependency 'resque', '~> 1.25'
-  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.0'
+  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2'
 end

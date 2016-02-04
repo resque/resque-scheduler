@@ -4,6 +4,7 @@ Resque Scheduler authors
 - Aaron Suggs
 - Alexander Simonov
 - Andrea Campolonghi
+- Austin Vecchio
 - Ben VandenBos
 - Bernerd Schaefer
 - Bogdan Gusiev
