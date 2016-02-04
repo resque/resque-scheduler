@@ -22,15 +22,15 @@ Gem::Specification.new do |spec|
   spec.test_files = spec.files.grep(/^test\//)
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'bundler', '~> 0'
-  spec.add_development_dependency 'json', '~> 0'
-  spec.add_development_dependency 'kramdown', '~> 0'
-  spec.add_development_dependency 'mocha', '~> 0'
-  spec.add_development_dependency 'pry', '~> 0'
-  spec.add_development_dependency 'rack-test', '~> 0'
-  spec.add_development_dependency 'rake', '~> 0'
-  spec.add_development_dependency 'simplecov', '~> 0'
-  spec.add_development_dependency 'yard', '~> 0'
+  spec.add_development_dependency 'bundler', '~> 1.11'
+  spec.add_development_dependency 'json', '~> 1.8'
+  spec.add_development_dependency 'kramdown', '~> 1.9'
+  spec.add_development_dependency 'mocha', '~>1.1'
+  spec.add_development_dependency 'pry', '~> 0.10'
+  spec.add_development_dependency 'rack-test', '~> 0.6'
+  spec.add_development_dependency 'rake', '~> 10.5'
+  spec.add_development_dependency 'simplecov', '~> 0.11'
+  spec.add_development_dependency 'yard', '~> 0.8'
 
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.
