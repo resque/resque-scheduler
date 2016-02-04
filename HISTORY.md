@@ -1,5 +1,10 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 4.1.0 (2016-2-21)
+* Bump mono_logger dependency to `~> 1.1`
+* Bump redis dependency to `~> 3.2`
+* Bump rufus-scheduler dependency to `~> 3.2`
+
 ## 4.0.0 (2014-12-21)
 * Bump rufus-scheduler dependency to `~> 3.0`
 * Address warning from redis-namespace related to `#unwatch`
@@ -272,4 +277,3 @@ environment
 ## 1.0.1 (2010-01-?)
 
 * Bugfix: delayed jobs close together resulted in a 5 second sleep
-
