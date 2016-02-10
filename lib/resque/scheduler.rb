@@ -182,6 +182,17 @@ module Resque
         end
       end
 
+      def enqueue_next_item(timestamp)
+        item = Resque.next_item_for_timestamp(timestamp)
+
+        if item
+          log "queuing #{item['class']} [delayed]"
+          handle_errors { enqueue_from_config(item) }
+        end
+
+        item
+      end
+
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
         item = nil
@@ -189,11 +200,7 @@ module Resque
           handle_shutdown do
             # Continually check that it is still the master
             if master?
-              item = Resque.next_item_for_timestamp(timestamp)
-              if item
-                log "queuing #{item['class']} [delayed]"
-                handle_errors { enqueue_from_config(item) }
-              end
+              item = enqueue_next_item(timestamp)
             end
           end
           # continue processing until there are no more ready items in this
