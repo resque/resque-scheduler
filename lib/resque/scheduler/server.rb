@@ -1,6 +1,7 @@
 # vim:fileencoding=utf-8
 require 'resque-scheduler'
 require 'resque/server'
+require 'tilt/erb'
 require 'json'
 
 # Extend Resque::Server to add tabs
@@ -175,7 +176,7 @@ module Resque
 
           s << ' ('
           meta = every.last.map do |key, value|
-            "#{key.to_s.gsub(/_/, ' ')} #{value}"
+            "#{key.to_s.tr('_', ' ')} #{value}"
           end
           s << meta.join(', ') << ')'
         end

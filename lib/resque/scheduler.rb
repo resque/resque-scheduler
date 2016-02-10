@@ -129,23 +129,20 @@ module Resque
           interval_defined = false
           interval_types = %w(cron every)
           interval_types.each do |interval_type|
-            if !config[interval_type].nil? && config[interval_type].length > 0
-              args = optionizate_interval_value(config[interval_type])
-              if args.is_a?(::String)
-                args = [args, nil, job: true]
-              end
+            next unless !config[interval_type].nil? && config[interval_type].length > 0
+            args = optionizate_interval_value(config[interval_type])
+            args = [args, nil, job: true] if args.is_a?(::String)
 
-              job = rufus_scheduler.send(interval_type, *args) do
-                if master?
-                  log! "queueing #{config['class']} (#{name})"
-                  Resque.last_enqueued_at(name, Time.now.to_s)
-                  handle_errors { enqueue_from_config(config) }
-                end
+            job = rufus_scheduler.send(interval_type, *args) do
+              if master?
+                log! "queueing #{config['class']} (#{name})"
+                Resque.last_enqueued_at(name, Time.now.to_s)
+                handle_errors { enqueue_from_config(config) }
               end
-              @scheduled_jobs[name] = job
-              interval_defined = true
-              break
             end
+            @scheduled_jobs[name] = job
+            interval_defined = true
+            break
           end
           unless interval_defined
             log! "no #{interval_types.join(' / ')} found for " \
