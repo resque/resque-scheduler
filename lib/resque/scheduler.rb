@@ -199,9 +199,7 @@ module Resque
         loop do
           handle_shutdown do
             # Continually check that it is still the master
-            if master?
-              item = enqueue_next_item(timestamp)
-            end
+            item = enqueue_next_item(timestamp) if master?
           end
           # continue processing until there are no more ready items in this
           # timestamp
