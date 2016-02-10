@@ -8,6 +8,8 @@ require 'json'
 module Resque
   module Scheduler
     module Server
+      TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S %z'
+
       unless defined?(::Resque::Scheduler::Server::VIEW_PATH)
         VIEW_PATH = File.join(File.dirname(__FILE__), 'server', 'views')
       end
@@ -105,7 +107,10 @@ module Resque
 
         def delayed_queue_now
           timestamp = params['timestamp'].to_i
-          formatted_time = Time.at(timestamp).strftime '%Y-%m-%d %H:%M:%S %z'
+          formatted_time = Time.at(timestamp).strftime(
+            ::Resque::Scheduler::Server::TIMESTAMP_FORMAT
+          )
+
           if timestamp > 0
             unless Resque::Scheduler.enqueue_next_item(timestamp)
               @error_message = "Unable to remove item at #{formatted_time}"
@@ -133,7 +138,7 @@ module Resque
 
       module HelperMethods
         def format_time(t)
-          t.strftime('%Y-%m-%d %H:%M:%S %z')
+          t.strftime(::Resque::Scheduler::Server::TIMESTAMP_FORMAT)
         end
 
         def queue_from_class_name(class_name)
