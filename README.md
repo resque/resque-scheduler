@@ -511,6 +511,16 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
+If using rails 4, then you can get the resque scheduler tab to show up by adding
+```ruby 
+gem 'resque-scheduler', :require => 'resque_scheduler/server'
+```
+to your Gemfile, and 
+```ruby
+mount Resque::Server.new, :at => "/resque"
+```
+in your `routes.rb` file.  Then, visit /resque to see the ui. 
+
 
 #### Changes as of 2.0.0
 
