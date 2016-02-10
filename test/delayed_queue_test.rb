@@ -562,7 +562,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, foo: 'baz')
 
     assert_equal(
-        2, Resque.enqueue_delayed_selection { |a| a.first['foo'] == 'bar' }
+      2, Resque.enqueue_delayed_selection { |a| a.first['foo'] == 'bar' }
     )
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
@@ -707,11 +707,8 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 2, SomeIvarJob, foo: 'bar')
     Resque.enqueue_at(t + 3, SomeIvarJob, foo: 'baz')
 
-    assert_equal(
-        2, (Resque.find_delayed_selection do |a|
-          a.first['foo'] == 'bar'
-        end).length
-    )
+    len = Resque.find_delayed_selection { |a| a.first['foo'] == 'bar' }.length
+    assert_equal(2, len)
   end
 
   test 'find_delayed_selection ignores jobs with no arguments' do
@@ -792,7 +789,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeQuickJob)
 
     assert_equal(
-        2, (Resque.find_delayed_selection(SomeQuickJob) { true }).length
+      2, (Resque.find_delayed_selection(SomeQuickJob) { true }).length
     )
   end
 
