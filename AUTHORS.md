@@ -69,6 +69,7 @@ Resque Scheduler authors
 - andreas
 - bbauer
 - camol
+- d4rk5eed
 - fallwith
 - gravis
 - hpoydar
