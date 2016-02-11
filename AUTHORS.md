@@ -76,3 +76,4 @@ Resque Scheduler authors
 - hpoydar
 - malomalo
 - sawanoboly
+- serek
