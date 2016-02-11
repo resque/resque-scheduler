@@ -142,7 +142,7 @@ module Resque
         end
 
         def show_job_arguments(args)
-          Array(args).map { |a| a.inspect }.join("\n")
+          Array(args).map(&:inspect).join("\n")
         end
 
         def queue_from_class_name(class_name)
