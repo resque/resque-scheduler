@@ -141,6 +141,10 @@ module Resque
           t.strftime(::Resque::Scheduler::Server::TIMESTAMP_FORMAT)
         end
 
+        def show_job_arguments(args)
+          Array(args).map { |a| a.inspect }.join("\n")
+        end
+
         def queue_from_class_name(class_name)
           Resque.queue_from_class(
             Resque::Scheduler::Util.constantize(class_name)
