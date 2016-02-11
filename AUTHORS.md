@@ -56,6 +56,7 @@ Resque Scheduler authors
 - Ryan Carver
 - Sameer Siruguri
 - Scott Francis
+- Sean Stephens
 - Sebastian Kippe
 - Spring MC
 - tbprojects
