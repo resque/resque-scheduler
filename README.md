@@ -521,7 +521,7 @@ To get the "Delete" feature on the "Schedule" tab of the reqsue webapp, you must
 
 ```ruby
 Resque::Scheduler.dynamic = true
-use Rack::MethodOverride #
+use Rack::MethodOverride
 ```
 
 #### Changes as of 2.0.0
