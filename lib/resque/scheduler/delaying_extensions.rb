@@ -210,6 +210,8 @@ module Resque
       # O(N) where N is the number of jobs scheduled to fire at the given
       # timestamp
       def remove_delayed_job_from_timestamp(timestamp, klass, *args)
+        return 0 if Resque.inline?
+
         key = "delayed:#{timestamp.to_i}"
         encoded_job = encode(job_to_hash(klass, args))
 
@@ -264,6 +266,8 @@ module Resque
       end
 
       def remove_delayed_job(encoded_job)
+        return 0 if Resque.inline?
+
         timestamps = redis.smembers("timestamps:#{encoded_job}")
 
         replies = redis.pipelined do

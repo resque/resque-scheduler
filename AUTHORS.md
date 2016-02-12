@@ -67,6 +67,7 @@ Resque Scheduler authors
 - Vladislav Shub
 - V Sreekanth
 - Warren Sangster
+- Yuri Kasperovich
 - andreas
 - bbauer
 - camol
