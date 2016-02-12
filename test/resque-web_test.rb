@@ -51,8 +51,8 @@ context 'on GET to /schedule with scheduled jobs' do
     assert last_response.body.include?('SomeIvarJob')
   end
 
-  test 'excludes jobs for other envs' do
-    assert !last_response.body.include?('SomeFancyJob')
+  test 'include(highlight) jobs for other envs' do
+    assert last_response.body.include?('SomeFancyJob')
   end
 
   test 'includes job used in multiple environments' do
