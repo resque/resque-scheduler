@@ -211,12 +211,12 @@ module Resque
         end
 
         def scheduled_in_this_env?(name)
-          return true if Resque.schedule[name]['rails_env'].nil?
+          return true if rails_env(name).nil?
           rails_env(name).split(/[\s,]+/).include?(Resque::Scheduler.env)
         end
 
         def rails_env(name)
-          Resque.schedule[name]['rails_env']
+          Resque.schedule[name]['rails_env'] || Resque.schedule[name]['env']
         end
 
         def scheduler_view(filename, options = {}, locals = {})
