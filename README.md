@@ -170,7 +170,11 @@ Delayed jobs are one-off jobs that you want to be put into a queue at some point
 in the future.  The classic example is sending email:
 
 ```ruby
-Resque.enqueue_in(5.days, SendFollowUpEmail, :user_id => current_user.id)
+Resque.enqueue_in(
+  5.days,
+  SendFollowUpEmail,
+  user_id: current_user.id
+)
 ```
 
 This will store the job for 5 days in the resque delayed queue at which time
@@ -184,10 +188,15 @@ work queue and will be completed as workers are free to process it.
 
 Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
 job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a
-queue name.
+queue name:
 
 ```ruby
-Resque.enqueue_at_with_queue_('queue_name', 5.days.from_now, SendFollowUpEmail, :user_id => current_user.id)
+Resque.enqueue_at_with_queue(
+  'queue_name',
+  5.days.from_now,
+  SendFollowUpEmail,
+  user_id: current_user.id
+)
 ```
 
 The delayed queue is stored in redis and is persisted in the same way the
