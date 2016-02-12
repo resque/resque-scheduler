@@ -51,8 +51,8 @@ context 'on GET to /schedule with scheduled jobs' do
     assert last_response.body.include?('SomeIvarJob')
   end
 
-  test 'excludes jobs for other envs' do
-    assert !last_response.body.include?('SomeFancyJob')
+  test 'include(highlight) jobs for other envs' do
+    assert last_response.body.include?('SomeFancyJob')
   end
 
   test 'includes job used in multiple environments' do
@@ -256,11 +256,10 @@ context 'on POST to /delayed/clear' do
 end
 
 context 'on POST to /delayed/queue_now' do
-  setup { post '/delayed/queue_now' }
+  setup { post '/delayed/queue_now', timestamp: 0 }
 
-  test 'redirects to overview' do
-    assert last_response.status == 302
-    assert last_response.header['Location'].include? '/overview'
+  test 'returns ok status' do
+    assert last_response.status == 200
   end
 end
 

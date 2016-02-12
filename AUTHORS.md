@@ -56,6 +56,7 @@ Resque Scheduler authors
 - Ryan Carver
 - Sameer Siruguri
 - Scott Francis
+- Sean Stephens
 - Sebastian Kippe
 - Spring MC
 - tbprojects
@@ -66,11 +67,14 @@ Resque Scheduler authors
 - Vladislav Shub
 - V Sreekanth
 - Warren Sangster
+- Yuri Kasperovich
 - andreas
 - bbauer
 - camol
+- d4rk5eed
 - fallwith
 - gravis
 - hpoydar
 - malomalo
 - sawanoboly
+- serek

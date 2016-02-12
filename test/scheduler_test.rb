@@ -87,9 +87,15 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
 
     Resque.redis.del(:schedules)
-    Resque.redis.hset(:schedules, 'some_ivar_job2', Resque.encode(
-      'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/2'
-    ))
+    Resque.redis.hset(
+      :schedules,
+      'some_ivar_job2',
+      Resque.encode(
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp/2'
+      )
+    )
 
     Resque::Scheduler.reload_schedule!
 
@@ -366,9 +372,15 @@ context 'Resque::Scheduler' do
   end
 
   test 'fetch_schedule returns a schedule' do
-    Resque.redis.hset(:schedules, 'some_ivar_job2', Resque.encode(
-      'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/33'
-    ))
+    Resque.redis.hset(
+      :schedules,
+      'some_ivar_job2',
+      Resque.encode(
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp/33'
+      )
+    )
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/33' },
       Resque.fetch_schedule('some_ivar_job2')

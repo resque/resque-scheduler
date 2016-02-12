@@ -170,7 +170,11 @@ Delayed jobs are one-off jobs that you want to be put into a queue at some point
 in the future.  The classic example is sending email:
 
 ```ruby
-Resque.enqueue_in(5.days, SendFollowUpEmail, :user_id => current_user.id)
+Resque.enqueue_in(
+  5.days,
+  SendFollowUpEmail,
+  user_id: current_user.id
+)
 ```
 
 This will store the job for 5 days in the resque delayed queue at which time
@@ -178,13 +182,22 @@ the scheduler process will pull it from the delayed queue and put it in the
 appropriate work queue for the given job and it will be processed as soon as
 a worker is available (just like any other resque job).
 
-NOTE: The job does not fire **exactly** at the time supplied.  Rather, once that
+**NOTE**: The job does not fire **exactly** at the time supplied.  Rather, once that
 time is in the past, the job moves from the delayed queue to the actual resque
 work queue and will be completed as workers are free to process it.
 
 Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
 job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a
-queue name.
+queue name:
+
+```ruby
+Resque.enqueue_at_with_queue(
+  'queue_name',
+  5.days.from_now,
+  SendFollowUpEmail,
+  user_id: current_user.id
+)
+```
 
 The delayed queue is stored in redis and is persisted in the same way the
 standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
@@ -299,7 +312,7 @@ resulting in resetting schedule time on every deploy, so it's probably a good id
 frequent jobs (like every 10-30 minutes), otherwise - when you use something like `every 20h` and deploy once-twice per day -
 it will schedule the job for 20 hours from deploy, resulting in a job to never be run.
 
-NOTE: Six parameter cron's are also supported (as they supported by
+**NOTE**: Six parameter cron's are also supported (as they supported by
 rufus-scheduler which powers the resque-scheduler process).  This allows you
 to schedule jobs per second (ie: `"30 * * * * *"` would fire a job every 30
 seconds past the minute).
@@ -319,6 +332,10 @@ must pass the following to `resque-scheduler` initialization (see *Installation*
 ```ruby
 Resque::Scheduler.dynamic = true
 ```
+
+**NOTE**: In order to delete dynamic schedules via `resque-web` in the
+"Schedule" tab, you must include the `Rack::MethodOverride` middleware (in
+`config.ru` or equivalent).
 
 Dynamic schedules allow for greater flexibility than static schedules as they can be set,
 unset or changed without having to restart `resque-scheduler`. You can specify, if the schedule
@@ -510,7 +527,6 @@ require 'resque/scheduler/server'
 ```
 
 That should make the scheduler tabs show up in `resque-web`.
-
 
 #### Changes as of 2.0.0
 

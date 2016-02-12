@@ -129,23 +129,20 @@ module Resque
           interval_defined = false
           interval_types = %w(cron every)
           interval_types.each do |interval_type|
-            if !config[interval_type].nil? && config[interval_type].length > 0
-              args = optionizate_interval_value(config[interval_type])
-              if args.is_a?(::String)
-                args = [args, nil, job: true]
-              end
+            next unless !config[interval_type].nil? && config[interval_type].length > 0
+            args = optionizate_interval_value(config[interval_type])
+            args = [args, nil, job: true] if args.is_a?(::String)
 
-              job = rufus_scheduler.send(interval_type, *args) do
-                if master?
-                  log! "queueing #{config['class']} (#{name})"
-                  Resque.last_enqueued_at(name, Time.now.to_s)
-                  handle_errors { enqueue_from_config(config) }
-                end
+            job = rufus_scheduler.send(interval_type, *args) do
+              if master?
+                log! "queueing #{config['class']} (#{name})"
+                Resque.last_enqueued_at(name, Time.now.to_s)
+                handle_errors { enqueue_from_config(config) }
               end
-              @scheduled_jobs[name] = job
-              interval_defined = true
-              break
             end
+            @scheduled_jobs[name] = job
+            interval_defined = true
+            break
           end
           unless interval_defined
             log! "no #{interval_types.join(' / ')} found for " \
@@ -185,19 +182,24 @@ module Resque
         end
       end
 
+      def enqueue_next_item(timestamp)
+        item = Resque.next_item_for_timestamp(timestamp)
+
+        if item
+          log "queuing #{item['class']} [delayed]"
+          handle_errors { enqueue_from_config(item) }
+        end
+
+        item
+      end
+
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
         item = nil
         loop do
           handle_shutdown do
             # Continually check that it is still the master
-            if master?
-              item = Resque.next_item_for_timestamp(timestamp)
-              if item
-                log "queuing #{item['class']} [delayed]"
-                handle_errors { enqueue_from_config(item) }
-              end
-            end
+            item = enqueue_next_item(timestamp) if master?
           end
           # continue processing until there are no more ready items in this
           # timestamp
@@ -214,7 +216,7 @@ module Resque
       def handle_errors
         yield
       rescue => e
-        log_error "#{e.class.name}: #{e.message}"
+        log_error "#{e.class.name}: #{e.message} #{e.backtrace.inspect}"
       end
 
       # Enqueues a job based on a config hash
@@ -333,22 +335,36 @@ module Resque
 
       def poll_sleep_loop
         @sleeping = true
-        start = Time.now
-        loop do
-          elapsed_sleep = (Time.now - start)
-          remaining_sleep = poll_sleep_amount - elapsed_sleep
-          break if remaining_sleep <= 0
-          begin
-            sleep(remaining_sleep)
-            handle_signals
-          rescue Interrupt
-            if @shutdown
-              Resque.clean_schedules
-              release_master_lock
+        if @poll_sleep_amount > 0
+          start = Time.now
+          loop do
+            elapsed_sleep = (Time.now - start)
+            remaining_sleep = @poll_sleep_amount - elapsed_sleep
+            @do_break = false
+            if remaining_sleep <= 0
+              @do_break = true
+            else
+              @do_break = handle_signals_with_operation do
+                sleep(remaining_sleep)
+              end
             end
-            break
+            break if @do_break
           end
+        else
+          handle_signals_with_operation
         end
+      end
+
+      def handle_signals_with_operation
+        yield if block_given?
+        handle_signals
+        false
+      rescue Interrupt
+        if @shutdown
+          Resque.clean_schedules
+          release_master_lock
+        end
+        true
       end
 
       # Sets the shutdown flag, clean schedules and exits if sleeping

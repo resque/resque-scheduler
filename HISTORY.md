@@ -1,5 +1,14 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 4.1.0 (2016-02-10)
+* View helper to cut down on repetition
+* Bugfix to check thread life only if present
+* New `Resque.(find|enqueue)_delayed_selection` methods to complement
+`Resque.remove_delayed_selection`
+* Leave undefined env vars unset in internal options hash
+* Insulate checking `Rails.env`
+* Documentation updates and typo fixes
+
 ## 4.0.0 (2014-12-21)
 * Bump rufus-scheduler dependency to `~> 3.0`
 * Address warning from redis-namespace related to `#unwatch`
