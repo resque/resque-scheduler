@@ -216,7 +216,7 @@ module Resque
       def handle_errors
         yield
       rescue => e
-        log_error "#{e.class.name}: #{e.message}"
+        log_error "#{e.class.name}: #{e.message} #{e.backtrace.inspect}"
       end
 
       # Enqueues a job based on a config hash
