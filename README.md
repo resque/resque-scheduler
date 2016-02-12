@@ -186,6 +186,10 @@ Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
 job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a
 queue name.
 
+```ruby
+Resque.enqueue_at_with_queue_('queue_name', 5.days.from_now, SendFollowUpEmail, :user_id => current_user.id)
+```
+
 The delayed queue is stored in redis and is persisted in the same way the
 standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
 from scheduled jobs in that if your scheduler process is down or workers are
