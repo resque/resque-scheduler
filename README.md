@@ -182,7 +182,7 @@ the scheduler process will pull it from the delayed queue and put it in the
 appropriate work queue for the given job and it will be processed as soon as
 a worker is available (just like any other resque job).
 
-NOTE: The job does not fire **exactly** at the time supplied.  Rather, once that
+**NOTE**: The job does not fire **exactly** at the time supplied.  Rather, once that
 time is in the past, the job moves from the delayed queue to the actual resque
 work queue and will be completed as workers are free to process it.
 
@@ -312,7 +312,7 @@ resulting in resetting schedule time on every deploy, so it's probably a good id
 frequent jobs (like every 10-30 minutes), otherwise - when you use something like `every 20h` and deploy once-twice per day -
 it will schedule the job for 20 hours from deploy, resulting in a job to never be run.
 
-NOTE: Six parameter cron's are also supported (as they supported by
+**NOTE**: Six parameter cron's are also supported (as they supported by
 rufus-scheduler which powers the resque-scheduler process).  This allows you
 to schedule jobs per second (ie: `"30 * * * * *"` would fire a job every 30
 seconds past the minute).
@@ -333,11 +333,9 @@ must pass the following to `resque-scheduler` initialization (see *Installation*
 Resque::Scheduler.dynamic = true
 ```
 
-To get the "Delete" feature on the "Schedule" tab of the reqsue webapp, you must also include the above snippet in the config.ru file. Additionally, you will need the snippet below or else the delete will return an error:
-
-```ruby
-use Rack::MethodOverride
-```
+**NOTE**: In order to delete dynamic schedules via `resque-web` in the
+"Schedule" tab, you must include the `Rack::MethodOverride` middleware (in
+`config.ru` or equivalent).
 
 Dynamic schedules allow for greater flexibility than static schedules as they can be set,
 unset or changed without having to restart `resque-scheduler`. You can specify, if the schedule
@@ -529,13 +527,6 @@ require 'resque/scheduler/server'
 ```
 
 That should make the scheduler tabs show up in `resque-web`.
-
-To get the "Delete" feature on the "Schedule" tab of the reqsue webapp, you must include the snippet below in the config.ru file:
-
-```ruby
-Resque::Scheduler.dynamic = true
-use Rack::MethodOverride
-```
 
 #### Changes as of 2.0.0
 
