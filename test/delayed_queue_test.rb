@@ -344,6 +344,20 @@ context 'DelayedQueue' do
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"))
   end
 
+  test "when Resque.inline = true, remove_delayed doesn't remove the job" \
+       'and returns 0' do
+    begin
+      Resque.inline = true
+
+      timestamp = Time.now + 120
+      Resque.enqueue_at(timestamp, SomeIvarJob, 'foo', 'bar')
+
+      assert_equal(0, Resque.remove_delayed(SomeIvarJob))
+    ensure
+      Resque.inline = false
+    end
+  end
+
   test 'scheduled_at returns an array containing job schedule time' do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob)
@@ -823,6 +837,20 @@ context 'DelayedQueue' do
     )
     assert_equal 1, Resque.delayed_timestamp_size(t1)
     assert_equal 0, Resque.delayed_timestamp_size(t2)
+  end
+
+  test 'when Resque.inline = true, remove_delayed_job_from_timestamp' \
+       "doesn't remove any jobs and returns 0" do
+    begin
+      Resque.inline = true
+
+      timestamp = Time.now + 120
+      Resque.enqueue_at(timestamp, SomeIvarJob, 'foo', 'bar')
+
+      assert_equal(0, Resque.delayed_timestamp_size(timestamp))
+    ensure
+      Resque.inline = false
+    end
   end
 
   test 'remove_delayed_job_from_timestamp removes nothing if there ' \
