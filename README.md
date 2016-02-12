@@ -333,6 +333,12 @@ must pass the following to `resque-scheduler` initialization (see *Installation*
 Resque::Scheduler.dynamic = true
 ```
 
+To get the "Delete" feature on the "Schedule" tab of the reqsue webapp, you must also include the above snippet in the config.ru file. Additionally, you will need the snippet below or else the delete will return an error:
+
+```ruby
+use Rack::MethodOverride
+```
+
 Dynamic schedules allow for greater flexibility than static schedules as they can be set,
 unset or changed without having to restart `resque-scheduler`. You can specify, if the schedule
 must survive a resque-scheduler restart or not. This is done by setting the `persist` configuration
@@ -524,6 +530,12 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
+To get the "Delete" feature on the "Schedule" tab of the reqsue webapp, you must include the snippet below in the config.ru file:
+
+```ruby
+Resque::Scheduler.dynamic = true
+use Rack::MethodOverride
+```
 
 #### Changes as of 2.0.0
 
