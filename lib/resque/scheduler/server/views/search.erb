@@ -1,72 +1,105 @@
-<h1>Search Results</h1>
+<%=
+  scheduler_view(
+    :header_info,
+    { layout: false },
+    title: 'Search Results',
+    intro: ''
+  )
+%>
+
 <%= scheduler_view :search_form, layout: false %>
-<hr>
-<% delayed = @jobs.select { |j| j['where_at'] == 'delayed' } %>
-<h1>Delayed jobs</h1>
-<table class='jobs'>
-  <tr>
-    <th></th>
-    <th></th>
-    <th>Timestamp</th>
-    <th>Class</th>
-    <th>Args</th>
-  </tr>
-  <% delayed.each do |job| %>
+
+<% unless (@error_message || '').empty? %>
+  <p style="font-color: red; font-weight: bold;"><%= @error_message %></p>
+<% end %>
+
+<% delayed = jobs.select { |j| j['where_at'] == 'delayed' } %>
+<% unless delayed.length.zero? %>
+  <h1>Delayed Jobs</h1>
+  <div style="overflow-y: auto; width: 100%;">
+    <table class="jobs">
+      <thead>
+        <tr>
+          <th></th>
+          <th></th>
+          <th>Timestamp</th>
+          <th>Class</th>
+          <th>Args</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% delayed.each do |job| %>
+        <tr>
+          <td>
+            <form action="<%= u '/delayed/queue_now' %>" method="post">
+              <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
+              <input type="submit" value="Queue now">
+            </form>
+          </td>
+          <td>
+            <form action="<%= u '/delayed/cancel_now' %>" method="post">
+              <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
+              <input type="hidden" name="class_name" value="<%= job['class'] %>">
+              <input type="hidden" name="args" value="<%= resque.encode job['args'] %>">
+              <input type="submit" value="Cancel Job">
+            </form>
+          </td>
+          <td class="args"><%= h format_time(Time.at(job['timestamp'])) %></td>
+          <td class="class"><%= h job['class'] %></td>
+          <td class="args"><%= h job['args'].inspect %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<% queued = jobs.select { |j| j['where_at'] == 'queued' } %>
+<% unless queued.length.zero? %>
+  <h1>Queued Jobs</h1>
+  <div style="overflow-y: auto; width: 100%">
+    <table class="jobs">
+      <thead>
+        <tr>
+          <th>Queue</th>
+          <th>Class</th>
+          <th>Args</th>
+        </tr>
+      </thead>
+      <tbody>
+      <% queued.each do |job| %>
+        <tr>
+          <td class="queue"><%= h job['queue'] %></td>
+          <td class="class"><%= h job['class'] %></td>
+          <td class="args"><%= h job['args'].inspect %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<% working = jobs.select { |j| j['where_at'] == 'working' } %>
+<% unless working.length.zero? %>
+  <h1>Working Jobs</h1>
+  <div style="overflow-y: auto; width: 100%">
+    <table class="jobs">
+      <thead>
       <tr>
-        <td>
-          <form action="<%= u "/delayed/queue_now" %>" method="post">
-            <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
-            <input type="submit" value="Queue now">
-          </form>
-        </td>
-        <td>
-          <form action="<%= u "/delayed/cancel_now" %>" method="post">
-            <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
-            <input type="hidden" name="klass" value="<%= job['class'] %>">
-            <input type="hidden" name="args" value="<%= Resque.encode job['args'] %>">
-            <input type="submit" value="Cancel Job">
-          </form>
-        </td>
-        <td class='args'><%= format_time(Time.at(job['timestamp'])) %></td>
-        <td class='class'><%= job['class'] %></td>
-        <td class='args'><%= h job['args'].inspect %></td>
+        <th>Queue</th>
+        <th>Class</th>
+        <th>Args</th>
       </tr>
-  <% end %>
-</table>
-</h1>
-
-<% queued = @jobs.select { |j| j['where_at'] == 'queued' } %>
-<h1>Queued jobs</h1>
-<table class='jobs'>
-  <tr>
-    <th>Queue</th>
-    <th>Class</th>
-    <th>Args</th>
-  </tr>
-  <% queued.each do |job| %>
-  <tr>
-    <td class='class'><%= job['queue'] %></td>
-    <td class='class'><%= job['class'] %></td>
-    <td class='args'><%= h job['args'].inspect %></td>
-  </tr>
-  <% end %>
-</table>
-
-<% working = @jobs.select { |j| j['where_at'] == 'working' } %>
-<h1>Working jobs</h1>
-<table class='jobs'>
-  <tr>
-    <th>Queue</th>
-    <th>Class</th>
-    <th>Args</th>
-  </tr>
-  <% working.each do |job| %>
-  <tr>
-    <td class='class'><%= job['queue'] %></td>
-    <td class='class'><%= job['class'] %></td>
-    <td class='args'><%= h job['args'].inspect %></td>
-  </tr>
-  <% end %>
-</table>
-
-
+      </thead>
+      <tbody>
+      <% working.each do |job| %>
+        <tr>
+          <td class="class"><%= h job['queue'] %></td>
+          <td class="class"><%= h job['class'] %></td>
+          <td class="args"><%= h job['args'].inspect %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

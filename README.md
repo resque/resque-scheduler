@@ -455,7 +455,7 @@ module Resque
   class JobWithStatus
     # Wrapper API to forward a Resque::Job creation API call into
     # a JobWithStatus call.
-    def self.scheduled(queue, klass, *args)
+    def self.scheduled(queue, job_class, *args)
       create(*args)
     end
   end

@@ -19,7 +19,7 @@ require 'resque/scheduler/server'
 def context(*args, &block)
   return super unless (name = args.first) && block
   require 'test/unit'
-  klass = Class.new(Test::Unit::TestCase) do
+  test_class = Class.new(Test::Unit::TestCase) do
     def self.test(name, &block)
       define_method("test_#{name.gsub(/\W/, '_')}", &block) if block
     end
@@ -35,10 +35,10 @@ def context(*args, &block)
       define_method(:teardown, &block)
     end
   end
-  (class << klass; self end).send(:define_method, :name) do
+  (class << test_class; self end).send(:define_method, :name) do
     name.gsub(/\W/, '_')
   end
-  klass.class_eval(&block)
+  test_class.class_eval(&block)
 end
 
 unless defined?(Rails)

@@ -65,8 +65,18 @@ module Resque
       attr_writer :poll_sleep_amount
 
       def poll_sleep_amount
-        @poll_sleep_amount ||=
-          Float(ENV.fetch('RESQUE_SCHEDULER_INTERVAL', '5'))
+        @poll_sleep_amount ||= Float(
+          ENV.fetch('RESQUE_SCHEDULER_INTERVAL', '5')
+        )
+      end
+
+      # Number of records per page in web view tables
+      attr_writer :web_per_page
+
+      def web_per_page
+        @web_per_page ||= Integer(
+          ENV.fetch('RESQUE_SCHEDULER_WEB_PER_PAGE', 20)
+        )
       end
     end
   end

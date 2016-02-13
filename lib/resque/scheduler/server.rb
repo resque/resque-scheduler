@@ -2,7 +2,6 @@
 require 'resque-scheduler'
 require 'resque/server'
 require 'tilt/erb'
-require 'json'
 
 # Extend Resque::Server to add tabs
 module Resque
@@ -26,8 +25,8 @@ module Resque
           end
           delete('/schedule') { delete_schedule }
           get('/delayed') { delayed }
-          get('/delayed/jobs/:klass') { delayed_jobs_klass }
-          post('/delayed/search') { delayed_search }
+          get('/delayed/jobs/:class_name') { delayed_jobs_by_class }
+          get('/delayed/search') { delayed_search }
           get('/delayed/:timestamp') { delayed_timestamp }
           post('/delayed/queue_now') { delayed_queue_now }
           post('/delayed/cancel_now') { delayed_cancel_now }
@@ -84,21 +83,36 @@ module Resque
           erb scheduler_template('delayed')
         end
 
-        def delayed_jobs_klass
+        def delayed_jobs_by_class
+          class_name = params['class_name'] || params[:class_name]
+          args = nil
+          timestamps = []
+
           begin
-            klass = Resque::Scheduler::Util.constantize(params[:klass])
-            @args = JSON.load(URI.decode(params[:args]))
-            @timestamps = Resque.scheduled_at(klass, *@args)
-          rescue
-            @timestamps = []
+            args = Resque.decode(params['args'] || params[:args])
+            timestamps = Resque.scheduled_at(
+              Resque::Scheduler::Util.constantize(class_name), *args
+            )
+          rescue => e
+            @error_message = 'Failed to find matching schedules. ' \
+                             "#{e.class.name}: #{e.message}"
           end
 
-          erb scheduler_template('delayed_schedules')
+          erb(
+            scheduler_template('delayed_schedules'),
+            locals: {
+              class_name: class_name,
+              args: args,
+              timestamps: timestamps
+            }
+          )
         end
 
         def delayed_search
-          @jobs = find_job(params[:search])
-          erb scheduler_template('search')
+          erb(
+            scheduler_template('search'),
+            locals: { jobs: find_job(params['q'] || params[:q]) }
+          )
         end
 
         def delayed_timestamp
@@ -106,7 +120,7 @@ module Resque
         end
 
         def delayed_queue_now
-          timestamp = params['timestamp'].to_i
+          timestamp = (params['timestamp'] || params[:timestamp]).to_i
           formatted_time = Time.at(timestamp).strftime(
             ::Resque::Scheduler::Server::TIMESTAMP_FORMAT
           )
@@ -123,10 +137,14 @@ module Resque
         end
 
         def delayed_cancel_now
-          klass = Resque::Scheduler::Util.constantize(params['klass'])
-          timestamp = params['timestamp']
-          args = Resque.decode params['args']
-          Resque.remove_delayed_job_from_timestamp(timestamp, klass, *args)
+          job_class = Resque::Scheduler::Util.constantize(
+            params['class_name'] || params[:class_name]
+          )
+          timestamp = params['timestamp'] || params[:timestamp]
+          args = Resque.decode(params['args'] || params[:args])
+          Resque.remove_delayed_job_from_timestamp(
+            timestamp, job_class, *args
+          )
           redirect u('/delayed')
         end
 
@@ -210,9 +228,25 @@ module Resque
           )
         end
 
+        def server_env
+          Resque::Scheduler.env || ''
+        end
+
+        def master_name
+          Resque.redis.get(Resque::Scheduler.master_lock.key) || ''
+        end
+
+        def dynamic?
+          Resque::Scheduler.dynamic
+        end
+
+        def per_page
+          Resque::Scheduler.web_per_page
+        end
+
         def scheduled_in_this_env?(name)
           return true if rails_env(name).nil?
-          rails_env(name).split(/[\s,]+/).include?(Resque::Scheduler.env)
+          rails_env(name).split(/[\s,]+/).include?(server_env)
         end
 
         def rails_env(name)
@@ -221,7 +255,7 @@ module Resque
 
         def scheduler_view(filename, options = {}, locals = {})
           source = File.read(File.join(VIEW_PATH, "#{filename}.erb"))
-          erb source, options, locals
+          erb(source, options, locals)
         end
 
         private
