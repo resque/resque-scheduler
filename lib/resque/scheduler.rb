@@ -236,20 +236,20 @@ module Resque
                 Resque.queue_from_class(class_type)
         # Support custom job classes like those that inherit from
         # Resque::JobWithStatus (resque-status)
-        job_class_type = job_config['custom_job_class']
-        if job_class_type && job_class_type != 'Resque::Job'
+        job_class = job_config['custom_job_class']
+        if job_class && job_class != 'Resque::Job'
           # The custom job class API must offer a static "scheduled" method. If
           # the custom job class can not be constantized (via a requeue call
           # from the web perhaps), fall back to enqueing normally via
           # Resque::Job.create.
           begin
-            Resque::Scheduler::Util.constantize(job_class_type).scheduled(
+            Resque::Scheduler::Util.constantize(job_class).scheduled(
               queue, class_type_name, *params
             )
           rescue NameError
             # Note that the custom job class (job_config['custom_job_class'])
             # is the one enqueued
-            Resque::Job.create(queue, job_class_type, *params)
+            Resque::Job.create(queue, job_class, *params)
           end
         else
           # Hack to avoid havoc for people shoving stuff into queues
