@@ -174,7 +174,7 @@ module Resque
         found_jobs = find_delayed_selection(class_type) { |args| yield(args) }
         found_jobs.reduce(0) do |sum, encoded_job|
           decoded_job = decode(encoded_job)
-          class_type = Util.constantize(decoded_job['class'])
+          class_type = Resque::Scheduler::Util.constantize(decoded_job['class'])
           sum + enqueue_delayed(class_type, *decoded_job['args'])
         end
       end
