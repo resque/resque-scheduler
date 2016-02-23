@@ -335,7 +335,7 @@ module Resque
 
       def poll_sleep_loop
         @sleeping = true
-        if @poll_sleep_amount > 0
+        if (!(@poll_sleep_amount.nil?) and @poll_sleep_amount > 0)
           start = Time.now
           loop do
             elapsed_sleep = (Time.now - start)
