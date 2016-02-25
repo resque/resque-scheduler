@@ -51,13 +51,14 @@ module Resque
 
           # Now start the scheduling part of the loop.
           loop do
-            if master?
-              begin
+            begin
+              if master?
                 handle_delayed_items
                 update_schedule if dynamic
-              rescue Errno::EAGAIN, Errno::ECONNRESET => e
-                log! e.message
               end
+            rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
+              log! e.message
+              release_master_lock
             end
             poll_sleep
           end
