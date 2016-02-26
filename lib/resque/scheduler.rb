@@ -335,11 +335,11 @@ module Resque
 
       def poll_sleep_loop
         @sleeping = true
-        if @poll_sleep_amount > 0
+        if poll_sleep_amount > 0
           start = Time.now
           loop do
             elapsed_sleep = (Time.now - start)
-            remaining_sleep = @poll_sleep_amount - elapsed_sleep
+            remaining_sleep = poll_sleep_amount - elapsed_sleep
             @do_break = false
             if remaining_sleep <= 0
               @do_break = true
