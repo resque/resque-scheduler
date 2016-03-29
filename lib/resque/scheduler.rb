@@ -361,10 +361,16 @@ module Resque
         false
       rescue Interrupt
         if @shutdown
-          Resque.clean_schedules
-          release_master_lock
+          before_shutdown
         end
         true
+      end
+
+      def before_shutdown
+        ret = Resque.with_startup_watch do
+          Resque.clean_schedules
+        end
+        release_master_lock
       end
 
       # Sets the shutdown flag, clean schedules and exits if sleeping
