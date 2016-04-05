@@ -6,7 +6,7 @@
     { layout: false },
     title: 'Schedule',
     intro: 'The list below contains all scheduled jobs.  ' \
-           'Click &quot;Queue now&quot; to queue a job immediately.'
+           'Click &quot;Queue Now&quot; to queue a job immediately.'
   )
 %>
 
@@ -50,7 +50,7 @@
           <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
             <form action="<%= u '/schedule/requeue' %>" method="post" style="margin-left: 0">
               <input type="hidden" name="job_name" value="<%= h name %>">
-              <input type="submit" value="Queue now">
+              <input type="submit" value="Queue Now">
             </form>
           </td>
           <td><%= h name %></td>

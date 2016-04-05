@@ -140,7 +140,7 @@ module Resque
           job_class = Resque::Scheduler::Util.constantize(
             params['class_name'] || params[:class_name]
           )
-          timestamp = params['timestamp'] || params[:timestamp]
+          timestamp = (params['timestamp'] || params[:timestamp]).to_i
           args = Resque.decode(params['args'] || params[:args])
           Resque.remove_delayed_job_from_timestamp(
             timestamp, job_class, *args
