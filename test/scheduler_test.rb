@@ -59,7 +59,7 @@ context 'Resque::Scheduler' do
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
-      some_ivar_job: {
+      'some_ivar_job' => {
         'cron' => '* * * * *',
         'class' => 'SomeIvarJob',
         'args' => '/tmp'
@@ -87,15 +87,13 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
 
     Resque.redis.del(:schedules)
-    Resque.redis.hset(
-      :schedules,
-      'some_ivar_job2',
-      Resque.encode(
+    Resque.schedule = {
+      'some_ivar_job2' => {
         'cron' => '* * * * *',
         'class' => 'SomeIvarJob',
         'args' => '/tmp/2'
-      )
-    )
+      }
+    }
 
     Resque::Scheduler.reload_schedule!
 
@@ -313,7 +311,7 @@ context 'Resque::Scheduler' do
     }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/75' },
-      Resque.decode(Resque.redis.hget(:schedules, 'my_ivar_job'))
+      Resque.schedule['my_ivar_job']
     )
   end
 
@@ -346,7 +344,7 @@ context 'Resque::Scheduler' do
     } }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/75' },
-      Resque.decode(Resque.redis.hget(:schedules, 'SomeIvarJob'))
+      Resque.schedule['SomeIvarJob']
     )
     assert_equal('SomeIvarJob', Resque.schedule['SomeIvarJob']['class'])
   end
@@ -366,21 +364,19 @@ context 'Resque::Scheduler' do
     )
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/22' },
-      Resque.decode(Resque.redis.hget(:schedules, 'some_ivar_job'))
+      Resque.schedule['some_ivar_job']
     )
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job')
   end
 
   test 'fetch_schedule returns a schedule' do
-    Resque.redis.hset(
-      :schedules,
-      'some_ivar_job2',
-      Resque.encode(
+    Resque.schedule = {
+      'some_ivar_job2' => {
         'cron' => '* * * * *',
         'class' => 'SomeIvarJob',
         'args' => '/tmp/33'
-      )
-    )
+      }
+    }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/33' },
       Resque.fetch_schedule('some_ivar_job2')
