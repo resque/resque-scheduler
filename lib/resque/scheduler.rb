@@ -24,6 +24,7 @@ module Resque
     class << self
       # the Rufus::Scheduler jobs that are scheduled
       attr_reader :scheduled_jobs
+      attr_writer :logger
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
@@ -395,8 +396,6 @@ module Resque
       end
 
       private
-
-      attr_writer :logger
 
       def logger
         @logger ||= Resque::Scheduler::LoggerBuilder.new(
