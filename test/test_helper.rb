@@ -89,6 +89,12 @@ class SomeRealClass
   end
 end
 
+class SomeJobWithResqueHooks < SomeRealClass
+  def before_enqueue_example; end
+
+  def after_enqueue_example; end
+end
+
 class JobWithParams
   def self.perform(*args)
     @args = args
