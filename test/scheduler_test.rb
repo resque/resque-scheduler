@@ -31,16 +31,16 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.env = 'production'
     config = {
       'cron' => '* * * * *',
-      'class' => 'SomeRealClass',
+      'class' => 'SomeJobWithResqueHooks',
       'args' => '/tmp'
     }
 
     Resque::Job.expects(:create).with(
-      SomeRealClass.queue, SomeRealClass, '/tmp'
+      SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
     )
-    SomeRealClass.expects(:before_delayed_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:before_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:after_enqueue_example).with('/tmp')
+    SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example).with('/tmp')
+    SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp')
+    SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp')
 
     Resque::Scheduler.enqueue_from_config(config)
   end

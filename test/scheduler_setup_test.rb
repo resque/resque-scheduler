@@ -14,8 +14,10 @@ context 'Resque::Scheduler' do
 
   test 'set custom logger' do
     custom_logger = MonoLogger.new('/dev/null')
-    Resque::Scheduler.send(:logger=, custom_logger)
-    assert_equal(custom_logger, Resque::Scheduler.send(:logger))
+    Resque::Scheduler.logger = custom_logger
+
+    custom_logger.expects(:error).once
+    Resque::Scheduler.log_error('test')
   end
 
   test 'configure block' do
