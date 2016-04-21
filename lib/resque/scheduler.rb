@@ -5,6 +5,7 @@ require_relative 'scheduler/configuration'
 require_relative 'scheduler/locking'
 require_relative 'scheduler/logger_builder'
 require_relative 'scheduler/signal_handling'
+require_relative 'scheduler/failure_handler'
 
 module Resque
   module Scheduler
@@ -24,7 +25,11 @@ module Resque
     class << self
       # the Rufus::Scheduler jobs that are scheduled
       attr_reader :scheduled_jobs
+
       attr_writer :logger
+
+      # allow user to set an additional failure handler
+      attr_writer :failure_handler
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
@@ -138,7 +143,7 @@ module Resque
               if master?
                 log! "queueing #{config['class']} (#{name})"
                 Resque.last_enqueued_at(name, Time.now.to_s)
-                handle_errors { enqueue_from_config(config) }
+                enqueue(config)
               end
             end
             @scheduled_jobs[name] = job
@@ -188,7 +193,7 @@ module Resque
 
         if item
           log "queuing #{item['class']} [delayed]"
-          handle_errors { enqueue_from_config(item) }
+          enqueue(item)
         end
 
         item
@@ -208,16 +213,16 @@ module Resque
         end
       end
 
+      def enqueue(config)
+        enqueue_from_config(config)
+      rescue => e
+        Resque::Scheduler.failure_handler.on_enqueue_failure(config, e)
+      end
+
       def handle_shutdown
         exit if @shutdown
         yield
         exit if @shutdown
-      end
-
-      def handle_errors
-        yield
-      rescue => e
-        log_error "#{e.class.name}: #{e.message} #{e.backtrace.inspect}"
       end
 
       # Enqueues a job based on a config hash
@@ -394,6 +399,10 @@ module Resque
         argv0 = build_procline(string)
         log "Setting procline #{argv0.inspect}"
         $0 = argv0
+      end
+
+      def failure_handler
+        @failure_handler ||= Resque::Scheduler::FailureHandler
       end
 
       private

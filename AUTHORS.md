@@ -26,6 +26,7 @@ Resque Scheduler authors
 - Giovanni Cappellotto
 - Harry Lascelles
 - Henrik Nyh
+- Hormoz Kheradmand
 - James Le Cuirot
 - Jarkko Mönkkönen
 - John Crepezzi
