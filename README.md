@@ -415,6 +415,13 @@ Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
   removed from the delayed queue, but not yet put on a normal queue. It is
   called before `before_enqueue`-hooks, and on the same job instance as the
   `before_enqueue`-hooks will be invoked on. Return values are ignored.
+* `on_enqueue_failure`: Called with the job args and the exception that was raised
+  while enqueueing a job to resque or external application fails.  Return
+  values are ignored. For example:
+
+  ```ruby
+  Resque::Scheduler.failure_handler = ExceptionHandlerClass
+  ```
 
 #### Support for resque-status (and other custom jobs)
 
