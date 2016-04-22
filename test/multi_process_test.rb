@@ -7,36 +7,36 @@ context 'Multi Process' do
     # https://github.com/resque/resque-scheduler/pull/439#discussion_r16788812
     omit('forking is not supported by jruby but this behaviour' \
       ' is best tested using forks') if RUBY_ENGINE == 'jruby'
-    schedules = {}
-    schedules = {}
-    counts = []
+    schedules_1 = {}
+    schedules_2 = {}
+    schedules = []
     pids = []
 
     # This number may need to be increased if this test is not failing
-    processes = 20
+    processes = 100
 
-    schedule_count = 200
+    schedule_count = 300
 
     schedule_count.times do |n|
-      schedules["job #{n}"] = { cron: '0 1 0 0 0' }
+      schedules_1["1_job_#{n}"] = { cron: '0 1 0 0 0' }
+      schedules_2["2_job_#{n}"] = { cron: '0 1 0 0 0' }
     end
 
     processes.times do |n|
       pids << fork_with_marshalled_pipe_and_result do
         sleep n * 0.1
-        Resque.schedule = schedules
-        Resque.schedule.size
+        Resque.schedule = n.even? ? schedules_2 : schedules_1
+        Resque.schedule
       end
     end
 
-    # doing this outside the threads increases the odds of failure
-    Resque.schedule = schedules
-    counts << Resque.schedule.size
+    schedules += get_results_from_children(pids)
 
-    counts += get_results_from_children(pids)
-
-    counts.each_with_index do |c, i|
-      assert_equal schedule_count, c, "schedule count is incorrect (c: #{i})"
+    assert_equal processes, schedules.size,
+                 'missing some schedules, did a process die?'
+    schedules.each_with_index do |schedule, i|
+      assert_equal schedule_count, schedule.size,
+                   "schedule count is incorrect (schedule[#{i}]: #{schedule})"
     end
   end
 
@@ -71,6 +71,8 @@ context 'Multi Process' do
 
     counts += get_results_from_children(children).compact
 
+    assert_equal processes / 2, counts.size,
+                 'missing some counts, did a process die?'
     counts.each_with_index do |c, i|
       assert_equal schedule_count, c, "schedule count is incorrect (c: #{i})"
     end
