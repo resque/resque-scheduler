@@ -20,6 +20,13 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.log_error('test')
   end
 
+  test 'custom logger is accessible' do
+    custom_logger = MonoLogger.new('/dev/null')
+    Resque::Scheduler.logger = custom_logger
+
+    assert_equal custom_logger, Resque::Scheduler.logger
+  end
+
   test 'configure block' do
     Resque::Scheduler.quiet = false
     Resque::Scheduler.configure do |c|
