@@ -125,7 +125,7 @@ def nullify_logger
     c.quiet = nil
     c.verbose = nil
     c.logfile = nil
-    c.send(:logger=, nil)
+    c.logger = nil
   end
 
   ENV['LOGFILE'] = nil

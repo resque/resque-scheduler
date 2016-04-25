@@ -23,10 +23,10 @@ module Resque
     public
 
     class << self
+      attr_writer :logger
+
       # the Rufus::Scheduler jobs that are scheduled
       attr_reader :scheduled_jobs
-
-      attr_writer :logger
 
       # allow user to set an additional failure handler
       attr_writer :failure_handler
@@ -405,8 +405,6 @@ module Resque
         @failure_handler ||= Resque::Scheduler::FailureHandler
       end
 
-      private
-
       def logger
         @logger ||= Resque::Scheduler::LoggerBuilder.new(
           quiet: quiet,
@@ -415,6 +413,8 @@ module Resque
           format: logformat
         ).build
       end
+
+      private
 
       def app_str
         app_name ? "[#{app_name}]" : ''
