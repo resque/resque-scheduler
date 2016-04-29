@@ -1,6 +1,6 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
-## 4.2.0 (2016-04-28)
+## 4.2.0 (2016-04-29)
 * Bugfix for a race condition in concurrent restarts
 * Clean up and simplify the scheduling extension
 * Make `Resque::Scheduler.logger` accessible to user
