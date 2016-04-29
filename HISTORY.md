@@ -1,5 +1,16 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 4.2.0 (2016-04-28)
+* Bugfix for a race condition in concurrent restarts
+* Clean up and simplify the scheduling extension
+* Make `Resque::Scheduler.logger` accessible to user
+* Failure hook support for better extensibility
+* Default failure handler now outputs stacktrace
+* Add index column to scheduler tab
+* Update rufus-scheduler
+* Bugfix for displaying schedules appropriate to the `env`
+in scheduler UI
+
 ## 4.1.0 (2016-02-10)
 * View helper to cut down on repetition
 * Bugfix to check thread life only if present
