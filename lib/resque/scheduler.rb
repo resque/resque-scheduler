@@ -148,7 +148,7 @@ module Resque
               interval_defined = true
 
             rescue => e
-              log "[Bad Schedule] ignoring with: #{e.message}\n#{e.backtrace.join("\n")}"
+              log_error "[Bad Schedule] ignoring with: #{e.message}\n#{e.backtrace.join("\n")}"
             end
             break
           end
