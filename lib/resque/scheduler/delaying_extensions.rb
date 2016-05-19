@@ -186,22 +186,17 @@ module Resque
       def find_delayed_selection(klass = nil, &block)
         fail ArgumentError, 'Please supply a block' unless block_given?
 
-        found_jobs = []
-        start = nil
-        while start = search_first_delayed_timestamp_in_range(start, nil)
-          job = "delayed:#{start}"
-          start += 1
-          index = Resque.redis.llen(job) - 1
-          while index >= 0
-            payload = Resque.redis.lindex(job, index)
-            decoded_payload = decode(payload)
-            if payload_matches_selection?(decoded_payload, klass, &block)
-              found_jobs.push(payload)
-            end
-            index -= 1
+        timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
+
+        jobs_per_ts = redis.pipelined do |r|
+          timestamps.each do |ts|
+            r.lrange("delayed:#{ts}", 0, -1)
           end
         end
-        found_jobs
+
+        jobs_per_ts.flatten.select do |payload|
+          payload_matches_selection?(decode(payload), klass, &block)
+        end
       end
 
       # Given a timestamp and job (klass + args) it removes all instances and
