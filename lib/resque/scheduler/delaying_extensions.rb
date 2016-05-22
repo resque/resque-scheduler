@@ -188,15 +188,20 @@ module Resque
 
         timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
 
-        jobs_per_ts = redis.pipelined do |r|
-          timestamps.each do |ts|
-            r.lrange("delayed:#{ts}", 0, -1)
+        # Beyond 100 there's almost no improvement in speed
+        found = timestamps.each_slice(100).map do |ts_group|
+          jobs = redis.pipelined do |r|
+            ts_group.each do |ts|
+              r.lrange("delayed:#{ts}", 0, -1)
+            end
+          end
+
+          jobs.flatten.select do |payload|
+            payload_matches_selection?(decode(payload), klass, &block)
           end
         end
 
-        jobs_per_ts.flatten.select do |payload|
-          payload_matches_selection?(decode(payload), klass, &block)
-        end
+        found.flatten
       end
 
       # Given a timestamp and job (klass + args) it removes all instances and
