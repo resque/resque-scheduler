@@ -135,7 +135,7 @@ module Resque
           interval_defined = false
           interval_types = %w(cron every)
           interval_types.each do |interval_type|
-            next unless !config[interval_type].nil? && config[interval_type].length > 0
+            next unless !config[interval_type].nil? && !config[interval_type].empty?
             args = optionizate_interval_value(config[interval_type])
             args = [args, nil, job: true] if args.is_a?(::String)
 

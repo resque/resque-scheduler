@@ -442,7 +442,7 @@ context 'Resque::Scheduler' do
   test 'procline omits app_name when absent' do
     Resque::Scheduler.app_name = nil
     assert Resque::Scheduler.send(:build_procline, 'bar') =~
-      /#{Resque::Scheduler.send(:internal_name)}: bar/
+           /#{Resque::Scheduler.send(:internal_name)}: bar/
   end
 
   test 'procline contains env when present' do
@@ -453,7 +453,7 @@ context 'Resque::Scheduler' do
   test 'procline omits env when absent' do
     Resque::Scheduler.env = nil
     assert Resque::Scheduler.send(:build_procline, 'cage') =~
-      /#{Resque::Scheduler.send(:internal_name)}: cage/
+           /#{Resque::Scheduler.send(:internal_name)}: cage/
   end
 
   context 'printing schedule' do
@@ -464,9 +464,9 @@ context 'Resque::Scheduler' do
     test 'prints schedule' do
       fake_rufus_scheduler = mock
       fake_rufus_scheduler.expects(:jobs).at_least_once
-        .returns(foo: OpenStruct.new(t: nil, last: nil))
+                          .returns(foo: OpenStruct.new(t: nil, last: nil))
       Resque::Scheduler.expects(:rufus_scheduler).at_least_once
-        .returns(fake_rufus_scheduler)
+                       .returns(fake_rufus_scheduler)
       Resque::Scheduler.print_schedule
     end
   end

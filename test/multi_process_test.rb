@@ -104,9 +104,9 @@ context 'Multi Process' do
     children.each do |pid, pipe|
       wait_for_child_process_to_terminate(pid)
 
-      fail "forked process failed with #{$CHILD_STATUS}" unless $CHILD_STATUS.success?
+      raise "forked process failed with #{$CHILD_STATUS}" unless $CHILD_STATUS.success?
       result, exc = Marshal.load(pipe.read)
-      fail exc if exc
+      raise exc if exc
       results << result
     end
     results

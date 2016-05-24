@@ -12,20 +12,20 @@ require 'resque/scheduler/server'
 
 schedule_yml = ENV['RESQUE_SCHEDULE_YML']
 if schedule_yml
-  if File.exist?(schedule_yml)
-    Resque.schedule = YAML.load_file(schedule_yml)
-  else
-    Resque.schedule = YAML.load(schedule_yml)
-  end
+  Resque.schedule = if File.exist?(schedule_yml)
+                      YAML.load_file(schedule_yml)
+                    else
+                      YAML.load(schedule_yml)
+                    end
 end
 
 schedule_json = ENV['RESQUE_SCHEDULE_JSON']
 if schedule_json
-  if File.exist?(schedule_json)
-    Resque.schedule = JSON.parse(File.read(schedule_json))
-  else
-    Resque.schedule = JSON.parse(schedule_json)
-  end
+  Resque.schedule = if File.exist?(schedule_json)
+                      JSON.parse(File.read(schedule_json))
+                    else
+                      JSON.parse(schedule_json)
+                    end
 end
 
 class Putter

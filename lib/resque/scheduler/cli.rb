@@ -16,7 +16,7 @@ module Resque
       pidfile: 'PIDFILE',
       poll_sleep_amount: 'RESQUE_SCHEDULER_INTERVAL',
       verbose: 'VERBOSE'
-    }
+    }.freeze
 
     class Cli
       BANNER = <<-EOF.gsub(/ {6}/, '')
@@ -129,7 +129,7 @@ module Resque
         OptionParser.new do |opts|
           opts.banner = BANNER
           OPTIONS.each do |opt|
-            opts.on(*opt[:args], &(opt[:callback].call(options)))
+            opts.on(*opt[:args], &opt[:callback].call(options))
           end
         end
       end

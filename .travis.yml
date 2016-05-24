@@ -7,6 +7,7 @@ rvm:
 env:
   global:
   - COVERAGE=1
+  - JRUBY_OPTS=''
 matrix:
   allow_failures:
   - rvm: jruby-9.1.1.0
