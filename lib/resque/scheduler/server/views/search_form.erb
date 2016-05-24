@@ -1,8 +1,4 @@
-<form method="POST" action="<%= u 'delayed/search' %>">
-  <input type='input' name='search' value="<%= params[:search] %>"/>
-  <input type='submit' value='Search'/>
+<form method="get" action="<%= u 'delayed/search' %>">
+  <input type="input" name="q" value="<%= params[:q] %>" />
+  <input type="submit" value="Search" />
 </form>
-
-
-
-

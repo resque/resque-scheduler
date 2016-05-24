@@ -244,14 +244,14 @@ context 'DelayedQueue' do
     Resque::Scheduler.handle_delayed_items(t)
   end
 
-  test 'calls klass#scheduled when enqueuing jobs if it exists' do
+  test 'calls job_class#scheduled when enqueuing jobs if it exists' do
     t = Time.now - 60
     FakeCustomJobClassEnqueueAt.expects(:scheduled)
       .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
     Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
   end
 
-  test 'when Resque.inline = true, calls klass#scheduled ' \
+  test 'when Resque.inline = true, calls job_class#scheduled ' \
        'when enqueuing jobs if it exists' do
     old_val = Resque.inline
     begin

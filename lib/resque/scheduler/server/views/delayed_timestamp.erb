@@ -1,10 +1,13 @@
-<% timestamp = params[:timestamp].to_i %>
+<%
+  timestamp = (params['timestamp'] || params[:timestamp]).to_i
+  size = resque.delayed_timestamp_size(timestamp)
+%>
 
 <h1>Delayed jobs scheduled for <%= format_time(Time.at(timestamp)) %></h1>
 
-<p class='sub'>Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%=size = resque.delayed_timestamp_size(timestamp)%></b> jobs</p>
+<p class="sub">Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%= size %></b> jobs</p>
 
-<table class='jobs'>
+<table class="jobs">
   <tr>
     <th>Class</th>
     <th>Args</th>
@@ -12,15 +15,15 @@
   <% jobs = resque.delayed_timestamp_peek(timestamp, start, 20) %>
   <% jobs.each do |job| %>
     <tr>
-      <td class='class'><%= job['class'] %></td>
-      <td class='args'><%=h show_job_arguments(job['args']) %></td>
+      <td class="class"><%= job['class'] %></td>
+      <td class="args"><%= h show_job_arguments(job['args']) %></td>
     </tr>
   <% end %>
   <% if jobs.empty? %>
     <tr>
-      <td class='no-data' colspan='2'>There are no pending jobs scheduled for this time.</td>
+      <td class="no-data" colspan="2">There are no pending jobs scheduled for this time.</td>
     </tr>
   <% end %>
 </table>
 
-<%= partial :next_more, :start => start, :size => size %>
+<%= partial :next_more, start: start, size: size %>

@@ -3,13 +3,13 @@ require_relative 'test_helper'
 
 require 'resque/server/test_helper'
 
-context 'on GET to /schedule' do
+context 'GET /schedule' do
   setup { get '/schedule' }
 
   test('is 200') { assert last_response.ok? }
 end
 
-context 'on GET to /schedule with scheduled jobs' do
+context 'GET /schedule with scheduled jobs' do
   setup do
     Resque::Scheduler.env = 'production'
     Resque.schedule = {
@@ -74,13 +74,13 @@ context 'on GET to /schedule with scheduled jobs' do
   end
 end
 
-context 'on GET to /delayed' do
+context 'GET /delayed' do
   setup { get '/delayed' }
 
   test('is 200') { assert last_response.ok? }
 end
 
-context 'on GET to /delayed/jobs/:klass'do
+context 'GET /delayed/jobs/:class_name'do
   setup do
     @t = Time.now + 3600
     Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
@@ -217,7 +217,7 @@ context 'POST /schedule/requeue_with_params' do
   end
 end
 
-context 'on POST to /delayed/search' do
+context 'GET /delayed/search' do
   setup do
     t = Time.now + 60
     Resque.enqueue_at(t, SomeIvarJob)
@@ -225,19 +225,19 @@ context 'on POST to /delayed/search' do
   end
 
   test 'should find matching scheduled job' do
-    post '/delayed/search', 'search' => 'ivar'
+    get '/delayed/search', 'q' => 'ivar'
     assert last_response.status == 200
     assert last_response.body.include?('SomeIvarJob')
   end
 
   test 'should find matching queued job' do
-    post '/delayed/search', 'search' => 'quick'
+    get '/delayed/search', 'q' => 'quick'
     assert last_response.status == 200
     assert last_response.body.include?('SomeQuickJob')
   end
 end
 
-context 'on POST to /delayed/cancel_now' do
+context 'POST /delayed/cancel_now' do
   setup { post '/delayed/cancel_now' }
 
   test 'redirects to overview' do
@@ -246,7 +246,7 @@ context 'on POST to /delayed/cancel_now' do
   end
 end
 
-context 'on POST to /delayed/clear' do
+context 'POST /delayed/clear' do
   setup { post '/delayed/clear' }
 
   test 'redirects to delayed' do
@@ -255,7 +255,7 @@ context 'on POST to /delayed/clear' do
   end
 end
 
-context 'on POST to /delayed/queue_now' do
+context 'POST /delayed/queue_now' do
   setup { post '/delayed/queue_now', timestamp: 0 }
 
   test 'returns ok status' do
@@ -263,7 +263,7 @@ context 'on POST to /delayed/queue_now' do
   end
 end
 
-context 'on GET to /delayed/:timestamp' do
+context 'GET /delayed/:timestamp' do
   setup { get '/delayed/1234567890' }
 
   test 'shows delayed_timestamp view' do

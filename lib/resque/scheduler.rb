@@ -229,55 +229,55 @@ module Resque
       def enqueue_from_config(job_config)
         args = job_config['args'] || job_config[:args]
 
-        klass_name = job_config['class'] || job_config[:class]
+        class_type_name = job_config['class'] || job_config[:class]
         begin
-          klass = Resque::Scheduler::Util.constantize(klass_name)
+          class_type = Resque::Scheduler::Util.constantize(class_type_name)
         rescue NameError
-          klass = klass_name
+          class_type = class_type_name
         end
 
         params = args.is_a?(Hash) ? [args] : Array(args)
         queue = job_config['queue'] ||
                 job_config[:queue] ||
-                Resque.queue_from_class(klass)
+                Resque.queue_from_class(class_type)
         # Support custom job classes like those that inherit from
         # Resque::JobWithStatus (resque-status)
-        job_klass = job_config['custom_job_class']
-        if job_klass && job_klass != 'Resque::Job'
+        job_class = job_config['custom_job_class']
+        if job_class && job_class != 'Resque::Job'
           # The custom job class API must offer a static "scheduled" method. If
           # the custom job class can not be constantized (via a requeue call
           # from the web perhaps), fall back to enqueing normally via
           # Resque::Job.create.
           begin
-            Resque::Scheduler::Util.constantize(job_klass).scheduled(
-              queue, klass_name, *params
+            Resque::Scheduler::Util.constantize(job_class).scheduled(
+              queue, class_type_name, *params
             )
           rescue NameError
             # Note that the custom job class (job_config['custom_job_class'])
             # is the one enqueued
-            Resque::Job.create(queue, job_klass, *params)
+            Resque::Job.create(queue, job_class, *params)
           end
         else
           # Hack to avoid havoc for people shoving stuff into queues
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another.
-          if Class === klass
+          if Class === class_type
             Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(
-              klass, *params
+              class_type, *params
             )
 
             # If the class is a custom job class, call self#scheduled on it.
             # This allows you to do things like Resque.enqueue_at(timestamp,
             # CustomJobClass). Otherwise, pass off to Resque.
-            if klass.respond_to?(:scheduled)
-              klass.scheduled(queue, klass_name, *params)
+            if class_type.respond_to?(:scheduled)
+              class_type.scheduled(queue, class_type_name, *params)
             else
-              Resque.enqueue_to(queue, klass, *params)
+              Resque.enqueue_to(queue, class_type, *params)
             end
           else
             # This will not run the before_hooks in rescue, but will at least
             # queue the job.
-            Resque::Job.create(queue, klass, *params)
+            Resque::Job.create(queue, class_type, *params)
           end
         end
       end

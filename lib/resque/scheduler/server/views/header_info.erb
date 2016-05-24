@@ -1,0 +1,7 @@
+<h1><%= title %></h1>
+<p class="intro">
+  <%= intro %>
+  (Server time: <%= h Time.now %><% unless server_env.empty? %>,
+  Env: <%= h server_env %><% end %><% unless master_name.empty? %>,
+  Master: <%= h master_name %><% end %>)
+</p>
