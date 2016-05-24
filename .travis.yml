@@ -2,17 +2,15 @@ language: ruby
 sudo: false
 rvm:
 - 1.9.3
-- 2.3.0
-- jruby-19mode
-- rbx
+- 2.3.1
+- jruby-9.1.1.0
 env:
   global:
   - JRUBY_OPTS='-Xcext.enabled=true'
   - COVERAGE=1
 matrix:
   allow_failures:
-  - rvm: jruby-19mode
-  - rvm: rbx
+  - rvm: jruby-9.1.1.0
 services:
 - redis-server
 notifications:
@@ -29,5 +27,5 @@ deploy:
   on:
     tags: true
     repo: resque/resque-scheduler
-    rvm: 2.3.0
+    rvm: 2.3.1
     all_branches: true
