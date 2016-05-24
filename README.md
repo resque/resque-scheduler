@@ -19,9 +19,9 @@ jobs are resque jobs that you want to run at some point in the future.
 The syntax is pretty explanatory:
 
 ```ruby
-Resque.enqueue_in(5.days, SendFollowupEmail) # run a job in 5 days
+Resque.enqueue_in(5.days, SendFollowupEmail, argument) # runs a job in 5 days, calling SendFollowupEmail.perform(argument)
 # or
-Resque.enqueue_at(5.days.from_now, SomeJob) # run SomeJob at a specific time
+Resque.enqueue_at(5.days.from_now, SomeJob, argument) # runs a job at a specific time, calling SomeJob.perform(argument)
 ```
 
 ### Documentation
@@ -415,6 +415,13 @@ Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
   removed from the delayed queue, but not yet put on a normal queue. It is
   called before `before_enqueue`-hooks, and on the same job instance as the
   `before_enqueue`-hooks will be invoked on. Return values are ignored.
+* `on_enqueue_failure`: Called with the job args and the exception that was raised
+  while enqueueing a job to resque or external application fails.  Return
+  values are ignored. For example:
+
+  ```ruby
+  Resque::Scheduler.failure_handler = ExceptionHandlerClass
+  ```
 
 #### Support for resque-status (and other custom jobs)
 

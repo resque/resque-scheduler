@@ -5,6 +5,7 @@ require_relative 'scheduler/configuration'
 require_relative 'scheduler/locking'
 require_relative 'scheduler/logger_builder'
 require_relative 'scheduler/signal_handling'
+require_relative 'scheduler/failure_handler'
 
 module Resque
   module Scheduler
@@ -22,8 +23,13 @@ module Resque
     public
 
     class << self
+      attr_writer :logger
+
       # the Rufus::Scheduler jobs that are scheduled
       attr_reader :scheduled_jobs
+
+      # allow user to set an additional failure handler
+      attr_writer :failure_handler
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
@@ -137,7 +143,7 @@ module Resque
               if master?
                 log! "queueing #{config['class']} (#{name})"
                 Resque.last_enqueued_at(name, Time.now.to_s)
-                handle_errors { enqueue_from_config(config) }
+                enqueue(config)
               end
             end
             @scheduled_jobs[name] = job
@@ -187,7 +193,7 @@ module Resque
 
         if item
           log "queuing #{item['class']} [delayed]"
-          handle_errors { enqueue_from_config(item) }
+          enqueue(item)
         end
 
         item
@@ -207,16 +213,16 @@ module Resque
         end
       end
 
+      def enqueue(config)
+        enqueue_from_config(config)
+      rescue => e
+        Resque::Scheduler.failure_handler.on_enqueue_failure(config, e)
+      end
+
       def handle_shutdown
         exit if @shutdown
         yield
         exit if @shutdown
-      end
-
-      def handle_errors
-        yield
-      rescue => e
-        log_error "#{e.class.name}: #{e.message} #{e.backtrace.inspect}"
       end
 
       # Enqueues a job based on a config hash
@@ -335,11 +341,11 @@ module Resque
 
       def poll_sleep_loop
         @sleeping = true
-        if @poll_sleep_amount > 0
+        if poll_sleep_amount > 0
           start = Time.now
           loop do
             elapsed_sleep = (Time.now - start)
-            remaining_sleep = @poll_sleep_amount - elapsed_sleep
+            remaining_sleep = poll_sleep_amount - elapsed_sleep
             @do_break = false
             if remaining_sleep <= 0
               @do_break = true
@@ -360,11 +366,12 @@ module Resque
         handle_signals
         false
       rescue Interrupt
-        if @shutdown
-          Resque.clean_schedules
-          release_master_lock
-        end
+        before_shutdown if @shutdown
         true
+      end
+
+      def before_shutdown
+        release_master_lock
       end
 
       # Sets the shutdown flag, clean schedules and exits if sleeping
@@ -394,9 +401,9 @@ module Resque
         $0 = argv0
       end
 
-      private
-
-      attr_writer :logger
+      def failure_handler
+        @failure_handler ||= Resque::Scheduler::FailureHandler
+      end
 
       def logger
         @logger ||= Resque::Scheduler::LoggerBuilder.new(
@@ -406,6 +413,8 @@ module Resque
           format: logformat
         ).build
       end
+
+      private
 
       def app_str
         app_name ? "[#{app_name}]" : ''

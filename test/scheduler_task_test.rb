@@ -38,6 +38,20 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.release_master_lock
   end
 
+  test 'can start successfully' do
+    Resque::Scheduler.poll_sleep_amount = nil
+
+    @pid = Process.pid
+    Thread.new do
+      sleep(0.15)
+      Process.kill(:TERM, @pid)
+    end
+
+    assert_raises SystemExit do
+      Resque::Scheduler.run
+    end
+  end
+
   test 'sending TERM to scheduler breaks out when poll_sleep_amount = 0' do
     Resque::Scheduler.poll_sleep_amount = 0
     Resque::Scheduler.expects(:release_master_lock)

@@ -49,6 +49,10 @@ unless defined?(Rails)
   end
 end
 
+class ExceptionHandlerClass
+  def self.on_enqueue_failure(_, _); end
+end
+
 class FakeCustomJobClass
   def self.scheduled(_, _, *_); end
 end
@@ -89,6 +93,12 @@ class SomeRealClass
   end
 end
 
+class SomeJobWithResqueHooks < SomeRealClass
+  def before_enqueue_example; end
+
+  def after_enqueue_example; end
+end
+
 class JobWithParams
   def self.perform(*args)
     @args = args
@@ -115,7 +125,7 @@ def nullify_logger
     c.quiet = nil
     c.verbose = nil
     c.logfile = nil
-    c.send(:logger=, nil)
+    c.logger = nil
   end
 
   ENV['LOGFILE'] = nil
@@ -124,6 +134,14 @@ end
 def restore_devnull_logfile
   nullify_logger
   ENV['LOGFILE'] = '/dev/null'
+end
+
+def with_failure_handler(handler)
+  original_handler = Resque::Scheduler.failure_handler
+  Resque::Scheduler.failure_handler = handler
+  yield
+ensure
+  Resque::Scheduler.failure_handler = original_handler
 end
 
 restore_devnull_logfile
