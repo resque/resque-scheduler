@@ -156,7 +156,7 @@ module Resque
       # This allows for removal of delayed jobs that have arguments matching
       # certain criteria
       def remove_delayed_selection(klass = nil)
-        fail ArgumentError, 'Please supply a block' unless block_given?
+        raise ArgumentError, 'Please supply a block' unless block_given?
 
         found_jobs = find_delayed_selection(klass) { |args| yield(args) }
         found_jobs.reduce(0) do |sum, encoded_job|
@@ -169,7 +169,7 @@ module Resque
       # This allows for enqueuing of delayed jobs that have arguments matching
       # certain criteria
       def enqueue_delayed_selection(klass = nil)
-        fail ArgumentError, 'Please supply a block' unless block_given?
+        raise ArgumentError, 'Please supply a block' unless block_given?
 
         found_jobs = find_delayed_selection(klass) { |args| yield(args) }
         found_jobs.reduce(0) do |sum, encoded_job|
@@ -184,7 +184,7 @@ module Resque
       # This allows for finding of delayed jobs that have arguments matching
       # certain criteria
       def find_delayed_selection(klass = nil, &block)
-        fail ArgumentError, 'Please supply a block' unless block_given?
+        raise ArgumentError, 'Please supply a block' unless block_given?
 
         timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
 

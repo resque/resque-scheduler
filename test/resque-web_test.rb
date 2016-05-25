@@ -80,7 +80,7 @@ context 'on GET to /delayed' do
   test('is 200') { assert last_response.ok? }
 end
 
-context 'on GET to /delayed/jobs/:klass'do
+context 'on GET to /delayed/jobs/:klass' do
   setup do
     @t = Time.now + 3600
     Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
@@ -144,7 +144,7 @@ module Test
         }
       }
     }
-  }
+  }.freeze
 end
 
 context 'POST /schedule/requeue' do
@@ -157,7 +157,7 @@ context 'POST /schedule/requeue' do
     # Regular jobs without params should redirect to /overview
     job_name = 'job_without_params'
     Resque::Scheduler.stubs(:enqueue_from_config)
-      .once.with(Resque.schedule[job_name])
+                     .once.with(Resque.schedule[job_name])
 
     post '/schedule/requeue', 'job_name' => job_name
     follow_redirect!

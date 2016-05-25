@@ -6,19 +6,14 @@ rvm:
 - jruby-9.1.1.0
 env:
   global:
-  - JRUBY_OPTS='-Xcext.enabled=true'
   - COVERAGE=1
+  - JRUBY_OPTS=''
+  - RUBYOPT='-W0'
 matrix:
   allow_failures:
   - rvm: jruby-9.1.1.0
 services:
 - redis-server
-notifications:
-  irc:
-    channels:
-    - 'chat.freenode.net#resque'
-    on_success: change
-    on_failure: change
 deploy:
   provider: rubygems
   api_key:
