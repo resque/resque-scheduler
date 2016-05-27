@@ -39,7 +39,7 @@ Metrics/MethodLength:
 # Offense count: 2
 # Configuration parameters: CountComments.
 Metrics/ModuleLength:
-  Max: 313
+  Max: 310
 
 # Offense count: 1
 Style/CaseEquality:
