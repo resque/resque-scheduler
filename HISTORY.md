@@ -1,5 +1,13 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## 4.2.1 (2016-05-27)
+* Optimization of `find_delayed_selection`
+* More defensive code around redis disconnects
+* Only trap existing signals on given platform
+* RuboCop auto-fixes
+* Dependency updates
+* Docs improvements
+
 ## 4.2.0 (2016-04-29)
 * Bugfix for a race condition in concurrent restarts
 * Clean up and simplify the scheduling extension
