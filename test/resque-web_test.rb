@@ -220,7 +220,7 @@ end
 context 'on POST to /delayed/search' do
   setup do
     t = Time.now + 60
-    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob, 'string arg')
     Resque.enqueue(SomeQuickJob)
   end
 
@@ -228,6 +228,11 @@ context 'on POST to /delayed/search' do
     post '/delayed/search', 'search' => 'ivar'
     assert last_response.status == 200
     assert last_response.body.include?('SomeIvarJob')
+  end
+
+  test 'the form should encode string params' do
+    post '/delayed/search', 'search' => 'ivar'
+    assert_match('value="[&quot;string arg&quot;]', last_response.body)
   end
 
   test 'should find matching queued job' do
