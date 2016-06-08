@@ -220,7 +220,7 @@ end
 context 'on POST to /delayed/search' do
   setup do
     t = Time.now + 60
-    Resque.enqueue_at(t, SomeIvarJob)
+    Resque.enqueue_at(t, SomeIvarJob, 'string arg')
     Resque.enqueue(SomeQuickJob)
   end
 
@@ -228,6 +228,11 @@ context 'on POST to /delayed/search' do
     post '/delayed/search', 'search' => 'ivar'
     assert last_response.status == 200
     assert last_response.body.include?('SomeIvarJob')
+  end
+
+  test 'the form should encode string params' do
+    post '/delayed/search', 'search' => 'ivar'
+    assert_match('value="[&quot;string arg&quot;]', last_response.body)
   end
 
   test 'should find matching queued job' do
@@ -238,9 +243,38 @@ context 'on POST to /delayed/search' do
 end
 
 context 'on POST to /delayed/cancel_now' do
-  setup { post '/delayed/cancel_now' }
+  setup do
+    Resque.reset_delayed_queue
+    Resque.enqueue_at(Time.now + 10, SomeIvarJob, 'arg')
+    Resque.enqueue_at(Time.now + 100, SomeQuickJob)
+  end
+
+  test 'removes the specified job' do
+    job_timestamp, *remaining = Resque.delayed_queue_peek(0, 10)
+    assert_equal 1, remaining.size
+
+    post '/delayed/cancel_now',
+         'timestamp' => job_timestamp,
+         'klass'     => SomeIvarJob.name,
+         'args'      => Resque.encode(['arg'])
+
+    assert_equal 302, last_response.status
+    assert_equal remaining, Resque.delayed_queue_peek(0, 10)
+  end
+
+  test 'does not remove the job if the params do not match' do
+    timestamps = Resque.delayed_queue_peek(0, 10)
+
+    post '/delayed/cancel_now',
+         'timestamp' => timestamps.first,
+         'klass'     => SomeIvarJob.name
+
+    assert_equal 302, last_response.status
+    assert_equal timestamps, Resque.delayed_queue_peek(0, 10)
+  end
 
   test 'redirects to overview' do
+    post '/delayed/cancel_now'
     assert last_response.status == 302
     assert last_response.header['Location'].include? '/delayed'
   end
