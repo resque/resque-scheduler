@@ -1,12 +1,9 @@
 install:
 - set PATH=C:\Ruby23\bin;%PATH%
-- bundle install
 - nuget install redis-64 -excludeversion
-- dir /a
-- dir /a C:\
-- git ls-files -o
-- redis-64\redis-server.exe --service-install
-- redis-64\redis-server.exe --service-start
+- redis-64\tools\redis-server.exe --service-install
+- redis-64\tools\redis-server.exe --service-start
+- bundle install
 
 build: off
 
