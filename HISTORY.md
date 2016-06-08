@@ -1,6 +1,6 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
-## 4.2.1 (2016-05-27)
+## 4.2.1 (2016-06-08)
 * Optimization of `find_delayed_selection`
 * More defensive code around redis disconnects
 * Only trap existing signals on given platform
