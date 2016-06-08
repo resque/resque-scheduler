@@ -1,5 +1,8 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## Unreleased
+* Add Windows testing on Appveyor
+
 ## 4.2.1 (2016-06-08)
 * Optimization of `find_delayed_selection`
 * More defensive code around redis disconnects

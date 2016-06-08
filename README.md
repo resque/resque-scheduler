@@ -608,11 +608,11 @@ with resque could easily work on resque-scheduler.
 
 Working on resque-scheduler requires the following:
 
-* A relatively modern Ruby interpreter (MRI 1.9+ is what's tested)
+* A relatively modern Ruby interpreter
 * bundler
 
 The development setup looks like this, which is roughly the same thing
-that happens on Travis CI:
+that happens on Travis CI and Appveyor:
 
 ``` bash
 # Install everything
