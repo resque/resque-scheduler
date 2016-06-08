@@ -131,13 +131,15 @@ def nullify_logger
   ENV['LOGFILE'] = nil
 end
 
+def devnull_logfile
+  @devnull_logfile ||= (
+    RUBY_PLATFORM =~ /mingw|windows/i ? 'nul' : '/dev/null'
+  )
+end
+
 def restore_devnull_logfile
   nullify_logger
-  ENV['LOGFILE'] = if RUBY_PLATFORM =~ /mingw|windows/i
-                     'nul'
-                   else
-                     '/dev/null'
-                   end
+  ENV['LOGFILE'] = devnull_logfile
 end
 
 def with_failure_handler(handler)

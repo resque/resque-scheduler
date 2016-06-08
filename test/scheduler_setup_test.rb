@@ -13,7 +13,7 @@ context 'Resque::Scheduler' do
   teardown { restore_devnull_logfile }
 
   test 'set custom logger' do
-    custom_logger = MonoLogger.new(ENV.fetch('LOGFILE'))
+    custom_logger = MonoLogger.new(devnull_logfile)
     Resque::Scheduler.logger = custom_logger
 
     custom_logger.expects(:error).once
@@ -21,7 +21,7 @@ context 'Resque::Scheduler' do
   end
 
   test 'custom logger is accessible' do
-    custom_logger = MonoLogger.new(ENV.fetch('LOGFILE'))
+    custom_logger = MonoLogger.new(devnull_logfile)
     Resque::Scheduler.logger = custom_logger
 
     assert_equal custom_logger, Resque::Scheduler.logger
@@ -86,11 +86,11 @@ context 'Resque::Scheduler' do
     teardown { restore_devnull_logfile }
 
     test 'uses logfile' do
-      Resque::Scheduler.logfile = ENV.fetch('LOGFILE')
+      Resque::Scheduler.logfile = devnull_logfile 
       assert_equal(
         Resque::Scheduler.send(:logger)
           .instance_variable_get(:@logdev).filename,
-        ENV.fetch('LOGFILE')
+        devnull_logfile
       )
     end
 
