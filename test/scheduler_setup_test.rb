@@ -86,7 +86,7 @@ context 'Resque::Scheduler' do
     teardown { restore_devnull_logfile }
 
     test 'uses logfile' do
-      Resque::Scheduler.logfile = devnull_logfile 
+      Resque::Scheduler.logfile = devnull_logfile
       assert_equal(
         Resque::Scheduler.send(:logger)
           .instance_variable_get(:@logdev).filename,
