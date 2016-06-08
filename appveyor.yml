@@ -1,6 +1,11 @@
 cache:
 - vendor/bundle
 
+environment:
+  RUBYOPT: '-W0'
+  COVERAGE: 1
+  JRUBY_OPTS: ''
+
 install:
 - set PATH=C:\Ruby23\bin;%PATH%
 - nuget install redis-64 -excludeversion
