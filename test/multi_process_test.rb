@@ -6,8 +6,8 @@ context 'Multi Process' do
     # more info on why we're not using threads:
     # https://github.com/resque/resque-scheduler/pull/439#discussion_r16788812
     if RUBY_ENGINE == 'jruby' || RUBY_PLATFORM =~ /mingw|windows/i
-      omit('forking is not supported by jruby but this behaviour ' \
-           'is best tested using forks')
+      omit("forking is not supported on #{RUBY_ENGINE}/#{RUBY_PLATFORM} but " \
+           'this behaviour is best tested using forks')
     end
     schedules_1 = {}
     schedules_2 = {}
@@ -44,8 +44,8 @@ context 'Multi Process' do
 
   test 'concurrent shutdowns and startups do not corrupt the schedule' do
     if RUBY_ENGINE == 'jruby' || RUBY_PLATFORM =~ /mingw|windows/i
-      omit('forking is not supported by jruby but this behaviour ' \
-           'is best tested using forks')
+      omit("forking is not supported on #{RUBY_ENGINE}/#{RUBY_PLATFORM} but " \
+           'this behaviour is best tested using forks')
     end
     counts = []
     children = []
