@@ -133,7 +133,7 @@ end
 
 def restore_devnull_logfile
   nullify_logger
-  ENV['LOGFILE'] = if RUBY_PLATFORM =~ /windows/
+  ENV['LOGFILE'] = if RUBY_PLATFORM =~ /mingw|windows/i
                      'nul'
                    else
                      '/dev/null'

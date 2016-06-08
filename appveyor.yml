@@ -18,7 +18,6 @@ build: off
 
 before_test:
 - ruby -v
-- ruby -e 'puts RUBY_PLATFORM'
 - gem -v
 - bundle -v
 
