@@ -250,8 +250,8 @@ context 'on POST to /delayed/cancel_now' do
   end
 
   test 'removes the specified job' do
-    job_timestamp, *remaning = Resque.delayed_queue_peek(0, 10)
-    assert_equal 1, remaning.size
+    job_timestamp, *remaining = Resque.delayed_queue_peek(0, 10)
+    assert_equal 1, remaining.size
 
     post '/delayed/cancel_now',
          'timestamp' => job_timestamp,
@@ -259,7 +259,7 @@ context 'on POST to /delayed/cancel_now' do
          'args'      => Resque.encode(['arg'])
 
     assert_equal 302, last_response.status
-    assert_equal remaning, Resque.delayed_queue_peek(0, 10)
+    assert_equal remaining, Resque.delayed_queue_peek(0, 10)
   end
 
   test 'does not remove the job if the params do not match' do
