@@ -133,7 +133,11 @@ end
 
 def restore_devnull_logfile
   nullify_logger
-  ENV['LOGFILE'] = '/dev/null'
+  ENV['LOGFILE'] = if RUBY_PLATFORM =~ /windows/
+                     'nul'
+                   else
+                     '/dev/null'
+                   end
 end
 
 def with_failure_handler(handler)
