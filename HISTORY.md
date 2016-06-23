@@ -1,5 +1,36 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
+## Unreleased
+* Add Windows testing on Appveyor
+
+## 4.2.1 (2016-06-08)
+* Optimization of `find_delayed_selection`
+* More defensive code around redis disconnects
+* Only trap existing signals on given platform
+* RuboCop auto-fixes
+* Dependency updates
+* Docs improvements
+
+## 4.2.0 (2016-04-29)
+* Bugfix for a race condition in concurrent restarts
+* Clean up and simplify the scheduling extension
+* Make `Resque::Scheduler.logger` accessible to user
+* Failure hook support for better extensibility
+* Default failure handler now outputs stacktrace
+* Add index column to scheduler tab
+* Update rufus-scheduler
+* Bugfix for displaying schedules appropriate to the `env`
+in scheduler UI
+
+## 4.1.0 (2016-02-10)
+* View helper to cut down on repetition
+* Bugfix to check thread life only if present
+* New `Resque.(find|enqueue)_delayed_selection` methods to complement
+`Resque.remove_delayed_selection`
+* Leave undefined env vars unset in internal options hash
+* Insulate checking `Rails.env`
+* Documentation updates and typo fixes
+
 ## 4.0.0 (2014-12-21)
 * Bump rufus-scheduler dependency to `~> 3.0`
 * Address warning from redis-namespace related to `#unwatch`

@@ -5,6 +5,7 @@ require_relative 'scheduler/configuration'
 require_relative 'scheduler/locking'
 require_relative 'scheduler/logger_builder'
 require_relative 'scheduler/signal_handling'
+require_relative 'scheduler/failure_handler'
 
 module Resque
   module Scheduler
@@ -22,8 +23,13 @@ module Resque
     public
 
     class << self
+      attr_writer :logger
+
       # the Rufus::Scheduler jobs that are scheduled
       attr_reader :scheduled_jobs
+
+      # allow user to set an additional failure handler
+      attr_writer :failure_handler
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
@@ -51,13 +57,14 @@ module Resque
 
           # Now start the scheduling part of the loop.
           loop do
-            if master?
-              begin
+            begin
+              if master?
                 handle_delayed_items
                 update_schedule if dynamic
-              rescue Errno::EAGAIN, Errno::ECONNRESET => e
-                log! e.message
               end
+            rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
+              log! e.message
+              release_master_lock
             end
             poll_sleep
           end
@@ -129,23 +136,20 @@ module Resque
           interval_defined = false
           interval_types = %w(cron every)
           interval_types.each do |interval_type|
-            if !config[interval_type].nil? && config[interval_type].length > 0
-              args = optionizate_interval_value(config[interval_type])
-              if args.is_a?(::String)
-                args = [args, nil, job: true]
-              end
+            next unless !config[interval_type].nil? && !config[interval_type].empty?
+            args = optionizate_interval_value(config[interval_type])
+            args = [args, nil, job: true] if args.is_a?(::String)
 
-              job = rufus_scheduler.send(interval_type, *args) do
-                if master?
-                  log! "queueing #{config['class']} (#{name})"
-                  Resque.last_enqueued_at(name, Time.now.to_s)
-                  handle_errors { enqueue_from_config(config) }
-                end
+            job = rufus_scheduler.send(interval_type, *args) do
+              if master?
+                log! "queueing #{config['class']} (#{name})"
+                Resque.last_enqueued_at(name, Time.now.to_s)
+                enqueue(config)
               end
-              @scheduled_jobs[name] = job
-              interval_defined = true
-              break
             end
+            @scheduled_jobs[name] = job
+            interval_defined = true
+            break
           end
           unless interval_defined
             log! "no #{interval_types.join(' / ')} found for " \
@@ -185,24 +189,35 @@ module Resque
         end
       end
 
+      def enqueue_next_item(timestamp)
+        item = Resque.next_item_for_timestamp(timestamp)
+
+        if item
+          log "queuing #{item['class']} [delayed]"
+          enqueue(item)
+        end
+
+        item
+      end
+
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
         item = nil
         loop do
           handle_shutdown do
             # Continually check that it is still the master
-            if master?
-              item = Resque.next_item_for_timestamp(timestamp)
-              if item
-                log "queuing #{item['class']} [delayed]"
-                handle_errors { enqueue_from_config(item) }
-              end
-            end
+            item = enqueue_next_item(timestamp) if master?
           end
           # continue processing until there are no more ready items in this
           # timestamp
           break if item.nil?
         end
+      end
+
+      def enqueue(config)
+        enqueue_from_config(config)
+      rescue => e
+        Resque::Scheduler.failure_handler.on_enqueue_failure(config, e)
       end
 
       def handle_shutdown
@@ -211,11 +226,15 @@ module Resque
         exit if @shutdown
       end
 
-      def handle_errors
-        yield
-      rescue => e
-        log_error "#{e.class.name}: #{e.message} - #{e.backtrace.join("\n")}"
-      end
+      # <<<<<<< HEAD
+      #       def handle_errors
+      #         yield
+      #       rescue => e
+      #         log_error "#{e.class.name}: #{e.message} - #{e.backtrace.join("\n")}"
+      #       end
+
+      # =======
+      # >>>>>>> master
 
       # Enqueues a job based on a config hash
       def enqueue_from_config(job_config)
@@ -280,7 +299,7 @@ module Resque
           else
             # This will not run the before_hooks in rescue, but will at least
             # queue the job.
-            fail Resque::NoClassError, "#{klass} not found"
+            raise Resque::NoClassError, "#{klass} not found"
           end
         end
       end
@@ -344,22 +363,37 @@ module Resque
 
       def poll_sleep_loop
         @sleeping = true
-        start = Time.now
-        loop do
-          elapsed_sleep = (Time.now - start)
-          remaining_sleep = poll_sleep_amount - elapsed_sleep
-          break if remaining_sleep <= 0
-          begin
-            sleep(remaining_sleep)
-            handle_signals
-          rescue Interrupt
-            if @shutdown
-              Resque.clean_schedules
-              release_master_lock
+        if poll_sleep_amount > 0
+          start = Time.now
+          loop do
+            elapsed_sleep = (Time.now - start)
+            remaining_sleep = poll_sleep_amount - elapsed_sleep
+            @do_break = false
+            if remaining_sleep <= 0
+              @do_break = true
+            else
+              @do_break = handle_signals_with_operation do
+                sleep(remaining_sleep)
+              end
             end
-            break
+            break if @do_break
           end
+        else
+          handle_signals_with_operation
         end
+      end
+
+      def handle_signals_with_operation
+        yield if block_given?
+        handle_signals
+        false
+      rescue Interrupt
+        before_shutdown if @shutdown
+        true
+      end
+
+      def before_shutdown
+        release_master_lock
       end
 
       # Sets the shutdown flag, clean schedules and exits if sleeping
@@ -389,9 +423,9 @@ module Resque
         $0 = argv0
       end
 
-      private
-
-      attr_writer :logger
+      def failure_handler
+        @failure_handler ||= Resque::Scheduler::FailureHandler
+      end
 
       def logger
         @logger ||= Resque::Scheduler::LoggerBuilder.new(
@@ -401,6 +435,8 @@ module Resque
           format: logformat
         ).build
       end
+
+      private
 
       def app_str
         app_name ? "[#{app_name}]" : ''

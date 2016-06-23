@@ -3,15 +3,20 @@
 <p class='intro'>
   The list below contains all scheduled jobs.  Click &quot;Queue now&quot; to queue
   a job immediately.
-  Server local time: <%= Time.now %>
-  Current master: <%= Resque.redis.get(Resque::Scheduler.master_lock.key) %>
+  <br/> Server local time: <%= Time.now %>
+  <br/> Server Environment: <%= Resque::Scheduler.env %>
+  <br/> Current master: <%= Resque.redis.get(Resque::Scheduler.master_lock.key) %>
+</p>
+<p class='intro'>
+	The highlighted jobs are skipped for current environment.
 </p>
 <div style="overflow-y: auto; width:100%; padding: 0px 5px;">
 <table>
   <tr>
+    <th>Index</th>
     <% if Resque::Scheduler.dynamic %>
       <th></th>
-    <% end %>
+  <% end %>
     <th></th>
     <th>Name</th>
     <th>Description</th>
@@ -21,9 +26,10 @@
     <th>Arguments</th>
     <th>Last Enqueued</th>
   </tr>
-  <% Resque.schedule.keys.sort.select { |n| scheduled_in_this_env?(n) }.each do |name| %>
+  <% Resque.schedule.keys.sort.each_with_index do |name, index| %>
     <% config = Resque.schedule[name] %>
-    <tr>
+    <tr style="<%= scheduled_in_this_env?(name) ? '' : 'color: #9F6000;background: #FEEFB3;' %>">
+	    <td style="padding-left: 15px;"><%= index+ 1 %>.</td>
       <% if Resque::Scheduler.dynamic %>
         <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
           <form action="<%= u "/schedule" %>" method="post" style="margin-left: 0">
@@ -44,7 +50,7 @@
       <td style="white-space:nowrap"><%= h schedule_interval(config) %></td>
       <td><%= h schedule_class(config) %></td>
       <td><%= h config['queue'] || queue_from_class_name(config['class']) %></td>
-      <td><%= h config['args'].inspect %></td>
+      <td><%= h show_job_arguments(config['args']) %></td>
       <td><%= h Resque.get_last_enqueued_at(name) || 'Never' %></td>
     </tr>
   <% end %>

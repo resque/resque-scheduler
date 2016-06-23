@@ -19,7 +19,7 @@ context 'Resque::Scheduler' do
 
     mock = Minitest::Mock.new.expect(:perform_later, true, ['/tmp'])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeRealClass, queue: 'some_real_queue').returns(mock)
+                            .with(SomeRealClass, queue: 'some_real_queue').returns(mock)
 
     config = {
       'cron' => '* * * * *',
@@ -46,7 +46,8 @@ context 'Resque::Scheduler' do
       end
     end
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeRealClass, queue: 'some_real_queue').returns(SomeRealClass)
+      .with(SomeRealClass, queue: 'some_real_queue')
+      .returns(SomeRealClass)
 
     config = {
       'cron' => '* * * * *',
@@ -63,7 +64,7 @@ context 'Resque::Scheduler' do
   test 'enqueue_from_config respects queue params' do
     mock = Minitest::Mock.new.expect(:perform_later, true, [])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(DummyJob, queue: 'high').returns(mock)
+                            .with(DummyJob, queue: 'high').returns(mock)
 
     config = {
       'cron' => '* * * * *',
@@ -78,7 +79,7 @@ context 'Resque::Scheduler' do
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
-      some_ivar_job: {
+      'some_ivar_job' => {
         'cron' => '* * * * *',
         'class' => 'SomeIvarJob',
         'args' => '/tmp'
@@ -106,9 +107,13 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
 
     Resque.redis.del(:schedules)
-    Resque.redis.hset(:schedules, 'some_ivar_job2', Resque.encode(
-      'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/2'
-    ))
+    Resque.schedule = {
+      'some_ivar_job2' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp/2'
+      }
+    }
 
     Resque::Scheduler.reload_schedule!
 
@@ -326,7 +331,7 @@ context 'Resque::Scheduler' do
     }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/75' },
-      Resque.decode(Resque.redis.hget(:schedules, 'my_ivar_job'))
+      Resque.schedule['my_ivar_job']
     )
   end
 
@@ -359,7 +364,7 @@ context 'Resque::Scheduler' do
     } }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/75' },
-      Resque.decode(Resque.redis.hget(:schedules, 'SomeIvarJob'))
+      Resque.schedule['SomeIvarJob']
     )
     assert_equal('SomeIvarJob', Resque.schedule['SomeIvarJob']['class'])
   end
@@ -379,15 +384,19 @@ context 'Resque::Scheduler' do
     )
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/22' },
-      Resque.decode(Resque.redis.hget(:schedules, 'some_ivar_job'))
+      Resque.schedule['some_ivar_job']
     )
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job')
   end
 
   test 'fetch_schedule returns a schedule' do
-    Resque.redis.hset(:schedules, 'some_ivar_job2', Resque.encode(
-      'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/33'
-    ))
+    Resque.schedule = {
+      'some_ivar_job2' => {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp/33'
+      }
+    }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/33' },
       Resque.fetch_schedule('some_ivar_job2')
@@ -453,7 +462,7 @@ context 'Resque::Scheduler' do
   test 'procline omits app_name when absent' do
     Resque::Scheduler.app_name = nil
     assert Resque::Scheduler.send(:build_procline, 'bar') =~
-      /#{Resque::Scheduler.send(:internal_name)}: bar/
+           /#{Resque::Scheduler.send(:internal_name)}: bar/
   end
 
   test 'procline contains env when present' do
@@ -464,7 +473,7 @@ context 'Resque::Scheduler' do
   test 'procline omits env when absent' do
     Resque::Scheduler.env = nil
     assert Resque::Scheduler.send(:build_procline, 'cage') =~
-      /#{Resque::Scheduler.send(:internal_name)}: cage/
+           /#{Resque::Scheduler.send(:internal_name)}: cage/
   end
 
   context 'printing schedule' do
@@ -475,9 +484,9 @@ context 'Resque::Scheduler' do
     test 'prints schedule' do
       fake_rufus_scheduler = mock
       fake_rufus_scheduler.expects(:jobs).at_least_once
-        .returns(foo: OpenStruct.new(t: nil, last: nil))
+                          .returns(foo: OpenStruct.new(t: nil, last: nil))
       Resque::Scheduler.expects(:rufus_scheduler).at_least_once
-        .returns(fake_rufus_scheduler)
+                       .returns(fake_rufus_scheduler)
       Resque::Scheduler.print_schedule
     end
   end

@@ -8,7 +8,7 @@ def setup_schedule
     'some_ivar_job' => {
       'cron' => '* * * * *',
       'class' => 'SomeIvarJob',
-      'args' => '/tmp',
+      'args' => ['/tmp', '/tmp'],
       'rails_env' => 'production'
     },
     'some_other_job' => {
@@ -23,13 +23,13 @@ def setup_schedule
       'every' => ['1m'],
       'queue' => 'fancy',
       'class' => 'SomeFancyJob',
-      'args' => 'sparkles',
+      'args' => %w(sparkles sparkles),
       'rails_env' => 'fancy'
     },
     'shared_env_job' => {
       'cron' => '* * * * *',
       'class' => 'SomeSharedEnvJob',
-      'args' => '/tmp',
+      'args' => ['/tmp', '/tmp'],
       'rails_env' => 'fancy, production'
     }
   }
@@ -53,8 +53,8 @@ context 'on GET to /schedule with scheduled jobs' do
     assert last_response.body.include?('SomeIvarJob')
   end
 
-  test 'excludes jobs for other envs' do
-    assert !last_response.body.include?('SomeFancyJob')
+  test 'include(highlight) jobs for other envs' do
+    assert last_response.body.include?('SomeFancyJob')
   end
 
   test 'includes job used in multiple environments' do
@@ -85,7 +85,7 @@ context 'on GET to /delayed' do
   test('is 200') { assert last_response.ok? }
 end
 
-context 'on GET to /delayed/jobs/:klass'do
+context 'on GET to /delayed/jobs/:klass' do
   setup do
     @t = Time.now + 3600
     Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
@@ -147,7 +147,7 @@ module Test
         }
       }
     }
-  }
+  }.freeze
 end
 
 context 'POST /schedule/requeue' do
@@ -160,7 +160,7 @@ context 'POST /schedule/requeue' do
     # Regular jobs without params should redirect to /overview
     job_name = 'job_without_params'
     Resque::Scheduler.stubs(:enqueue_from_config)
-      .once.with(Resque.schedule[job_name])
+                     .once.with(Resque.schedule[job_name])
 
     post '/schedule/requeue', 'job_name' => job_name
     follow_redirect!
@@ -236,6 +236,11 @@ context 'on POST to /delayed/search' do
     assert last_response.body.include?('SomeIvarJob')
   end
 
+  test 'the form should encode string params' do
+    post '/delayed/search', 'search' => 'ivar'
+    assert_match('value="[&quot;string arg&quot;]', last_response.body)
+  end
+
   test 'should find matching queued job' do
     post '/delayed/search', 'search' => 'quick'
 
@@ -255,9 +260,40 @@ context 'on POST to /delayed/cancel_now' do
       'args'      => Resque.encode(%w(a b))
     }
     post '/delayed/cancel_now', params
+    # =======
+    #     Resque.reset_delayed_queue
+    #     Resque.enqueue_at(Time.now + 10, SomeIvarJob, 'arg')
+    #     Resque.enqueue_at(Time.now + 100, SomeQuickJob)
+    #   end
+
+    #   test 'removes the specified job' do
+    #     job_timestamp, *remaining = Resque.delayed_queue_peek(0, 10)
+    #     assert_equal 1, remaining.size
+
+    #     post '/delayed/cancel_now',
+    #          'timestamp' => job_timestamp,
+    #          'klass'     => SomeIvarJob.name,
+    #          'args'      => Resque.encode(['arg'])
+
+    #     assert_equal 302, last_response.status
+    #     assert_equal remaining, Resque.delayed_queue_peek(0, 10)
+    #   end
+
+    #   test 'does not remove the job if the params do not match' do
+    #     timestamps = Resque.delayed_queue_peek(0, 10)
+
+    #     post '/delayed/cancel_now',
+    #          'timestamp' => timestamps.first,
+    #          'klass'     => SomeIvarJob.name
+
+    #     assert_equal 302, last_response.status
+    #     assert_equal timestamps, Resque.delayed_queue_peek(0, 10)
+    # >>>>>>> master
   end
 
   test 'redirects to overview' do
+    post '/delayed/cancel_now'
+
     assert last_response.status == 302
     assert last_response.header['Location'].include? '/delayed'
   end
@@ -276,11 +312,10 @@ context 'on POST to /delayed/clear' do
 end
 
 context 'on POST to /delayed/queue_now' do
-  setup { post '/delayed/queue_now' }
+  setup { post '/delayed/queue_now', timestamp: 0 }
 
-  test 'redirects to overview' do
-    assert last_response.status == 302
-    assert last_response.header['Location'].include? '/overview'
+  test 'returns ok status' do
+    assert last_response.status == 200
   end
 end
 

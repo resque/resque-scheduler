@@ -44,33 +44,11 @@ module Resque
       # param, otherwise params is passed in as the only parameter to
       # perform.
       def schedule=(schedule_hash)
-        # This operation tries to be as atomic as possible.
-        # It needs to read the existing schedules outside the transaction.
-        # Unlikely, but this could still cause a race condition.
-        #
-        # A more robust solution would be to SCRIPT it, but that would change
-        # the required version of Redis.
+        @non_persistent_schedules = nil
+        prepared_schedules = prepare_schedules(schedule_hash)
 
-        # select schedules to remove
-        if redis.exists(:schedules)
-          clean_keys = non_persistent_schedules
-        else
-          clean_keys = []
-        end
-
-        # Start the transaction. If this is not atomic and more than one
-        # process is calling `schedule=` the clean_schedules might overlap a
-        # set_schedule and cause the schedules to become corrupt.
-        redis.multi do
-          clean_schedules(clean_keys)
-
-          schedule_hash = prepare_schedule(schedule_hash)
-
-          # store all schedules in redis, so we can retrieve them back
-          # everywhere.
-          schedule_hash.each do |name, job_spec|
-            set_schedule(name, job_spec)
-          end
+        prepared_schedules.each do |schedule, config|
+          set_schedule(schedule, config, false)
         end
 
         # ensure only return the successfully saved data!
@@ -83,33 +61,14 @@ module Resque
         @schedule || {}
       end
 
-      # reloads the schedule from redis
+      # reloads the schedule from redis and memory
       def reload_schedule!
         @schedule = all_schedules
       end
 
       # gets the schedules as it exists in redis
       def all_schedules
-        return nil unless redis.exists(:schedules)
-
-        redis.hgetall(:schedules).tap do |h|
-          h.each do |name, config|
-            h[name] = decode(config)
-          end
-        end
-      end
-
-      # clean the schedules as it exists in redis, useful for first setup?
-      def clean_schedules(keys = non_persistent_schedules)
-        keys.each do |key|
-          remove_schedule(key)
-        end
-        @schedule = nil
-        true
-      end
-
-      def non_persistent_schedules
-        redis.hkeys(:schedules).select { |k| !schedule_persisted?(k) }
+        non_persistent_schedules.merge(persistent_schedules)
       end
 
       # Create or update a schedule with the provided name and configuration.
@@ -121,35 +80,52 @@ module Resque
       #                                     :every => '15mins',
       #                                     :queue => 'high',
       #                                     :args => '/tmp/poop'})
-      def set_schedule(name, config)
+      #
+      # Preventing a reload is optional and available to batch operations
+      def set_schedule(name, config, reload = true)
         persist = config.delete(:persist) || config.delete('persist')
-        redis.pipelined do
-          redis.hset(:schedules, name, encode(config))
-          redis.sadd(:schedules_changed, name)
-          redis.sadd(:persisted_schedules, name) if persist
+
+        if persist
+          redis.hset(:persistent_schedules, name, encode(config))
+        else
+          non_persistent_schedules[name] = decode(encode(config))
         end
-        config
+
+        redis.sadd(:schedules_changed, name)
+        reload_schedule! if reload
       end
 
       # retrive the schedule configuration for the given name
       def fetch_schedule(name)
-        decode(redis.hget(:schedules, name))
-      end
-
-      def schedule_persisted?(name)
-        redis.sismember(:persisted_schedules, name)
+        schedule[name]
       end
 
       # remove a given schedule by name
       def remove_schedule(name)
-        redis.hdel(:schedules, name)
-        redis.srem(:persisted_schedules, name)
+        non_persistent_schedules.delete(name)
+        redis.hdel(:persistent_schedules, name)
         redis.sadd(:schedules_changed, name)
+
+        reload_schedule!
       end
 
       private
 
-      def prepare_schedule(schedule_hash)
+      # we store our non-persistent schedules in this hash
+      def non_persistent_schedules
+        @non_persistent_schedules ||= {}
+      end
+
+      # reads the persistent schedules from redis
+      def persistent_schedules
+        redis.hgetall(:persistent_schedules).tap do |h|
+          h.each do |name, config|
+            h[name] = decode(config)
+          end
+        end
+      end
+
+      def prepare_schedules(schedule_hash)
         prepared_hash = {}
         schedule_hash.each do |name, job_spec|
           job_spec = job_spec.dup

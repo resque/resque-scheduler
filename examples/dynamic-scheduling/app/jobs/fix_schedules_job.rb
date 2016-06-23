@@ -38,7 +38,7 @@ class FixSchedulesJob < ActiveJob::Base
       users_unscheduled << user if schedule.nil?
     end
 
-    if users_unscheduled.length > 0
+    unless users_unscheduled.empty?
       users_unscheduled.each do |user|
         name = "send_email_#{user.id}"
         config = {}

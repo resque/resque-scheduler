@@ -32,7 +32,8 @@ context 'scheduling jobs with arguments' do
   test 'enqueue_from_config with_every_syntax' do
     mock = Minitest::Mock.new.expect(:perform_later, true, ['/tmp'])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(JamesJob, queue: 'james_queue').returns(mock)
+                            .with(JamesJob, queue: 'james_queue').returns(mock)
+
     Resque::Scheduler.enqueue_from_config(
       'every' => '1m',
       'class' => 'JamesJob',
@@ -42,11 +43,23 @@ context 'scheduling jobs with arguments' do
     mock.verify
   end
 
+  # TODO: adopt ?!
+  # pending 'enqueue_from_config puts stuff in resque without class loaded' do
+  #   Resque::Job.stubs(:create).once.returns(true)
+  #              .with('joes_queue', 'UndefinedJob', '/tmp')
+  #   Resque::Scheduler.enqueue_from_config(
+  #     'cron' => '* * * * *',
+  #     'class' => 'UndefinedJob',
+  #     'args' => '/tmp',
+  #     'queue' => 'joes_queue'
+  #   )
+  # end
+
   # do not enqueue an undefined job
   test 'enqueue_from_config without args create a ConfiguredJob' do
     mock = Minitest::Mock.new.expect(:perform_later, true, [])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeIvarJob, queue: 'ivar').returns(mock)
+                            .with(SomeIvarJob, queue: 'ivar').returns(mock)
     config = YAML.load(<<-YAML)
       class: SomeIvarJob
     YAML
@@ -58,7 +71,7 @@ context 'scheduling jobs with arguments' do
   test 'enqueue_from_config with empty array args create a ConfiguredJob' do
     mock = Minitest::Mock.new.expect(:perform_later, true, [])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeIvarJob, queue: 'ivar').returns(mock)
+                            .with(SomeIvarJob, queue: 'ivar').returns(mock)
     crappy_config = YAML.load(<<-YAML)
       class: SomeIvarJob
       args:
@@ -69,8 +82,10 @@ context 'scheduling jobs with arguments' do
 
   test 'enqueue_from_config puts jobs in the resque queue' do
     mock = Minitest::Mock.new.expect(:perform_later, true, ['/tmp'])
-    ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeIvarJob, queue: 'ivar').returns(mock)
+    ActiveJob::ConfiguredJob
+      .stubs(:new)
+      .with(SomeIvarJob, queue: 'ivar')
+      .returns(mock)
 
     Resque::Scheduler.enqueue_from_config(
       'cron' => '* * * * *',
@@ -81,8 +96,12 @@ context 'scheduling jobs with arguments' do
   end
 
   test 'enqueue_from_config with custom_class_job in resque' do
-    FakeCustomJobClass.stubs(:scheduled).once.returns(true)
+    FakeCustomJobClass
+      .stubs(:scheduled)
+      .once
+      .returns(true)
       .with('ivar', 'SomeIvarJob', '/tmp')
+
     Resque::Scheduler.enqueue_from_config(
       'cron' => '* * * * *',
       'class' => 'SomeIvarJob',
@@ -170,7 +189,7 @@ context 'scheduling jobs with arguments' do
     YAML
     mock = Minitest::Mock.new.expect(:perform_later, true, ['string'])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeJobString, queue: 'ivar').returns(mock)
+                            .with(SomeJobString, queue: 'ivar').returns(mock)
 
     Resque::Scheduler.enqueue_from_config(config)
     mock.verify
@@ -183,7 +202,7 @@ context 'scheduling jobs with arguments' do
     YAML
     mock = Minitest::Mock.new.expect(:perform_later, true, [1])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeJobFixnum, queue: 'ivar').returns(mock)
+                            .with(SomeJobFixnum, queue: 'ivar').returns(mock)
 
     Resque::Scheduler.enqueue_from_config(config)
     mock.verify
@@ -199,7 +218,7 @@ context 'scheduling jobs with arguments' do
     YAML
     mock = Minitest::Mock.new.expect(:perform_later, true, [1, 2])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeIvarJob, queue: 'ivar').returns(mock)
+                            .with(SomeIvarJob, queue: 'ivar').returns(mock)
     Resque::Scheduler.enqueue_from_config(config)
     mock.verify
   end
@@ -213,10 +232,10 @@ context 'scheduling jobs with arguments' do
           - 2
     YAML
     mock = Minitest::Mock.new.expect(:perform_later, true, [
-      [1, 2]
-    ])
+                                       [1, 2]
+                                     ])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeJobArray, queue: 'ivar').returns(mock)
+                            .with(SomeJobArray, queue: 'ivar').returns(mock)
     Resque::Scheduler.enqueue_from_config(config)
     mock.verify
   end
@@ -228,10 +247,10 @@ context 'scheduling jobs with arguments' do
         key: value
     YAML
     mock = Minitest::Mock.new.expect(:perform_later, true, [
-      { 'key' => 'value' }
-    ])
+                                       { 'key' => 'value' }
+                                     ])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeJobHash, queue: 'ivar').returns(mock)
+                            .with(SomeJobHash, queue: 'ivar').returns(mock)
 
     Resque::Scheduler.enqueue_from_config(config)
     mock.verify
@@ -245,11 +264,12 @@ context 'scheduling jobs with arguments' do
         first_key:
           second_key: value
     YAML
+
     mock = Minitest::Mock.new.expect(:perform_later, true, [
-      'first_key' => { 'second_key' => 'value' }
-    ])
+                                       'first_key' => { 'second_key' => 'value' }
+                                     ])
     ActiveJob::ConfiguredJob.stubs(:new)
-      .with(SomeJobHash, queue: 'ivar').returns(mock)
+                            .with(SomeJobHash, queue: 'ivar').returns(mock)
 
     Resque::Scheduler.enqueue_from_config(config)
     mock.verify

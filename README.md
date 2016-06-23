@@ -1,10 +1,11 @@
 resque-scheduler
 ================
 
-[![Dependency Status](https://gemnasium.com/resque/resque-scheduler.png)](https://gemnasium.com/resque/resque-scheduler)
-[![Gem Version](https://badge.fury.io/rb/resque-scheduler.png)](http://badge.fury.io/rb/resque-scheduler)
-[![Build Status](https://travis-ci.org/resque/resque-scheduler.png?branch=master)](https://travis-ci.org/resque/resque-scheduler)
-[![Code Climate](https://codeclimate.com/github/resque/resque-scheduler.png)](https://codeclimate.com/github/resque/resque-scheduler)
+[![Dependency Status](https://gemnasium.com/badges/github.com/resque/resque-scheduler.svg)](https://gemnasium.com/github.com/resque/resque-scheduler)
+[![Gem Version](https://badge.fury.io/rb/resque-scheduler.svg)](https://badge.fury.io/rb/resque-scheduler)
+[![Build Status](https://travis-ci.org/resque/resque-scheduler.svg?branch=master)](https://travis-ci.org/resque/resque-scheduler)
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/sxvf2086v5j0absb/branch/master?svg=true)](https://ci.appveyor.com/project/resque/resque-scheduler/branch/master)
+[![Code Climate](https://codeclimate.com/github/resque/resque-scheduler/badges/gpa.svg)](https://codeclimate.com/github/resque/resque-scheduler)
 
 ### Description
 
@@ -19,9 +20,9 @@ jobs are resque jobs that you want to run at some point in the future.
 The syntax is pretty explanatory:
 
 ```ruby
-Resque.enqueue_in(5.days, SendFollowupEmail) # run a job in 5 days
+Resque.enqueue_in(5.days, SendFollowupEmail, argument) # runs a job in 5 days, calling SendFollowupEmail.perform(argument)
 # or
-Resque.enqueue_at(5.days.from_now, SomeJob) # run SomeJob at a specific time
+Resque.enqueue_at(5.days.from_now, SomeJob, argument) # runs a job at a specific time, calling SomeJob.perform(argument)
 ```
 
 ### Documentation
@@ -170,7 +171,11 @@ Delayed jobs are one-off jobs that you want to be put into a queue at some point
 in the future.  The classic example is sending email:
 
 ```ruby
-Resque.enqueue_in(5.days, SendFollowUpEmail, :user_id => current_user.id)
+Resque.enqueue_in(
+  5.days,
+  SendFollowUpEmail,
+  user_id: current_user.id
+)
 ```
 
 This will store the job for 5 days in the resque delayed queue at which time
@@ -178,13 +183,22 @@ the scheduler process will pull it from the delayed queue and put it in the
 appropriate work queue for the given job and it will be processed as soon as
 a worker is available (just like any other resque job).
 
-NOTE: The job does not fire **exactly** at the time supplied.  Rather, once that
+**NOTE**: The job does not fire **exactly** at the time supplied.  Rather, once that
 time is in the past, the job moves from the delayed queue to the actual resque
 work queue and will be completed as workers are free to process it.
 
 Also supported is `Resque.enqueue_at` which takes a timestamp to queue the
 job, and `Resque.enqueue_at_with_queue` which takes both a timestamp and a
-queue name.
+queue name:
+
+```ruby
+Resque.enqueue_at_with_queue(
+  'queue_name',
+  5.days.from_now,
+  SendFollowUpEmail,
+  user_id: current_user.id
+)
+```
 
 The delayed queue is stored in redis and is persisted in the same way the
 standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
@@ -299,7 +313,7 @@ resulting in resetting schedule time on every deploy, so it's probably a good id
 frequent jobs (like every 10-30 minutes), otherwise - when you use something like `every 20h` and deploy once-twice per day -
 it will schedule the job for 20 hours from deploy, resulting in a job to never be run.
 
-NOTE: Six parameter cron's are also supported (as they supported by
+**NOTE**: Six parameter cron's are also supported (as they supported by
 rufus-scheduler which powers the resque-scheduler process).  This allows you
 to schedule jobs per second (ie: `"30 * * * * *"` would fire a job every 30
 seconds past the minute).
@@ -319,6 +333,10 @@ must pass the following to `resque-scheduler` initialization (see *Installation*
 ```ruby
 Resque::Scheduler.dynamic = true
 ```
+
+**NOTE**: In order to delete dynamic schedules via `resque-web` in the
+"Schedule" tab, you must include the `Rack::MethodOverride` middleware (in
+`config.ru` or equivalent).
 
 Dynamic schedules allow for greater flexibility than static schedules as they can be set,
 unset or changed without having to restart `resque-scheduler`. You can specify, if the schedule
@@ -398,6 +416,13 @@ Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
   removed from the delayed queue, but not yet put on a normal queue. It is
   called before `before_enqueue`-hooks, and on the same job instance as the
   `before_enqueue`-hooks will be invoked on. Return values are ignored.
+* `on_enqueue_failure`: Called with the job args and the exception that was raised
+  while enqueueing a job to resque or external application fails.  Return
+  values are ignored. For example:
+
+  ```ruby
+  Resque::Scheduler.failure_handler = ExceptionHandlerClass
+  ```
 
 #### Support for resque-status (and other custom jobs)
 
@@ -511,7 +536,6 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
-
 #### Changes as of 2.0.0
 
 As of resque-scheduler 2.0.0, it's no longer necessary to have the resque-web
@@ -585,11 +609,11 @@ with resque could easily work on resque-scheduler.
 
 Working on resque-scheduler requires the following:
 
-* A relatively modern Ruby interpreter (MRI 1.9+ is what's tested)
+* A relatively modern Ruby interpreter
 * bundler
 
 The development setup looks like this, which is roughly the same thing
-that happens on Travis CI:
+that happens on Travis CI and Appveyor:
 
 ``` bash
 # Install everything
