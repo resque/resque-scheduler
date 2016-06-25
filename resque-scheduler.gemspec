@@ -6,19 +6,19 @@ require 'resque/scheduler/version'
 Gem::Specification.new do |spec|
   spec.name = 'resque-scheduler'
   spec.version = Resque::Scheduler::VERSION
-  spec.authors = ['Ben VandenBos']
-  spec.email = ['bvandenbos@gmail.com']
+  spec.authors = ['Ben VandenBos', 'Dan Buch']
+  spec.email = ['bvandenbos@gmail.com', 'dan@meatballhat.com']
   spec.homepage = 'http://github.com/resque/resque-scheduler'
   spec.summary = 'Light weight job scheduling on top of Resque'
-  spec.description = <<-DESCRIPTION
-    Light weight job scheduling on top of Resque.
-    Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
-    Also supports queueing jobs on a fixed, cron-like schedule.
+  spec.description = <<-DESCRIPTION.gsub(/^\s+> /, '')
+    > Light weight job scheduling on top of Resque.
+    > Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
+    > Also supports queueing jobs on a fixed, cron-like schedule.
   DESCRIPTION
   spec.license = 'MIT'
 
   spec.files = `git ls-files -z`.split("\0")
-  spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.test_files = spec.files.grep(%r{^test/})
   spec.require_paths = ['lib']
 
