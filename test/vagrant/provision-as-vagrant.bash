@@ -16,4 +16,3 @@ source ~/.rvm/scripts/rvm
 set -x
 
 gem install --no-ri --no-rdoc bundler foreman
-bundle install
