@@ -1,6 +1,6 @@
 # Resque Scheduler History / ChangeLog / Release Notes
 
-## Unreleased
+## 4.3.0 (2016-06-26)
 * Add Windows testing on Appveyor
 * Silence output by default when daemonizing
 * Update vagrant setup
