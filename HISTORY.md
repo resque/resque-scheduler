@@ -3,6 +3,9 @@
 ## Unreleased
 * Add Windows testing on Appveyor
 * Silence output by default when daemonizing
+* Update vagrant setup
+* Add a Code of Conduct
+* Update gem metadata per latest Bundler defaults
 
 ## 4.2.1 (2016-06-08)
 * Optimization of `find_delayed_selection`
