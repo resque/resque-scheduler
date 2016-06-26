@@ -2,6 +2,7 @@
 
 ## Unreleased
 * Add Windows testing on Appveyor
+* Silence output by default when daemonizing
 * Update vagrant setup
 * Add a Code of Conduct
 * Update gem metadata per latest Bundler defaults

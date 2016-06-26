@@ -32,7 +32,11 @@ module Resque
 
         # Need to set this here for conditional Process.daemon redirect of
         # stderr/stdout to /dev/null
-        Resque::Scheduler.quiet = !!options[:quiet]
+        Resque::Scheduler.quiet = if options.key?(:quiet)
+                                    !!options[:quiet]
+                                  else
+                                    true
+                                  end
 
         unless Process.respond_to?('daemon')
           abort 'background option is set, which requires ruby >= 1.9'
