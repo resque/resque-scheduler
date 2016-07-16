@@ -16,6 +16,11 @@ context 'Cli' do
     assert(!new_cli.nil?)
   end
 
+  test 'sets the version on the option parser' do
+    cli = new_cli
+    assert_equal(Resque::Scheduler::VERSION, cli.send(:option_parser).version)
+  end
+
   test 'initializes verbose from the env' do
     cli = new_cli([], 'VERBOSE' => 'foo')
     assert_equal('foo', cli.send(:options)[:verbose])
