@@ -7,6 +7,9 @@
 - Change log format and file name
 - Drop testing on ruby 1.9.3
 
+### Fixed
+- Reporting version via `resque-scheduler --version`
+
 ## [4.3.0] - 2016-06-26
 ### Added
 - Windows testing on Appveyor

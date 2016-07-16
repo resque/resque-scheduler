@@ -128,6 +128,7 @@ module Resque
       def option_parser
         OptionParser.new do |opts|
           opts.banner = BANNER
+          opts.version = Resque::Scheduler::VERSION
           OPTIONS.each do |opt|
             opts.on(*opt[:args], &opt[:callback].call(options))
           end
