@@ -9,6 +9,7 @@
 
 ### Fixed
 - Reporting version via `resque-scheduler --version`
+- Verbosity when run in background with logfile present
 
 ## [4.3.0] - 2016-06-26
 ### Added

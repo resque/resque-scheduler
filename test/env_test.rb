@@ -44,4 +44,18 @@ context 'Env' do
     env.setup
     assert_equal(false, Resque::Scheduler.dynamic)
   end
+
+  [
+    [{}, true],
+    [{ quiet: 'nonempty' }, true],
+    [{ quiet: true }, true],
+    [{ quiet: false }, false],
+    [{ logfile: 'some/were.log' }, false]
+  ].each do |opts, value|
+    bgopts = opts.merge(background: true)
+
+    test "sets quiet=#{value} with opts=#{bgopts.inspect}" do
+      assert_equal(value, new_env(bgopts).send(:background_quiet?))
+    end
+  end
 end

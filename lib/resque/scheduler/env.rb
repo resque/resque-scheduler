@@ -30,13 +30,7 @@ module Resque
       def setup_backgrounding
         return unless options[:background]
 
-        # Need to set this here for conditional Process.daemon redirect of
-        # stderr/stdout to /dev/null
-        Resque::Scheduler.quiet = if options.key?(:quiet)
-                                    !!options[:quiet]
-                                  else
-                                    true
-                                  end
+        Resque::Scheduler.quiet = background_quiet?
 
         unless Process.respond_to?('daemon')
           abort 'background option is set, which requires ruby >= 1.9'
@@ -44,6 +38,12 @@ module Resque
 
         Process.daemon(true, !Resque::Scheduler.quiet)
         Resque.redis.client.reconnect
+      end
+
+      def background_quiet?
+        return !!options[:quiet] if options.key?(:quiet)
+        return false if options.key?(:logfile)
+        !!options[:background]
       end
 
       def setup_pid_file
