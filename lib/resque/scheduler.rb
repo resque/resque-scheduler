@@ -141,11 +141,7 @@ module Resque
             args = [args, nil, job: true] if args.is_a?(::String)
 
             job = rufus_scheduler.send(interval_type, *args) do
-              if master?
-                log! "queueing #{config['class']} (#{name})"
-                Resque.last_enqueued_at(name, Time.now.to_s)
-                enqueue(config)
-              end
+              enqueue_recurring(name, config)
             end
             @scheduled_jobs[name] = job
             interval_defined = true
@@ -416,6 +412,14 @@ module Resque
       end
 
       private
+
+      def enqueue_recurring(name, config)
+        if master?
+          log! "queueing #{config['class']} (#{name})"
+          Resque.last_enqueued_at(name, Time.now.to_s)
+          enqueue(config)
+        end
+      end
 
       def app_str
         app_name ? "[#{app_name}]" : ''
