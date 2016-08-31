@@ -640,7 +640,9 @@ on a dedicated Redis database.  While making and managing scheduled tasks,
 `resque-scheduler` currently scans the entire Redis keyspace, which may cause
 latency and stability issues if `resque-scheduler` is hosted on a Redis instance
 storing a large number of keys (such as those written by a different system
-hosted on the same Redis instance).
+hosted on the same Redis instance). The resque:migrate_scheduler rake task is
+provided to move scheduled jobs to a new redis instance when changing your
+application's redis configuration.
 
 #### Compatibility Notes
 
