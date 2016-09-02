@@ -8,7 +8,11 @@ module Resque
       end
 
       def migrate!
-        migrate_jobs(jobs_to_migrate)
+        start_time = Time.now
+        jobs = jobs_to_migrate
+        puts "Migrating #{jobs.count} scheduled jobs."
+        migrate_jobs(jobs)
+        puts "Finished migrating in #{Time.now - start_time} seconds."
       end
 
       private
