@@ -25,6 +25,7 @@ namespace :resque do
 
   desc 'A maintenance task for migrating scheduler tasks from one redis DB to another.'
   task :migrate_scheduler, [:from_redis, :to_redis] do |_t, args|
+    Rake::Task["environment"].invoke if Rake::Task["environment"]
     from_redis = args[:from_redis]
     to_redis = args[:to_redis]
     message = 'Missing URL. Usage: rake resque:migrate_scheduler[from_redis_url, to_redis_url]'
