@@ -57,6 +57,7 @@ module Resque
 
           # Now start the scheduling part of the loop.
           loop do
+            Resque.redis.set('resque-scheduler-health', Time.now.to_i)
             begin
               if master?
                 handle_delayed_items
@@ -71,6 +72,8 @@ module Resque
 
         rescue Interrupt
           log 'Exiting'
+        ensure
+          Resque.redis.del('resque-scheduler-health')
         end
       end
 
