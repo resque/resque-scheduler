@@ -25,11 +25,13 @@ module Resque
 
       def jobs_for_timestamps(timestamps)
         jobs_by_timestamp = {}
-        timestamps.each do |timestamp|
-          key = "delayed:#{timestamp}"
-          jobs_by_timestamp[timestamp] = Resque.redis.lrange(key, 0, -1)
+        Resque.redis.pipelined do
+          timestamps.each do |timestamp|
+            key = "delayed:#{timestamp}"
+            jobs_by_timestamp[timestamp] = Resque.redis.lrange(key, 0, -1)
+          end
         end
-        jobs_by_timestamp
+        jobs_by_timestamp.each{ |timestamp, jobs| jobs_by_timestamp[timestamp] = jobs.value }
       end
 
       def migrate_jobs(timestamps_jobs_hash)
