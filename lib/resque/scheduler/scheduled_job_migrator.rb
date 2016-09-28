@@ -35,15 +35,15 @@ module Resque
       end
 
       def migrate_jobs(timestamps_jobs_hash)
-        timestamps_jobs_hash.each do |timestamp, jobs|
-          key = "delayed:#{timestamp}"
-          Resque.redis.pipelined do
+        Resque.redis.pipelined do
+          timestamps_jobs_hash.each do |timestamp, jobs|
+            key = "delayed:#{timestamp}"
             jobs.each do |job|
               Resque.redis.sadd("timestamps:#{job}", key)
               Resque.redis.rpush(key, job)
             end
+            Resque.redis.zadd('delayed_queue_schedule', timestamp, timestamp)
           end
-          Resque.redis.zadd('delayed_queue_schedule', timestamp, timestamp)
         end
       end
     end
