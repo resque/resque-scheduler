@@ -31,7 +31,7 @@ module Resque
             jobs_by_timestamp[timestamp] = Resque.redis.lrange(key, 0, -1)
           end
         end
-        jobs_by_timestamp.each{ |timestamp, jobs| jobs_by_timestamp[timestamp] = jobs.value }
+        jobs_by_timestamp.each { |timestamp, jobs| jobs_by_timestamp[timestamp] = jobs.value }
       end
 
       def migrate_jobs(timestamps_jobs_hash)
