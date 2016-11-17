@@ -32,7 +32,7 @@ module Resque
 
         private
 
-        def evalsha(script, keys:, argv:, refresh: false, final_try: false)
+        def evalsha(script, keys:, argv:, refresh: false)
           sha_method_name = "#{script}_sha"
           Resque.redis.evalsha(
             send(sha_method_name, refresh),
@@ -40,8 +40,9 @@ module Resque
             argv: argv
           )
         rescue Redis::CommandError => e
-          if e.message =~ /NOSCRIPT/ && !final_try
-            evalsha(script, keys: keys, argv: argv, refresh: true, final_try: true)
+          if e.message =~ /NOSCRIPT/
+            refresh = true
+            retry
           else
             raise
           end
