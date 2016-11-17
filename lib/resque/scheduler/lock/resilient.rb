@@ -6,16 +6,16 @@ module Resque
     module Lock
       class Resilient < Base
         def acquire!
-          Resque.redis.evalsha(
-            acquire_sha,
+          evalsha(
+            :acquire,
             keys: [key],
             argv: [value]
           ).to_i == 1
         end
 
         def locked?
-          Resque.redis.evalsha(
-            locked_sha,
+          evalsha(
+            :locked,
             keys: [key],
             argv: [value]
           ).to_i == 1
@@ -31,6 +31,21 @@ module Resque
         end
 
         private
+
+        def evalsha(script, keys:, argv:, refresh: false, final_try: false)
+          sha_method_name = "#{script}_sha"
+          Resque.redis.evalsha(
+            send(sha_method_name, refresh),
+            keys: keys,
+            argv: argv
+          )
+        rescue Redis::CommandError => e
+          if e.message =~ /NOSCRIPT/ && !final_try
+            evalsha(script, keys: keys, argv: argv, refresh: true, final_try: true)
+          else
+            raise
+          end
+        end
 
         def locked_sha(refresh = false)
           @locked_sha = nil if refresh
