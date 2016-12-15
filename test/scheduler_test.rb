@@ -12,6 +12,7 @@ context 'Resque::Scheduler' do
     Resque.redis.flushall
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
+    Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
   end
 
   test 'enqueue constantizes' do
@@ -454,6 +455,63 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.env = nil
     assert Resque::Scheduler.send(:build_procline, 'cage') =~
            /#{Resque::Scheduler.send(:internal_name)}: cage/
+  end
+
+  test 'gracefully shuts down rufus-scheduler threads' do
+    if RUBY_ENGINE == 'jruby' || RUBY_PLATFORM =~ /mingw|windows/i
+      omit("forking is not supported on #{RUBY_ENGINE}/#{RUBY_PLATFORM} but " \
+           'this behaviour is best tested using forks')
+    end
+
+    class BeforeEnqueueJob
+      @queue = :quick
+
+      class << self
+        def before_enqueue_example(*)
+          return false if enqueue_started?
+          enqueue_started!
+
+          sleep 5
+          true
+        end
+
+        def enqueue_started?
+          Resque.redis.get('before_enqueue_job:enqueued') == 'true'
+        end
+
+        def perform(*)
+        end
+
+        private
+
+        def enqueue_started!
+          Resque.redis.set('before_enqueue_job:enqueued', 'true')
+        end
+      end
+    end
+
+    schedule = {
+      'BeforeEnqueueJob' => { cron: '* * * * * *', class: 'BeforeEnqueueJob' }
+    }
+
+    pid = fork do
+      Resque::Scheduler.clear_schedule!
+      Resque.schedule = schedule
+      Resque::Scheduler.run
+    end
+
+    begin
+      30.times do
+        break if BeforeEnqueueJob.enqueue_started?
+        sleep 0.1
+      end
+    ensure
+      Process.kill('TERM', pid)
+      Process.wait(pid)
+    end
+
+    assert BeforeEnqueueJob.enqueue_started?, "Job enqueue didn't start in time"
+    assert_equal 1, Resque.size('quick')
   end
 
   context 'printing schedule' do
