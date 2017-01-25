@@ -516,7 +516,7 @@ RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
 
 ### resque-web Additions
 
-Resque-scheduler also adds to tabs to the resque-web UI.  One is for viewing
+Resque-scheduler also adds two tabs to the resque-web UI.  One is for viewing
 (and manually queueing) the schedule and one is for viewing pending jobs in
 the delayed queue.
 
