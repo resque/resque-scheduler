@@ -222,6 +222,17 @@ context 'Resque::Scheduler::Lock::Resilient' do
       assert !@lock.locked?, 'you should not have the lock'
     end
 
+    test 'refreshes sha cache when the sha cannot be found on ' \
+         'the redis server' do
+      assert @lock.acquire!
+      assert @lock.locked?
+
+      Resque.redis.script(:flush)
+
+      assert @lock.locked?
+      assert_false @lock.acquire!
+    end
+
     test 'you should not be able to acquire the lock if someone ' \
          'else holds it' do
       lock_is_not_held(@lock)
