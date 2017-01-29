@@ -151,6 +151,12 @@ module Resque
         end
       end
 
+      # Given an encoded item, remove it from the queue
+      def remove_delayed_with_queue(queue, klass, *args)
+        search = encode(job_to_hash_with_queue(queue, klass, args))
+        remove_delayed_job(search)
+      end
+
       # Given a block, remove jobs that return true from a block
       #
       # This allows for removal of delayed jobs that have arguments matching

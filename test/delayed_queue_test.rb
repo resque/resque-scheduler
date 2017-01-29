@@ -344,6 +344,22 @@ context 'DelayedQueue' do
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"))
   end
 
+  test 'remove_delayed_with_queue removes job from given queue and returns the count' do
+    t = Time.now + 120
+    another_queue =SomeFancyJob.queue
+
+    encoded_job = Resque.encode(
+      class: SomeIvarJob.to_s,
+      args: [],
+      queue: another_queue
+    )
+
+    Resque.enqueue_at_with_queue(another_queue, t, SomeIvarJob)
+
+    assert_equal(1, Resque.remove_delayed_with_queue(another_queue, SomeIvarJob))
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"))
+  end
+
   test "when Resque.inline = true, remove_delayed doesn't remove the job" \
        'and returns 0' do
     begin
