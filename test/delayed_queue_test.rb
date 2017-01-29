@@ -346,7 +346,7 @@ context 'DelayedQueue' do
 
   test 'remove_delayed_with_queue removes job from given queue and returns the count' do
     t = Time.now + 120
-    another_queue =SomeFancyJob.queue
+    another_queue = SomeFancyJob.queue
 
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
