@@ -187,9 +187,9 @@ module Resque
 
       def enqueue_next_item(timestamp)
         item = Resque.next_item_for_timestamp(timestamp)
-
         if item
-          log "queuing #{item['class']} [delayed]"
+          params = params_from_config(item)
+          log "queuing #{item['class']} with params #{params.inspect} [delayed]"
           enqueue(item)
         end
 
@@ -222,10 +222,14 @@ module Resque
         exit if @shutdown
       end
 
+      # Gets job params from config hash
+      def params_from_config(job_config)
+        args = job_config['args'] || job_config[:args]
+        args.is_a?(Hash) ? [args] : Array(args)
+      end
+
       # Enqueues a job based on a config hash
       def enqueue_from_config(job_config)
-        args = job_config['args'] || job_config[:args]
-
         klass_name = job_config['class'] || job_config[:class]
         begin
           klass = Resque::Scheduler::Util.constantize(klass_name)
@@ -233,7 +237,7 @@ module Resque
           klass = klass_name
         end
 
-        params = args.is_a?(Hash) ? [args] : Array(args)
+        params = params_from_config(job_config)
         queue = job_config['queue'] ||
                 job_config[:queue] ||
                 Resque.queue_from_class(klass)
@@ -421,7 +425,8 @@ module Resque
 
       def enqueue_recurring(name, config)
         if master?
-          log! "queueing #{config['class']} (#{name})"
+          params = params_from_config(config)
+          log! "queueing #{config['class']} with params #{params.inspect} (#{name})"
           Resque.last_enqueued_at(name, Time.now.to_s)
           enqueue(config)
         end
