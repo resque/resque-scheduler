@@ -62,11 +62,13 @@ module Resque
       # if O(log(n)).  Returns true if it's the first job to be scheduled at
       # that time, else false
       def delayed_push(timestamp, item)
+        encoded_job = encode(item)
+
         # First add this item to the list for this timestamp
-        redis.rpush("delayed:#{timestamp.to_i}", encode(item))
+        redis.rpush("delayed:#{timestamp.to_i}", encoded_job)
 
         # Store the timestamps at with this item occurs
-        redis.sadd("timestamps:#{encode(item)}", "delayed:#{timestamp.to_i}")
+        redis.sadd("timestamps:#{encoded_job}", "delayed:#{timestamp.to_i}")
 
         # Now, add this timestamp to the zsets.  The score and the value are
         # the same since we'll be querying by timestamp, and we don't have
