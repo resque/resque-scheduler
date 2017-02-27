@@ -225,18 +225,9 @@ module Resque
       # Enqueues a job based on a config hash
       def enqueue_from_config(job_config)
         args = job_config['args'] || job_config[:args]
-
-        klass_name = job_config['class'] || job_config[:class]
-        begin
-          klass = Resque::Scheduler::Util.constantize(klass_name)
-        rescue NameError
-          klass = klass_name
-        end
-
         params = args.is_a?(Hash) ? [args] : Array(args)
-        queue = job_config['queue'] ||
-                job_config[:queue] ||
-                Resque.queue_from_class(klass)
+        klass, klass_name, queue = queue_info_from(job_config)
+
         # Support custom job classes like those that inherit from
         # Resque::JobWithStatus (resque-status)
         job_klass = job_config['custom_job_class']
@@ -419,21 +410,37 @@ module Resque
 
       private
 
+      def queue_info_from(config)
+        klass_name = config['class'] || config[:class]
+        begin
+          klass = Resque::Scheduler::Util.constantize(klass_name)
+        rescue NameError
+          klass = klass_name
+        end
+
+        queue_name = config['queue'] || config[:queue] || Resque.queue_from_class(klass)
+        return klass, klass_name, queue_name
+      end
+
+      def in_progress?(queue_name)
+        currently_processing = Resque::Worker.working.map(&:job).any? do |job|
+          job['queue'] == queue_name.to_s
+        end
+        return true if currently_processing
+
+        Resque.peek(queue_name, 0, 5000).any?
+      end
+
+      def should_enqueue?(config)
+        allow_overlap = (config[:overlap] != false && config['overlap'] != false)
+        _, _, queue_name = queue_info_from(config)
+
+        allow_overlap || !in_progress?(queue_name)
+      end
+
       def enqueue_recurring(name, config)
         if master?
-          allow_overlap = (config[:overlap] != false && config['overlap'] != false)
-          klass_name = config['class'] || config[:class]
-          begin
-            klass = Resque::Scheduler::Util.constantize(klass_name)
-          rescue NameError
-            klass = klass_name
-          end
-
-          queue_name = config['queue'] ||
-                  config[:queue] ||
-                  Resque.queue_from_class(klass)
-
-          if allow_overlap || !in_progress?(queue_name)
+          if should_enqueue?(config)
             log! "queueing #{config['class']} (#{name})"
             Resque.last_enqueued_at(name, Time.now.to_s)
             enqueue(config)
@@ -457,15 +464,6 @@ module Resque
 
       def internal_name
         "resque-scheduler-#{Resque::Scheduler::VERSION}"
-      end
-
-      def in_progress?(queue_name)
-        currently_processing = Resque::Worker.working.map(&:job).any? do |job|
-          job['queue'] == queue_name.to_s
-        end
-        return true if currently_processing
-
-        Resque.peek(queue_name, 0, 5000).any?
       end
     end
   end
