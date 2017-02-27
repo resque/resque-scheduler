@@ -419,7 +419,7 @@ module Resque
         end
 
         queue_name = config['queue'] || config[:queue] || Resque.queue_from_class(klass)
-        return klass, klass_name, queue_name
+        [klass, klass_name, queue_name]
       end
 
       def in_progress?(queue_name)
