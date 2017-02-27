@@ -49,6 +49,7 @@ Resque Scheduler authors
 - Nickolas Means
 - Olek Janiszewski
 - Olivier Brisse
+- Peter Retzlaff
 - Petteri Räty
 - Phil Cohen
 - Rob Olson
