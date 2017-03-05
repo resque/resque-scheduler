@@ -7,7 +7,7 @@ context 'Resque::Scheduler' do
       c.dynamic = false
       c.poll_sleep_amount = 0.1
     end
-    Resque.redis.flushall
+    Resque.data_store.redis.flushall
     Resque::Scheduler.quiet = true
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
