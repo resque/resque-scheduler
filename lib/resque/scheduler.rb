@@ -34,6 +34,7 @@ module Resque
       # run with RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=delayed
       def run_delayed_only
         procline 'Starting Delayed'
+        ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX']="delayed"
 
         # trap signals
         register_signal_handlers
@@ -68,6 +69,7 @@ module Resque
       # run with RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=scheduler
       def run_scheduled_only
         procline 'Starting Scheduler'
+        ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX']="scheduler"
 
         # trap signals
         register_signal_handlers
