@@ -31,6 +31,78 @@ module Resque
       # allow user to set an additional failure handler
       attr_writer :failure_handler
 
+      # run with RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=delayed
+      def run_delayed_only
+        procline 'Starting Delayed'
+
+        # trap signals
+        register_signal_handlers
+
+        # Quote from the resque/worker.
+        # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
+        # get output from the child in there.
+        $stdout.sync = true
+        $stderr.sync = true
+
+        begin
+          @th = Thread.current
+
+          # Now start the scheduling part of the loop.
+          loop do
+            begin
+              handle_delayed_items if master?
+            rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
+              log! e.message
+              release_master_lock
+            end
+            poll_sleep
+          end
+
+        rescue Interrupt
+          log 'Exiting'
+        end
+      ensure
+        release_master_lock
+      end
+
+      # run with RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=scheduler
+      def run_scheduled_only
+        procline 'Starting Scheduler'
+
+        # trap signals
+        register_signal_handlers
+
+        # Quote from the resque/worker.
+        # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
+        # get output from the child in there.
+        $stdout.sync = true
+        $stderr.sync = true
+
+        # Load the schedule into rufus
+        # If dynamic is set, load that schedule otherwise use normal load
+        reload_schedule!
+
+        begin
+          @th = Thread.current
+
+          # Now start the scheduling part of the loop.
+          loop do
+            begin
+              update_schedule if master?
+            rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
+              log! e.message
+              release_master_lock
+            end
+            poll_sleep
+          end
+
+        rescue Interrupt
+          log 'Exiting'
+        end
+      ensure
+        release_master_lock
+      end
+
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
         procline 'Starting'
