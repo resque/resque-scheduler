@@ -423,12 +423,11 @@ module Resque
       end
 
       def in_progress?(queue_name)
-        currently_processing = Resque::Worker.working.map(&:job).any? do |job|
+        currently_processing = Resque.working.map(&:job).any? do |job|
           job['queue'] == queue_name.to_s
         end
-        return true if currently_processing
 
-        Resque.peek(queue_name, 0, 5000).any?
+        currently_processing || (Resque.size(queue_name.to_s) > 0)
       end
 
       def should_enqueue?(config)
