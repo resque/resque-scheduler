@@ -90,7 +90,10 @@ module Resque
           # Now start the scheduling part of the loop.
           loop do
             begin
-              update_schedule if master?
+              if master?
+                update_schedule
+                procline 'Processing Schedules'
+              end
             rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
               log! e.message
               release_master_lock
