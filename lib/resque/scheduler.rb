@@ -31,10 +31,9 @@ module Resque
       # allow user to set an additional failure handler
       attr_writer :failure_handler
 
-      # run with RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=delayed
+      # runs without a lock
       def run_delayed_only
         procline 'Starting Delayed'
-        ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX']="delayed"
 
         # trap signals
         register_signal_handlers
@@ -49,12 +48,12 @@ module Resque
           @th = Thread.current
 
           # Now start the scheduling part of the loop.
+          procline 'Processing Delayed Items'
           loop do
             begin
-              handle_delayed_items if master?
+              unlocked_handle_delayed_items
             rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
               log! e.message
-              release_master_lock
             end
             poll_sleep
           end
@@ -62,8 +61,32 @@ module Resque
         rescue Interrupt
           log 'Exiting'
         end
-      ensure
-        release_master_lock
+      end
+
+      # Handles queueing delayed items
+      # at_time - Time to start scheduling items (default: now).
+      # this should be multi-process safe
+      def unlocked_handle_delayed_items(at_time = nil)
+        timestamp = Resque.next_delayed_timestamp(at_time)
+        if timestamp
+          until timestamp.nil?
+            unlocked_enqueue_delayed_items_for_timestamp(timestamp)
+            timestamp = Resque.next_delayed_timestamp(at_time)
+          end
+        end
+      end
+
+      def unlocked_enqueue_delayed_items_for_timestamp(timestamp)
+        item = nil
+        loop do
+          handle_shutdown do
+            # Continually check that it is still the master
+            item = enqueue_next_item(timestamp)
+          end
+          # continue processing until there are no more ready items in this
+          # timestamp
+          break if item.nil?
+        end
       end
 
       # run with RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=scheduler
