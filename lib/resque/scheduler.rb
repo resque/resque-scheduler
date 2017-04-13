@@ -427,7 +427,7 @@ module Resque
           job['queue'] == queue_name.to_s
         end
 
-        currently_processing || (Resque.size(queue_name.to_s) > 0)
+        currently_processing || (Resque.size(queue_name.to_s) > 0)
       end
 
       def should_enqueue?(config)
