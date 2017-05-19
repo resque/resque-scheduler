@@ -185,13 +185,13 @@ module Resque
 
         def schedule_interval_every(every)
           every = [*every]
-          s = 'every: ' << every.first
+          s = 'every: ' << "#{every.first}#{'s' if every.first.is_a?(Numeric)}"
 
           return s unless every.length > 1
 
           s << ' ('
           meta = every.last.map do |key, value|
-            "#{key.to_s.tr('_', ' ')} #{value}"
+            "#{key.to_s.tr('_', ' ')} #{value}#{'s' if value.is_a?(Numeric)}"
           end
           s << meta.join(', ') << ')'
         end

@@ -132,6 +132,19 @@ context 'Resque::Scheduler' do
     assert job.opts.keys.include?(:first_in)
   end
 
+  test 'load_schedule_job with every fixnum' do
+    Resque::Scheduler.load_schedule_job(
+      'some_ivar_job',
+      'every' => 30,
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
+
+    assert_equal(1, Resque::Scheduler.rufus_scheduler.jobs.size)
+    assert_equal(1, Resque::Scheduler.scheduled_jobs.size)
+    assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
+  end
+
   test 'load_schedule_job with cron with options' do
     Resque::Scheduler.load_schedule_job(
       'some_ivar_job',
