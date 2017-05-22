@@ -69,4 +69,50 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.unstub(:release_master_lock)
     Resque::Scheduler.release_master_lock
   end
+
+  context 'logs scheduler' do
+    setup do
+      Resque::Scheduler.poll_sleep_amount = nil
+      nullify_logger
+      Resque::Scheduler.logformat = 'text'
+      $stdout = StringIO.new
+    end
+
+    teardown do
+      Resque::Scheduler.unstub(:master?)
+      $stdout = STDOUT
+    end
+
+    test 'logs scheduler master' do
+      Resque::Scheduler.expects(:master?).returns(true)
+
+      @pid = Process.pid
+      Thread.new do
+        sleep(0.1)
+        Process.kill(:TERM, @pid)
+      end
+
+      assert_raises SystemExit do
+        Resque::Scheduler.run
+      end
+
+      assert $stdout.string =~ /: Master scheduler/
+    end
+
+    test 'logs scheduler child' do
+      Resque::Scheduler.expects(:master?).returns(false)
+
+      @pid = Process.pid
+      Thread.new do
+        sleep(0.1)
+        Process.kill(:TERM, @pid)
+      end
+
+      assert_raises SystemExit do
+        Resque::Scheduler.run
+      end
+
+      assert $stdout.string =~ /: Child scheduler/
+    end
+  end
 end
