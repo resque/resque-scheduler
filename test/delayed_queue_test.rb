@@ -898,6 +898,16 @@ context 'DelayedQueue' do
     end
   end
 
+  test 'invalid number of seconds' do
+    assert_raises ArgumentError do
+      Resque.enqueue_in(Time.now, SomeIvarJob)
+    end
+
+    assert_raises ArgumentError do
+      Resque.enqueue_in_with_queue('test', Time.now, SomeIvarJob)
+    end
+  end
+
   test 'inlining jobs with Resque.inline config' do
     begin
       Resque.inline = true

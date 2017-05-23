@@ -45,6 +45,9 @@ module Resque
       # Identical to enqueue_at but takes number_of_seconds_from_now
       # instead of a timestamp.
       def enqueue_in(number_of_seconds_from_now, klass, *args)
+        unless number_of_seconds_from_now.is_a?(Numeric)
+          raise ArgumentError, 'Please supply a numeric number of seconds'
+        end
         enqueue_at(Time.now + number_of_seconds_from_now, klass, *args)
       end
 
@@ -53,6 +56,9 @@ module Resque
       # number of seconds has passed.
       def enqueue_in_with_queue(queue, number_of_seconds_from_now,
                                 klass, *args)
+        unless number_of_seconds_from_now.is_a?(Numeric)
+          raise ArgumentError, 'Please supply a numeric number of seconds'
+        end
         enqueue_at_with_queue(queue, Time.now + number_of_seconds_from_now,
                               klass, *args)
       end
