@@ -1,6 +1,7 @@
 resque-scheduler
 ================
 
+
 [![Dependency Status](https://gemnasium.com/badges/github.com/resque/resque-scheduler.svg)](https://gemnasium.com/github.com/resque/resque-scheduler)
 [![Gem Version](https://badge.fury.io/rb/resque-scheduler.svg)](https://badge.fury.io/rb/resque-scheduler)
 [![Build Status](https://travis-ci.org/resque/resque-scheduler.svg?branch=master)](https://travis-ci.org/resque/resque-scheduler)
@@ -288,6 +289,19 @@ clear_leaderboards_contributors:
   queue: low
   args: contributors
   description: "This job resets the weekly leaderboard for contributions"
+```
+
+If you would like to setup a job that is executed manually you can configure like this in your YAML file.
+
+```yaml
+ImportOrdersManual:
+  description: 'Import Amazon Orders Manual'
+  custom_job_class: 'AmazonMws::ImportOrdersJob'
+  never: "* * * * *"
+  queue: high
+  description: "This is a manual job for importing orders."
+  args:
+    days_in_arrears: 7
 ```
 
 The queue value is optional, but if left unspecified resque-scheduler will

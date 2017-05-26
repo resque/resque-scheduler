@@ -5,6 +5,7 @@ environment:
   RUBYOPT: '-W0'
   COVERAGE: 1
   JRUBY_OPTS: ''
+  TZ: 'UTC'
 
 install:
 - set PATH=C:\Ruby23\bin;%PATH%

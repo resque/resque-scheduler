@@ -367,7 +367,13 @@ module Resque
         true
       end
 
+      def stop_rufus_scheduler
+        rufus_scheduler.shutdown(:wait)
+        rufus_scheduler.join
+      end
+
       def before_shutdown
+        stop_rufus_scheduler
         release_master_lock
       end
 

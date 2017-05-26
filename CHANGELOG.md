@@ -6,6 +6,7 @@
 ### Changed
 - Change log format and file name
 - Drop testing on ruby 1.9.3
+- `Lock::Resilient`: Refresh lua script sha if it does not exist in redis server
 
 ### Fixed
 - Reporting version via `resque-scheduler --version`
