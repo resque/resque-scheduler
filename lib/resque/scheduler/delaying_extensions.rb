@@ -138,7 +138,7 @@ module Resque
       end
 
       # Given an encoded item, remove it from the delayed_queue
-      def remove_delayed(klass, *args)
+      def remove_delayed_job(klass, *args)
         search = encode(job_to_hash(klass, args))
         remove_delayed_job(search)
       end
@@ -146,7 +146,7 @@ module Resque
       # Given an encoded item, enqueue it now
       def enqueue_delayed(klass, *args)
         hash = job_to_hash(klass, args)
-        remove_delayed(klass, *args).times do
+        remove_delayed_job(klass, *args).times do
           Resque::Scheduler.enqueue_from_config(hash)
         end
       end

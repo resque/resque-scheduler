@@ -221,7 +221,7 @@ If you have the need to cancel a delayed job, you can do like so:
 # after you've enqueued a job like:
 Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :user_id => current_user.id)
 # remove the job with exactly the same parameters:
-Resque.remove_delayed(SendFollowUpEmail, :user_id => current_user.id)
+Resque.remove_delayed_job(SendFollowUpEmail, :user_id => current_user.id)
 ```
 
 If you need to cancel a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
