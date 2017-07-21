@@ -265,6 +265,26 @@ context 'DelayedQueue' do
     end
   end
 
+  test 'when Resque.inline = true, calls Resque#enqueue ' \
+       'when klass#scheduled is not defined' do
+    old_val = Resque.inline
+    begin
+      Resque.inline = true
+      assert_false(SomeFancyJob.respond_to?(:scheduled))
+      Resque.expects(:enqueue_to).with(:fancy, SomeFancyJob, 'foo', 'bar')
+      Resque.enqueue_at(Time.now + 10, SomeFancyJob, 'foo', 'bar')
+    ensure
+      Resque.inline = old_val
+    end
+  end
+
+  test 'enqueue_at calls Resque#enqueue when given a moment in the past' \
+       'when klass#scheduled is not defined' do
+    assert_false(SomeFancyJob.respond_to?(:scheduled))
+    Resque.expects(:enqueue_to).with(:fancy, SomeFancyJob, 'foo', 'bar')
+    Resque.enqueue_at(Time.now - 10, SomeFancyJob, 'foo', 'bar')
+  end
+
   test 'enqueue_next_item picks one job' do
     t = Time.now + 60
 

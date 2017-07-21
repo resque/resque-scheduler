@@ -33,7 +33,7 @@ module Resque
           if klass.respond_to?(:scheduled)
             klass.scheduled(queue, klass.to_s, *args)
           else
-            Resque::Job.create(queue, klass, *args)
+            Resque.enqueue_to(queue, klass, *args)
           end
         else
           delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
