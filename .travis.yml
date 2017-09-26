@@ -2,8 +2,11 @@ language: ruby
 sudo: false
 cache: bundler
 rvm:
-- 2.3.1
-- jruby-9.1.2.0
+- 2.1.10
+- 2.2.8
+- 2.3.5
+- 2.4.2
+- jruby-9.1.13.0
 env:
   global:
   - COVERAGE=1
@@ -11,7 +14,7 @@ env:
   - RUBYOPT='-W0'
 matrix:
   allow_failures:
-  - rvm: jruby-9.1.2.0
+  - rvm: jruby-9.1.13.0
 services:
 - redis-server
 deploy:
@@ -22,5 +25,5 @@ deploy:
   on:
     tags: true
     repo: resque/resque-scheduler
-    rvm: 2.3.1
+    rvm: 2.4.2
     all_branches: true
