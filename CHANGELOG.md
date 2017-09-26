@@ -4,6 +4,7 @@
 
 ## [Unreleased]
 ### Changed
+- Add support and testing for ruby 2.4
 - Change log format and file name
 - Drop testing on ruby 1.9.3
 - `Lock::Resilient`: Refresh lua script sha if it does not exist in redis server
