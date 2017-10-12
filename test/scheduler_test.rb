@@ -15,6 +15,14 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
   end
 
+  test 'testing with TEST_WITH_MIGRATOR is actually doing something' do
+    if ENV['TEST_WITH_MIGRATOR']
+      assert Resque::Scheduler.old_resque
+    else
+      assert !Resque::Scheduler.methods.include?(:old_resque)
+    end
+  end
+
   test 'enqueue constantizes' do
     Resque::Scheduler.env = 'production'
     config = {
