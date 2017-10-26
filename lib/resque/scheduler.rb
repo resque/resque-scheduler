@@ -184,8 +184,10 @@ module Resque
             if master?
               item = Resque.next_delayed_item(before: at_time)
 
-              log "queuing #{item['class']} [delayed]"
-              enqueue(item) if item
+              if item
+                log "queuing #{item['class']} [delayed]"
+                enqueue(item)
+              end
             end
           end
 
