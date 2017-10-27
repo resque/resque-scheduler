@@ -24,14 +24,6 @@ module Resque
           post('/schedule/requeue_with_params') do
             schedule_requeue_with_params
           end
-          delete('/schedule') { delete_schedule }
-          get('/delayed') { delayed }
-          get('/delayed/jobs/:klass') { delayed_jobs_klass }
-          post('/delayed/search') { delayed_search }
-          get('/delayed/:timestamp') { delayed_timestamp }
-          post('/delayed/queue_now') { delayed_queue_now }
-          post('/delayed/cancel_now') { delayed_cancel_now }
-          post('/delayed/clear') { delayed_clear }
         end
       end
 
@@ -71,69 +63,6 @@ module Resque
           Resque::Scheduler.enqueue_from_config(config)
           redirect u('/overview')
         end
-
-        def delete_schedule
-          if Resque::Scheduler.dynamic
-            job_name = params['job_name'] || params[:job_name]
-            Resque.remove_schedule(job_name)
-          end
-          redirect u('/schedule')
-        end
-
-        def delayed
-          erb scheduler_template('delayed')
-        end
-
-        def delayed_jobs_klass
-          begin
-            klass = Resque::Scheduler::Util.constantize(params[:klass])
-            @args = JSON.load(URI.decode(params[:args]))
-            @timestamps = Resque.scheduled_at(klass, *@args)
-          rescue
-            @timestamps = []
-          end
-
-          erb scheduler_template('delayed_schedules')
-        end
-
-        def delayed_search
-          @jobs = find_job(params[:search])
-          erb scheduler_template('search')
-        end
-
-        def delayed_timestamp
-          erb scheduler_template('delayed_timestamp')
-        end
-
-        def delayed_queue_now
-          timestamp = params['timestamp'].to_i
-          formatted_time = Time.at(timestamp).strftime(
-            ::Resque::Scheduler::Server::TIMESTAMP_FORMAT
-          )
-
-          if timestamp > 0
-            unless Resque::Scheduler.enqueue_next_item(timestamp)
-              @error_message = "Unable to remove item at #{formatted_time}"
-            end
-          else
-            @error_message = "Incorrect timestamp #{formatted_time}"
-          end
-
-          erb scheduler_template('delayed')
-        end
-
-        def delayed_cancel_now
-          klass = Resque::Scheduler::Util.constantize(params['klass'])
-          timestamp = params['timestamp']
-          args = Resque.decode params['args']
-          Resque.remove_delayed_job_from_timestamp(timestamp, klass, *args)
-          redirect u('/delayed')
-        end
-
-        def delayed_clear
-          Resque.reset_delayed_queue
-          redirect u('delayed')
-        end
       end
 
       module HelperMethods
@@ -149,28 +78,6 @@ module Resque
           Resque.queue_from_class(
             Resque::Scheduler::Util.constantize(class_name)
           )
-        end
-
-        def find_job(worker)
-          worker = worker.downcase
-          results = working_jobs_for_worker(worker)
-
-          dels = delayed_jobs_for_worker(worker)
-          results += dels.select do |j|
-            j['class'].downcase.include?(worker) &&
-              j.merge!('where_at' => 'delayed')
-          end
-
-          Resque.queues.each do |queue|
-            queued = Resque.peek(queue, 0, Resque.size(queue))
-            queued = [queued] unless queued.is_a?(Array)
-            results += queued.select do |j|
-              j['class'].downcase.include?(worker) &&
-                j.merge!('queue' => queue, 'where_at' => 'queued')
-            end
-          end
-
-          results
         end
 
         def schedule_interval(config)
@@ -222,38 +129,6 @@ module Resque
         def scheduler_view(filename, options = {}, locals = {})
           source = File.read(File.join(VIEW_PATH, "#{filename}.erb"))
           erb source, options, locals
-        end
-
-        private
-
-        def working_jobs_for_worker(worker)
-          [].tap do |results|
-            working = [*Resque.working]
-            work = working.select do |w|
-              w.job && w.job['payload'] &&
-                w.job['payload']['class'].downcase.include?(worker)
-            end
-            work.each do |w|
-              results += [
-                w.job['payload'].merge(
-                  'queue' => w.job['queue'], 'where_at' => 'working'
-                )
-              ]
-            end
-          end
-        end
-
-        def delayed_jobs_for_worker(_worker)
-          [].tap do |dels|
-            schedule_size = Resque.delayed_queue_schedule_size
-            Resque.delayed_queue_peek(0, schedule_size).each do |d|
-              Resque.delayed_timestamp_peek(
-                d, 0, Resque.delayed_timestamp_size(d)
-              ).each do |j|
-                dels << j.merge!('timestamp' => d)
-              end
-            end
-          end
         end
       end
     end
