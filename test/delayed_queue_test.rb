@@ -17,14 +17,10 @@ context 'DelayedQueue' do
 
     assert_equal(0, Resque.redis.zcard(:delayed_queue).to_i,
                  'delayed queue should be empty to start')
-    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
-                 'job timestamps set should be empty to start')
 
     Resque.enqueue_at(timestamp, SomeIvarJob, 'path')
 
     # Confirm the correct keys were added
-    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"),
-                 'job timestamps should have one entry now')
     assert_equal(1, Resque.redis.zcard(:delayed_queue),
                  'The delayed_queue should have 1 entry now')
 
@@ -41,8 +37,6 @@ context 'DelayedQueue' do
     # And now confirm the keys are gone
     assert_equal(0, Resque.redis.zcard(:delayed_queue),
                  'delayed queue should be empty')
-    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
-                 'job timestamps set should be empty')
   end
 
   test 'enqueue_at with queue adds correct list and zset and queue' do
@@ -55,16 +49,10 @@ context 'DelayedQueue' do
 
     assert_equal(0, Resque.redis.zcard(:delayed_queue).to_i,
                  'delayed queue should be empty to start')
-    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
-                 'job timestamps set should be empty to start')
 
     Resque.enqueue_at_with_queue('critical', timestamp, SomeIvarJob, 'path')
 
     # Confirm the correct keys were added
-    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"),
-                 'job timestamps should have one entry now')
-    assert_equal(1, Resque.redis.zcard(:delayed_queue),
-                 'The delayed_queue should have 1 entry now')
 
     read_timestamp = timestamp.to_i.to_f
 
@@ -82,8 +70,6 @@ context 'DelayedQueue' do
     assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule),
                  'delayed queue should be empty')
-    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
-                 'job timestamps set should be empty')
   end
 
   test 'enqueue_at and enqueue_in are equivelent' do
@@ -94,86 +80,17 @@ context 'DelayedQueue' do
       queue: Resque.queue_from_class(SomeIvarJob)
     )
 
-    puts timestamp.to_i, timestamp.to_i - Time.now.to_i
-
     Resque.enqueue_at(timestamp.to_i, SomeIvarJob, 'path')
     Resque.enqueue_in(timestamp.to_i - Time.now.to_i, SomeIvarJob, 'path')
 
     assert_equal(2, Resque.redis.zcard(:delayed_queue),
                  'should have 2 items in the queue')
-    puts Resque.redis.smembers("timestamps:#{encoded_job}")
-    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"),
-                 'job timestamps should have one entry now')
-  end
-
-  test 'empty delayed_queue_peek returns empty array' do
-    assert_equal([], Resque.delayed_queue_peek(0, 20))
-  end
-
-  test 'delayed_queue_peek returns stuff' do
-    t = Time.now
-    expected_timestamps = (1..5).to_a.map do |i|
-      (t + 60 + i).to_i
-    end
-
-    expected_timestamps.each do |timestamp|
-      Resque.enqueue_at(timestamp, SomeIvarJob, 'blah1 ')
-    end
-
-    timestamps = Resque.delayed_queue_peek(1, 2)
-
-    assert_equal(expected_timestamps[1, 2], timestamps)
   end
 
   test 'delayed_queue_schedule_size returns correct size' do
     assert_equal(0, Resque.delayed_queue_schedule_size)
     Resque.enqueue_at(Time.now + 60, SomeIvarJob)
     assert_equal(1, Resque.delayed_queue_schedule_size)
-  end
-
-  test 'delayed_timestamp_size returns 0 when nothing is queue' do
-    t = Time.now + 60
-    assert_equal(0, Resque.delayed_timestamp_size(t))
-  end
-
-  test 'delayed_timestamp_size returns 1 when one thing is queued' do
-    t = Time.now + 60
-    Resque.enqueue_at(t, SomeIvarJob)
-    assert_equal(1, Resque.delayed_timestamp_size(t))
-  end
-
-  test 'delayed_timestamp_peek returns empty array when nothings in it' do
-    t = Time.now + 60
-    assert_equal([], Resque.delayed_timestamp_peek(t, 0, 1),
-                 "make sure it's an empty array, not nil")
-  end
-
-  test 'delayed_timestamp_peek returns an array containing one job ' \
-       'when one thing is queued' do
-    t = Time.now + 60
-    Resque.enqueue_at(t, SomeIvarJob)
-    assert_equal(
-      [{ 'args' => [], 'class' => 'SomeIvarJob', 'queue' => 'ivar' }],
-      Resque.delayed_timestamp_peek(t, 0, 1)
-    )
-  end
-
-  test 'delayed_timestamp_peek returns an array of multiple jobs ' \
-       'when more than one job is queued' do
-    t = Time.now + 60
-    Resque.enqueue_at(t, SomeIvarJob)
-    Resque.enqueue_at(t, SomeIvarJob)
-    job = { 'args' => [], 'class' => 'SomeIvarJob', 'queue' => 'ivar' }
-    assert_equal([job, job], Resque.delayed_timestamp_peek(t, 0, 2))
-  end
-
-  test 'delayed_timestamp_peek only returns an array of one job ' \
-       'if only asked for 1' do
-    t = Time.now + 60
-    Resque.enqueue_at(t, SomeIvarJob)
-    Resque.enqueue_at(t, SomeIvarJob)
-    job = { 'args' => [], 'class' => 'SomeIvarJob', 'queue' => 'ivar' }
-    assert_equal([job], Resque.delayed_timestamp_peek(t, 0, 1))
   end
 
   test 'handle_delayed_items with no items' do
@@ -226,32 +143,16 @@ context 'DelayedQueue' do
 
     Resque.enqueue_at(t, SomeIvarJob)
     Resque.enqueue_at(t, SomeIvarJob)
+
+    assert_equal 2, Resque.delayed_queue_schedule_size
     Resque.next_delayed_item(before: t)
-    assert_equal(1, Resque.delayed_timestamp_peek(t, 0, 3).length)
-  end
-
-  test 'enqueue_delayed creates jobs and empties the delayed queue' do
-    t = Time.now + 60
-
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t, SomeIvarJob, 'bar')
-    Resque.enqueue_at(t, SomeIvarJob, 'bar')
-
-    # 3 SomeIvarJob jobs should be created in the "ivar" queue
-    Resque::Job.expects(:create).never.with(:ivar, SomeIvarJob, 'foo')
-    Resque::Job.expects(:create).twice.with(:ivar, SomeIvarJob, 'bar')
-
-    # 2 SomeIvarJob jobs should be enqueued
-    assert_equal(2, Resque.enqueue_delayed(SomeIvarJob, 'bar'))
-
-    # delayed queue for timestamp should have one remaining
-    assert_equal(1, Resque.delayed_timestamp_peek(t, 0, 3).length)
+    assert_equal 1, Resque.delayed_queue_schedule_size
   end
 
   test 'handle_delayed_items works with out specifying queue ' \
        '(upgrade case)' do
     t = Time.now - 60
-    Resque.delayed_push(t, class: 'SomeIvarJob')
+    Resque.send(:delayed_push, t, class: 'SomeIvarJob')
 
     # Since we didn't specify :queue when calling delayed_push, it will be
     # forced to load the class to figure out the queue.  This is the upgrade
@@ -271,72 +172,6 @@ context 'DelayedQueue' do
     assert_equal(0, Resque.redis.keys('timestamps:*').size)
   end
 
-  test 'remove_delayed removes job and returns the count' do
-    t = Time.now + 120
-    encoded_job = Resque.encode(
-      class: SomeIvarJob.to_s,
-      args: [],
-      queue: Resque.queue_from_class(SomeIvarJob)
-    )
-    Resque.enqueue_at(t, SomeIvarJob)
-
-    assert_equal(1, Resque.remove_delayed(SomeIvarJob))
-    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"))
-  end
-
-  test "when Resque.inline = true, remove_delayed doesn't remove the job" \
-       'and returns 0' do
-    begin
-      Resque.inline = true
-
-      timestamp = Time.now + 120
-      Resque.enqueue_at(timestamp, SomeIvarJob, 'foo', 'bar')
-
-      assert_equal(0, Resque.remove_delayed(SomeIvarJob))
-    ensure
-      Resque.inline = false
-    end
-  end
-
-  test 'scheduled_at returns an array containing job schedule time' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob)
-
-    assert_equal([t.to_i], Resque.scheduled_at(SomeIvarJob))
-  end
-
-  test "remove_delayed doesn't remove things it shouldn't" do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t, SomeIvarJob, 'bar')
-    Resque.enqueue_at(t, SomeIvarJob, 'bar')
-    Resque.enqueue_at(t, SomeIvarJob, 'baz')
-
-    assert_equal(0, Resque.remove_delayed(SomeIvarJob))
-  end
-
-  test 'remove_delayed respected param' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t, SomeIvarJob, 'bar')
-    Resque.enqueue_at(t, SomeIvarJob, 'bar')
-    Resque.enqueue_at(t, SomeIvarJob, 'baz')
-
-    assert_equal(2, Resque.remove_delayed(SomeIvarJob, 'bar'))
-    assert_equal(2, Resque.delayed_queue_schedule_size)
-  end
-
-  test 'remove_delayed removes items in different timestamps' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
-    Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
-    Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
-
-    assert_equal(2, Resque.remove_delayed(SomeIvarJob, 'bar'))
-    assert_equal(2, Resque.count_all_scheduled_jobs)
-  end
-
   test 'remove_delayed_selection removes multiple items matching ' \
        'arguments at same timestamp' do
     t = Time.now + 120
@@ -349,7 +184,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
 
     assert_equal(5, Resque.remove_delayed_selection { |a| a.first == 'bar' })
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection removes single item matching arguments' do
@@ -360,7 +195,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(1, Resque.remove_delayed_selection { |a| a.first == 'foo' })
-    assert_equal(3, Resque.count_all_scheduled_jobs)
+    assert_equal(3, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection removes multiple items matching arguments' do
@@ -371,7 +206,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(2, Resque.remove_delayed_selection { |a| a.first == 'bar' })
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection removes multiple items matching ' \
@@ -385,7 +220,7 @@ context 'DelayedQueue' do
     assert_equal(
       2, Resque.remove_delayed_selection { |a| a.first['foo'] == 'bar' }
     )
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection ignores jobs with no arguments' do
@@ -396,7 +231,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob)
 
     assert_equal(0, Resque.remove_delayed_selection { |a| a.first == 'bar' })
-    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(4, Resque.delayed_queue_schedule_size)
   end
 
   test "remove_delayed_selection doesn't remove items it shouldn't" do
@@ -407,7 +242,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(0, Resque.remove_delayed_selection { |a| a.first == 'qux' })
-    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(4, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection ignores last_enqueued_at redis key' do
@@ -427,7 +262,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.remove_delayed_selection(SomeIvarJob) do |a|
       a.first == 'foo'
     end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection removes item by class name as a string' do
@@ -438,7 +273,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.remove_delayed_selection('SomeIvarJob') do |a|
       a.first == 'foo'
     end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection removes item by class name as a symbol' do
@@ -449,7 +284,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.remove_delayed_selection(:SomeIvarJob) do |a|
       a.first == 'foo'
     end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection removes items only from matching job class' do
@@ -464,7 +299,7 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.remove_delayed_selection(SomeIvarJob) do |a|
       a.first == 'foo'
     end)
-    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(4, Resque.delayed_queue_schedule_size)
   end
 
   test 'remove_delayed_selection removes items from matching job class ' \
@@ -476,7 +311,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeQuickJob)
 
     assert_equal(2, Resque.remove_delayed_selection(SomeQuickJob) { true })
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues multiple items matching ' \
@@ -491,7 +326,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
 
     assert_equal(5, Resque.enqueue_delayed_selection { |a| a.first == 'bar' })
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues single item matching arguments' do
@@ -502,7 +337,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(1, Resque.enqueue_delayed_selection { |a| a.first == 'foo' })
-    assert_equal(3, Resque.count_all_scheduled_jobs)
+    assert_equal(3, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues multiple items matching arguments' do
@@ -513,7 +348,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(2, Resque.enqueue_delayed_selection { |a| a.first == 'bar' })
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues multiple items matching ' \
@@ -527,7 +362,7 @@ context 'DelayedQueue' do
     assert_equal(
       2, Resque.enqueue_delayed_selection { |a| a.first['foo'] == 'bar' }
     )
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection ignores jobs with no arguments' do
@@ -538,7 +373,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob)
 
     assert_equal(0, Resque.enqueue_delayed_selection { |a| a.first == 'bar' })
-    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(4, Resque.delayed_queue_schedule_size)
   end
 
   test "enqueue_delayed_selection doesn't enqueue items it shouldn't" do
@@ -549,7 +384,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
     assert_equal(0, Resque.enqueue_delayed_selection { |a| a.first == 'qux' })
-    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(4, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection ignores last_enqueued_at redis key' do
@@ -569,7 +404,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.enqueue_delayed_selection(SomeIvarJob) do |a|
       a.first == 'foo'
     end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues item by class name as a string' do
@@ -580,7 +415,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.enqueue_delayed_selection('SomeIvarJob') do |a|
       a.first == 'foo'
     end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues item by class name as a symbol' do
@@ -591,7 +426,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.enqueue_delayed_selection(:SomeIvarJob) do |a|
       a.first == 'foo'
     end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues items only from' \
@@ -607,7 +442,7 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.enqueue_delayed_selection(SomeIvarJob) do |a|
       a.first == 'foo'
     end)
-    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(4, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_selection enqueues items from matching job class ' \
@@ -619,7 +454,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeQuickJob)
 
     assert_equal(2, Resque.enqueue_delayed_selection(SomeQuickJob) { true })
-    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_queue_schedule_size)
   end
 
   test 'find_delayed_selection finds multiple items matching ' \
@@ -756,88 +591,6 @@ context 'DelayedQueue' do
     )
   end
 
-  test 'remove_delayed_job_from_timestamp removes instances of jobs ' \
-       'at a given timestamp' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    assert_equal(
-      1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, 'foo')
-    )
-    assert_equal 0, Resque.delayed_timestamp_size(t)
-  end
-
-  test "remove_delayed_job_from_timestamp doesn't remove items from " \
-       'other timestamps' do
-    t1 = Time.now + 120
-    t2 = t1 + 1
-    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t2, SomeIvarJob, 'foo')
-    assert_equal(
-      1, Resque.remove_delayed_job_from_timestamp(t2, SomeIvarJob, 'foo')
-    )
-    assert_equal 1, Resque.delayed_timestamp_size(t1)
-    assert_equal 0, Resque.delayed_timestamp_size(t2)
-  end
-
-  test 'when Resque.inline = true, remove_delayed_job_from_timestamp' \
-       "doesn't remove any jobs and returns 0" do
-    begin
-      Resque.inline = true
-
-      timestamp = Time.now + 120
-      Resque.enqueue_at(timestamp, SomeIvarJob, 'foo', 'bar')
-
-      assert_equal(0, Resque.delayed_timestamp_size(timestamp))
-    ensure
-      Resque.inline = false
-    end
-  end
-
-  test 'remove_delayed_job_from_timestamp removes nothing if there ' \
-       'are no matches' do
-    t = Time.now + 120
-    assert_equal(
-      0, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, 'foo')
-    )
-  end
-
-  test 'remove_delayed_job_from_timestamp only removes items that ' \
-       'match args' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t, SomeIvarJob, 'bar')
-    assert_equal(
-      1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, 'foo')
-    )
-    assert_equal 1, Resque.delayed_timestamp_size(t)
-  end
-
-  test 'remove_delayed_job_from_timestamp returns the number of ' \
-       'items removed' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    assert_equal(
-      1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, 'foo')
-    )
-  end
-
-  test 'remove_delayed_job_from_timestamp should cleanup the delayed ' \
-       'timestamp list if not jobs are left' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    assert_equal(
-      1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, 'foo')
-    )
-    assert !Resque.redis.exists("delayed:#{t.to_i}")
-    assert Resque.delayed_queue_peek(0, 100).empty?
-  end
-
-  test 'invalid job class' do
-    assert_raises Resque::NoQueueError do
-      Resque.enqueue_in(10, String)
-    end
-  end
-
   test 'inlining jobs with Resque.inline config' do
     begin
       Resque.inline = true
@@ -846,20 +599,10 @@ context 'DelayedQueue' do
       timestamp = Time.now + 120
       Resque.enqueue_at(timestamp, SomeIvarJob, 'foo', 'bar')
 
-      assert_equal 0, Resque.count_all_scheduled_jobs
+      assert_equal 0, Resque.delayed_queue_schedule_size
       assert !Resque.redis.exists("delayed:#{timestamp.to_i}")
     ensure
       Resque.inline = false
     end
-  end
-
-  test 'delayed?' do
-    Resque.enqueue_at Time.now + 1, SomeIvarJob
-    Resque.enqueue_at Time.now + 1, SomeIvarJob, id: 1
-
-    assert Resque.delayed?(SomeIvarJob, id: 1)
-    assert !Resque.delayed?(SomeIvarJob, id: 2)
-    assert Resque.delayed?(SomeIvarJob)
-    assert !Resque.delayed?(SomeJob)
   end
 end

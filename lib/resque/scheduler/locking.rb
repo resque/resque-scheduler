@@ -97,7 +97,7 @@ module Resque
       end
 
       def redis_master_version
-        Resque.redis.info['redis_version'].to_f
+        Resque.redis.redis.info['redis_version'].to_f
       end
     end
   end

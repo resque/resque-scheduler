@@ -9,7 +9,7 @@ context 'scheduling jobs with hooks' do
     SomeRealClass.expects(:before_schedule_example).with(:foo)
     SomeRealClass.expects(:after_schedule_example).with(:foo)
     Resque.enqueue_at(enqueue_time.to_i, SomeRealClass, :foo)
-    assert_equal(1, Resque.delayed_timestamp_size(enqueue_time.to_i),
+    assert_equal(1, Resque.delayed_queue_schedule_size,
                  'job should be enqueued')
   end
 
@@ -18,7 +18,7 @@ context 'scheduling jobs with hooks' do
     SomeRealClass.expects(:before_schedule_example).with(:foo).returns(false)
     SomeRealClass.expects(:after_schedule_example).never
     Resque.enqueue_at(enqueue_time.to_i, SomeRealClass, :foo)
-    assert_equal(0, Resque.delayed_timestamp_size(enqueue_time.to_i),
+    assert_equal(0, Resque.delayed_queue_schedule_size,
                  'job should not be enqueued')
   end
 

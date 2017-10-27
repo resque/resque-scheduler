@@ -28,7 +28,7 @@ module Resque
 
       if item
         Resque::Scheduler.log "migrating #{item['class']} [delayed] from old format to new format"
-        Resque.delayed_push(timestamp, item)
+        Resque.send(:delayed_push, timestamp, item)
       end
 
       item
