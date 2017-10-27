@@ -4,7 +4,7 @@ require_relative 'test_helper'
 context 'DelayedQueue' do
   setup do
     Resque::Scheduler.quiet = true
-    Resque.redis.flushall
+    Resque.redis.redis.flushall
   end
 
   test 'enqueue_at adds correct list and zset' do

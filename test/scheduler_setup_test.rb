@@ -6,7 +6,7 @@ context 'Resque::Scheduler' do
     ENV['VERBOSE'] = nil
     nullify_logger
     Resque::Scheduler.dynamic = false
-    Resque.redis.flushall
+    Resque.redis.redis.flushall
     Resque::Scheduler.clear_schedule!
   end
 
