@@ -524,10 +524,6 @@ The Schedule tab:
 
 ![The Schedule Tab](https://f.cloud.github.com/assets/45143/1178456/c99e5568-21b0-11e3-8c57-e1305d0ee8ef.png)
 
-The Delayed tab:
-
-![The Delayed Tab](http://img.skitch.com/20100111-ne4fcqtc5emkcuwc5qtais2kwx.jpg)
-
 #### How do I get the schedule tabs to show up???
 
 To get these to show up you need to pass a file to `resque-web` to tell it to

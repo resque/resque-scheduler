@@ -74,53 +74,6 @@ context 'on GET to /schedule with scheduled jobs' do
   end
 end
 
-context 'on GET to /delayed' do
-  setup { get '/delayed' }
-
-  test('is 200') { assert last_response.ok? }
-end
-
-context 'on GET to /delayed/jobs/:klass' do
-  setup do
-    @t = Time.now + 3600
-    Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
-    get(
-      URI('/delayed/jobs/SomeIvarJob?args=' <<
-          URI.encode(%w(foo bar).to_json)).to_s
-    )
-  end
-
-  test('is 200') { assert last_response.ok? }
-
-  test 'see the scheduled job' do
-    assert last_response.body.include?(@t.to_s)
-  end
-
-  context 'with a namespaced class' do
-    setup do
-      @t = Time.now + 3600
-      module Foo
-        class Bar
-          def self.queue
-            'bar'
-          end
-        end
-      end
-      Resque.enqueue_at(@t, Foo::Bar, 'foo', 'bar')
-      get(
-        URI('/delayed/jobs/Foo::Bar?args=' <<
-            URI.encode(%w(foo bar).to_json)).to_s
-      )
-    end
-
-    test('is 200') { assert last_response.ok? }
-
-    test 'see the scheduled job' do
-      assert last_response.body.include?(@t.to_s)
-    end
-  end
-end
-
 module Test
   RESQUE_SCHEDULE = {
     'job_without_params' => {
@@ -239,69 +192,6 @@ context 'on POST to /delayed/search' do
     post '/delayed/search', 'search' => 'quick'
     assert last_response.status == 200
     assert last_response.body.include?('SomeQuickJob')
-  end
-end
-
-context 'on POST to /delayed/cancel_now' do
-  setup do
-    Resque.reset_delayed_queue
-    Resque.enqueue_at(Time.now + 10, SomeIvarJob, 'arg')
-    Resque.enqueue_at(Time.now + 100, SomeQuickJob)
-  end
-
-  test 'removes the specified job' do
-    job_timestamp, *remaining = Resque.delayed_queue_peek(0, 10)
-    assert_equal 1, remaining.size
-
-    post '/delayed/cancel_now',
-         'timestamp' => job_timestamp,
-         'klass'     => SomeIvarJob.name,
-         'args'      => Resque.encode(['arg'])
-
-    assert_equal 302, last_response.status
-    assert_equal remaining, Resque.delayed_queue_peek(0, 10)
-  end
-
-  test 'does not remove the job if the params do not match' do
-    timestamps = Resque.delayed_queue_peek(0, 10)
-
-    post '/delayed/cancel_now',
-         'timestamp' => timestamps.first,
-         'klass'     => SomeIvarJob.name
-
-    assert_equal 302, last_response.status
-    assert_equal timestamps, Resque.delayed_queue_peek(0, 10)
-  end
-
-  test 'redirects to overview' do
-    post '/delayed/cancel_now'
-    assert last_response.status == 302
-    assert last_response.header['Location'].include? '/delayed'
-  end
-end
-
-context 'on POST to /delayed/clear' do
-  setup { post '/delayed/clear' }
-
-  test 'redirects to delayed' do
-    assert last_response.status == 302
-    assert last_response.header['Location'].include? '/delayed'
-  end
-end
-
-context 'on POST to /delayed/queue_now' do
-  setup { post '/delayed/queue_now', timestamp: 0 }
-
-  test 'returns ok status' do
-    assert last_response.status == 200
-  end
-end
-
-context 'on GET to /delayed/:timestamp' do
-  setup { get '/delayed/1234567890' }
-
-  test 'shows delayed_timestamp view' do
-    assert last_response.status == 200
   end
 end
 
