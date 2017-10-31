@@ -9,7 +9,7 @@ context 'Resque::Scheduler' do
       c.env = nil
       c.app_name = nil
     end
-    Resque.redis.flushall
+    Resque.redis.redis.flushall
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
     Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
