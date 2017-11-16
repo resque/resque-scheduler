@@ -17,6 +17,10 @@ matrix:
   - rvm: jruby-9.1.13.0
 services:
 - redis-server
+addons:
+  apt:
+    packages:
+      - redis-server
 deploy:
   provider: rubygems
   api_key:

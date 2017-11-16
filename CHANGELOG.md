@@ -11,6 +11,7 @@
 
 ### Fixed
 - Reporting version via `resque-scheduler --version`
+- Class name escaping in `/delayed` view
 
 ## [4.3.0] - 2016-06-26
 ### Added
