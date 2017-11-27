@@ -76,7 +76,7 @@ module Resque
 
       def release_master_lock
         master_lock.release
-      rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError
+      rescue *INTERMITTENT_ERRORS
         @master_lock = nil
       end
 
