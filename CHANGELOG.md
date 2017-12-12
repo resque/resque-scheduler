@@ -2,7 +2,7 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
-## [Unreleased]
+## [4.3.1] - 2017-11-20
 ### Changed
 - Add support and testing for ruby 2.4
 - Change log format and file name
@@ -408,7 +408,8 @@
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/resque/resque-scheduler/compare/v4.3.0...HEAD
+[Unreleased]: https://github.com/resque/resque-scheduler/compare/v4.3.1...HEAD
+[4.3.1]: https://github.com/resque/resque-scheduler/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/resque/resque-scheduler/compare/v4.2.1...v4.3.0
 [4.2.1]: https://github.com/resque/resque-scheduler/compare/v4.2.0...v4.2.1
 [4.2.0]: https://github.com/resque/resque-scheduler/compare/v4.1.0...v4.2.0
