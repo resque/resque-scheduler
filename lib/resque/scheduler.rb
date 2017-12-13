@@ -225,18 +225,9 @@ module Resque
       # Enqueues a job based on a config hash
       def enqueue_from_config(job_config)
         args = job_config['args'] || job_config[:args]
-
-        klass_name = job_config['class'] || job_config[:class]
-        begin
-          klass = Resque::Scheduler::Util.constantize(klass_name)
-        rescue NameError
-          klass = klass_name
-        end
-
         params = args.is_a?(Hash) ? [args] : Array(args)
-        queue = job_config['queue'] ||
-                job_config[:queue] ||
-                Resque.queue_from_class(klass)
+        klass, klass_name, queue = queue_info_from(job_config)
+
         # Support custom job classes like those that inherit from
         # Resque::JobWithStatus (resque-status)
         job_klass = job_config['custom_job_class']
@@ -419,11 +410,42 @@ module Resque
 
       private
 
+      def queue_info_from(config)
+        klass_name = config['class'] || config[:class]
+        begin
+          klass = Resque::Scheduler::Util.constantize(klass_name)
+        rescue NameError
+          klass = klass_name
+        end
+
+        queue_name = config['queue'] || config[:queue] || Resque.queue_from_class(klass)
+        [klass, klass_name, queue_name]
+      end
+
+      def in_progress?(queue_name)
+        currently_processing = Resque.working.map(&:job).any? do |job|
+          job['queue'] == queue_name.to_s
+        end
+
+        currently_processing || (Resque.size(queue_name.to_s) > 0)
+      end
+
+      def should_enqueue?(config)
+        allow_overlap = (config[:overlap] != false && config['overlap'] != false)
+        _, _, queue_name = queue_info_from(config)
+
+        allow_overlap || !in_progress?(queue_name)
+      end
+
       def enqueue_recurring(name, config)
         if master?
-          log! "queueing #{config['class']} (#{name})"
-          Resque.last_enqueued_at(name, Time.now.to_s)
-          enqueue(config)
+          if should_enqueue?(config)
+            log! "queueing #{config['class']} (#{name})"
+            Resque.last_enqueued_at(name, Time.now.to_s)
+            enqueue(config)
+          else
+            log! "No overlap allowed. Not enqueueing #{config['class']} (#{name})"
+          end
         end
       end
 
