@@ -11,11 +11,6 @@ $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
 require 'resque/scheduler/server'
 
-if ENV['TEST_WITH_MIGRATOR']
-  require 'resque/scheduler_patch'
-  Resque::Scheduler.singleton_class.prepend(Resque::SchedulerPatch)
-end
-
 ##
 # test/spec/mini 3
 # original work: http://gist.github.com/25455

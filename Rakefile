@@ -19,21 +19,4 @@ Rake::TestTask.new(:testing) do |t|
   end
 end
 
-task :test do
-  puts
-  puts
-  puts "Running tests without migrator patch"
-
-  ENV['TEST_WITH_MIGRATOR'] = nil
-  Rake::Task[:testing].invoke
-
-  puts
-  puts
-  puts "Running tests with migrator patch"
-
-  ENV['TEST_WITH_MIGRATOR'] = "1"
-  Rake::Task[:testing].reenable
-  Rake::Task[:testing].invoke
-end
-
 YARD::Rake::YardocTask.new
