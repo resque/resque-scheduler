@@ -550,11 +550,7 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
-#### Changes as of 2.0.0
-
-As of resque-scheduler 2.0.0, it's no longer necessary to have the resque-web
-process aware of the schedule because it reads it from redis.  But prior to
-2.0, you'll want to make sure you load the schedule in this file as well.
+You'll want to make sure you load the schedule in this file as well.
 Something like this:
 
 ```ruby

@@ -75,9 +75,35 @@ context 'on GET to /schedule with scheduled jobs' do
 end
 
 context 'on GET to /delayed' do
-  setup { get '/delayed' }
+  [
+    {
+      'class' => SomeIvarJob,
+      'args' => %w(foo bar),
+      't' => Time.now + 3600
+    },
+    {
+      'class' => SomeFancyJob,
+      'args' => [],
+      't' => Time.now + 30
+    },
+    {
+      'class' => FakePHPClass,
+      'args' => %w(1 10 100),
+      't' => Time.now + 36_000
+    }
+  ].each do |job|
+    test "is 200 with class #{job['class']}" do
+      Resque.enqueue_at(job['t'], job['class'], *job['args'])
+      get '/delayed'
+      assert last_response.ok?
+    end
 
-  test('is 200') { assert last_response.ok? }
+    test "contains link to all schedules for class #{job['class']}" do
+      Resque.enqueue_at(job['t'], job['class'], *job['args'])
+      get '/delayed'
+      assert !(last_response.body =~ %r{/delayed/jobs/#{URI.escape(job['class'].to_s)}}).nil?
+    end
+  end
 end
 
 context 'on GET to /delayed/jobs/:klass' do

@@ -107,6 +107,14 @@ end
 
 JobWithoutParams = Class.new(JobWithParams)
 
+class FakePHPClass < SomeJob
+  @queue = :'some-other-kinda::queue-maybe'
+
+  def self.to_s
+    'Namespace\\For\\Job\\Class'
+  end
+end
+
 %w(
   APP_NAME
   DYNAMIC_SCHEDULE
