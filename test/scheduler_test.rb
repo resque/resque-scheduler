@@ -172,6 +172,40 @@ context 'Resque::Scheduler' do
     assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
+  test 'load_schedule_job updates last_enqueued_at' do
+    name = 'some_ivar_job'
+
+    Resque::Scheduler.load_schedule_job(
+      name,
+      'every' => '0.3s',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
+    sleep(0.5)
+
+    last_enqueued_at = Resque.get_last_enqueued_at(name)
+    Resque.last_enqueued_at(name, nil)
+    assert !last_enqueued_at.nil?
+  end
+
+  test 'load_schedule_job does not update last_enqueued_at' do
+    name = 'some_ivar_job'
+    Resque::Scheduler.stubs(:enqueue).raises(StandardError, 'Test')
+
+    Resque::Scheduler.load_schedule_job(
+      name,
+      'every' => '0.3s',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
+    sleep(0.5)
+
+    last_enqueued_at = Resque.get_last_enqueued_at(name)
+    Resque::Scheduler.unstub(:enqueue)
+    Resque.last_enqueued_at(name, nil)
+    assert last_enqueued_at.nil?
+  end
+
   test 'update_schedule' do
     Resque::Scheduler.dynamic = true
     Resque.schedule = {

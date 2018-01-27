@@ -422,8 +422,8 @@ module Resque
       def enqueue_recurring(name, config)
         if master?
           log! "queueing #{config['class']} (#{name})"
-          Resque.last_enqueued_at(name, Time.now.to_s)
           enqueue(config)
+          Resque.last_enqueued_at(name, Time.now.to_s)
         end
       end
 
