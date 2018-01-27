@@ -181,9 +181,9 @@ context 'Resque::Scheduler' do
       'class' => 'SomeIvarJob',
       'args' => '/tmp'
     )
-    sleep(0.5)
-
-    last_enqueued_at = Resque.get_last_enqueued_at(name)
+    last_enqueued_at = sleep_until(10) do
+      Resque.get_last_enqueued_at(name)
+    end
     Resque.last_enqueued_at(name, nil)
     assert !last_enqueued_at.nil?
   end
@@ -198,9 +198,10 @@ context 'Resque::Scheduler' do
       'class' => 'SomeIvarJob',
       'args' => '/tmp'
     )
-    sleep(0.5)
+    last_enqueued_at = sleep_until(10) do
+      Resque.get_last_enqueued_at(name)
+    end
 
-    last_enqueued_at = Resque.get_last_enqueued_at(name)
     Resque::Scheduler.unstub(:enqueue)
     Resque.last_enqueued_at(name, nil)
     assert last_enqueued_at.nil?
