@@ -46,6 +46,7 @@ Resque Scheduler authors
 - Michael Lovitt
 - Michael Nikitochkin
 - Michael Rykov
+- Mike MacDonald
 - Nickolas Means
 - Olek Janiszewski
 - Olivier Brisse

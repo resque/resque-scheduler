@@ -13,6 +13,9 @@ module Resque
     autoload :Extension, 'resque/scheduler/extension'
     autoload :Util, 'resque/scheduler/util'
     autoload :VERSION, 'resque/scheduler/version'
+    INTERMITTENT_ERRORS = [
+      Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError, Redis::TimeoutError
+    ].freeze
 
     private
 
@@ -65,9 +68,8 @@ module Resque
                 handle_delayed_items
                 update_schedule if dynamic
               end
-
               was_master = am_master
-            rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
+            rescue *INTERMITTENT_ERRORS => e
               log! e.message
               release_master_lock
             end
