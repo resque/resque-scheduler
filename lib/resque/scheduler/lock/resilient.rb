@@ -43,7 +43,7 @@ module Resque
           @locked_sha = nil if refresh
 
           @locked_sha ||=
-            Resque.redis.script(:load, <<-EOF.gsub(/^ {14}/, ''))
+            Resque.data_store.redis.script(:load, <<-EOF.gsub(/^ {14}/, ''))
               if redis.call('GET', KEYS[1]) == ARGV[1]
               then
                 redis.call('EXPIRE', KEYS[1], #{timeout})
@@ -62,7 +62,7 @@ module Resque
           @acquire_sha = nil if refresh
 
           @acquire_sha ||=
-            Resque.redis.script(:load, <<-EOF.gsub(/^ {14}/, ''))
+            Resque.data_store.redis.script(:load, <<-EOF.gsub(/^ {14}/, ''))
               if redis.call('SETNX', KEYS[1], ARGV[1]) == 1
               then
                 redis.call('EXPIRE', KEYS[1], #{timeout})

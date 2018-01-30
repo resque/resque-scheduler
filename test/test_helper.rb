@@ -158,4 +158,14 @@ ensure
   Resque::Scheduler.failure_handler = original_handler
 end
 
+# Copied from https://stackoverflow.com/questions/4975747/sleep-until-condition-is-true-in-ruby
+def sleep_until(time, delay = 0.1)
+  time.times do
+    yielded = yield
+    return yielded if yielded
+    sleep(delay)
+  end
+  nil
+end
+
 restore_devnull_logfile
