@@ -68,8 +68,8 @@ module Resque
                 handle_delayed_items
                 update_schedule if dynamic
               end
-            rescue *INTERMITTENT_ERRORS => e
               was_master = am_master
+            rescue *INTERMITTENT_ERRORS => e
               log! e.message
               release_master_lock
             end
