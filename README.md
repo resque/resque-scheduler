@@ -1,6 +1,7 @@
 resque-scheduler
 ================
 
+
 [![Dependency Status](https://gemnasium.com/badges/github.com/resque/resque-scheduler.svg)](https://gemnasium.com/github.com/resque/resque-scheduler)
 [![Gem Version](https://badge.fury.io/rb/resque-scheduler.svg)](https://badge.fury.io/rb/resque-scheduler)
 [![Build Status](https://travis-ci.org/resque/resque-scheduler.svg?branch=master)](https://travis-ci.org/resque/resque-scheduler)
@@ -159,7 +160,7 @@ following task to wherever tasks are kept, such as
 ```ruby
 task 'resque:pool:setup' do
   Resque::Pool.after_prefork do |job|
-    Resque.redis.client.reconnect
+    Resque.redis._client.reconnect
   end
 end
 ```
@@ -288,6 +289,19 @@ clear_leaderboards_contributors:
   queue: low
   args: contributors
   description: "This job resets the weekly leaderboard for contributions"
+```
+
+If you would like to setup a job that is executed manually you can configure like this in your YAML file.
+
+```yaml
+ImportOrdersManual:
+  description: 'Import Amazon Orders Manual'
+  custom_job_class: 'AmazonMws::ImportOrdersJob'
+  never: "* * * * *"
+  queue: high
+  description: "This is a manual job for importing orders."
+  args:
+    days_in_arrears: 7
 ```
 
 The queue value is optional, but if left unspecified resque-scheduler will
@@ -536,11 +550,7 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
-#### Changes as of 2.0.0
-
-As of resque-scheduler 2.0.0, it's no longer necessary to have the resque-web
-process aware of the schedule because it reads it from redis.  But prior to
-2.0, you'll want to make sure you load the schedule in this file as well.
+You'll want to make sure you load the schedule in this file as well.
 Something like this:
 
 ```ruby

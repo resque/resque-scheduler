@@ -89,7 +89,7 @@ context 'Resque::Scheduler::Locking' do
   end
 
   test 'should use the basic lock mechanism for <= Redis 2.4' do
-    Resque.redis.stubs(:info).returns('redis_version' => '2.4.16')
+    Resque.data_store.redis.stubs(:info).returns('redis_version' => '2.4.16')
 
     assert_equal @subject.master_lock.class, Resque::Scheduler::Lock::Basic
   end
@@ -227,7 +227,7 @@ context 'Resque::Scheduler::Lock::Resilient' do
       assert @lock.acquire!
       assert @lock.locked?
 
-      Resque.redis.script(:flush)
+      Resque.data_store.redis.script(:flush)
 
       assert @lock.locked?
       assert_false @lock.acquire!
