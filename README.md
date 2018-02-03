@@ -160,7 +160,7 @@ following task to wherever tasks are kept, such as
 ```ruby
 task 'resque:pool:setup' do
   Resque::Pool.after_prefork do |job|
-    Resque.redis.client.reconnect
+    Resque.redis._client.reconnect
   end
 end
 ```
