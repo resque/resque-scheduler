@@ -160,7 +160,7 @@ following task to wherever tasks are kept, such as
 ```ruby
 task 'resque:pool:setup' do
   Resque::Pool.after_prefork do |job|
-    Resque.redis.client.reconnect
+    Resque.redis._client.reconnect
   end
 end
 ```
@@ -349,8 +349,8 @@ for handling the heavy lifting of the actual scheduling engine.
 #### Dynamic schedules
 
 Dynamic schedules are programmatically set on a running `resque-scheduler`.
-All [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
-when setting schedules.
+Most [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
+when setting schedules. Specifically the `overlap` option will not work.
 
 Dynamic schedules are not enabled by default. To be able to dynamically set schedules, you
 must pass the following to `resque-scheduler` initialization (see *Installation* above for a more complete example):
@@ -527,7 +527,7 @@ RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
 
 ### resque-web Additions
 
-Resque-scheduler also adds to tabs to the resque-web UI.  One is for viewing
+Resque-scheduler also adds two tabs to the resque-web UI.  One is for viewing
 (and manually queueing) the schedule and one is for viewing pending jobs in
 the delayed queue.
 
@@ -561,11 +561,7 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
-#### Changes as of 2.0.0
-
-As of resque-scheduler 2.0.0, it's no longer necessary to have the resque-web
-process aware of the schedule because it reads it from redis.  But prior to
-2.0, you'll want to make sure you load the schedule in this file as well.
+You'll want to make sure you load the schedule in this file as well.
 Something like this:
 
 ```ruby
