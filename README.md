@@ -338,8 +338,8 @@ for handling the heavy lifting of the actual scheduling engine.
 #### Dynamic schedules
 
 Dynamic schedules are programmatically set on a running `resque-scheduler`.
-All [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
-when setting schedules.
+Most [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
+when setting schedules. Specifically the `overlap` option will not work.
 
 Dynamic schedules are not enabled by default. To be able to dynamically set schedules, you
 must pass the following to `resque-scheduler` initialization (see *Installation* above for a more complete example):
