@@ -34,6 +34,106 @@ module Resque
       # allow user to set an additional failure handler
       attr_writer :failure_handler
 
+      # runs without a lock
+      def run_delayed_only
+        procline 'Starting Delayed'
+
+        # trap signals
+        register_signal_handlers
+
+        # Quote from the resque/worker.
+        # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
+        # get output from the child in there.
+        $stdout.sync = true
+        $stderr.sync = true
+
+        begin
+          @th = Thread.current
+
+          # Now start the scheduling part of the loop.
+          procline 'Processing Delayed Items'
+          loop do
+            begin
+              unlocked_handle_delayed_items
+            rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
+              log! e.message
+            end
+            poll_sleep
+          end
+
+        rescue Interrupt
+          log 'Exiting'
+        end
+      end
+
+      # Handles queueing delayed items
+      # at_time - Time to start scheduling items (default: now).
+      # this should be multi-process safe
+      def unlocked_handle_delayed_items(at_time = nil)
+        timestamp = Resque.next_delayed_timestamp(at_time)
+        if timestamp
+          until timestamp.nil?
+            unlocked_enqueue_delayed_items_for_timestamp(timestamp)
+            timestamp = Resque.next_delayed_timestamp(at_time)
+          end
+        end
+      end
+
+      def unlocked_enqueue_delayed_items_for_timestamp(timestamp)
+        item = nil
+        loop do
+          handle_shutdown do
+            # Continually check that it is still the master
+            item = enqueue_next_item(timestamp)
+          end
+          # continue processing until there are no more ready items in this
+          # timestamp
+          break if item.nil?
+        end
+      end
+
+      # run with RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=scheduler
+      def run_scheduled_only
+        procline 'Starting Scheduler'
+        ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX']="scheduler"
+
+        # trap signals
+        register_signal_handlers
+
+        # Quote from the resque/worker.
+        # Fix buffering so we can `rake resque:scheduler > scheduler.log` and
+        # get output from the child in there.
+        $stdout.sync = true
+        $stderr.sync = true
+
+        # Load the schedule into rufus
+        # If dynamic is set, load that schedule otherwise use normal load
+        reload_schedule!
+
+        begin
+          @th = Thread.current
+
+          # Now start the scheduling part of the loop.
+          loop do
+            begin
+              if master?
+                update_schedule
+                procline 'Processing Schedules'
+              end
+            rescue Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError => e
+              log! e.message
+              release_master_lock
+            end
+            poll_sleep
+          end
+
+        rescue Interrupt
+          log 'Exiting'
+        end
+      ensure
+        release_master_lock
+      end
+
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
         procline 'Starting'
@@ -147,11 +247,16 @@ module Resque
             args = optionizate_interval_value(config[interval_type])
             args = [args, nil, job: true] if args.is_a?(::String)
 
-            job = rufus_scheduler.send(interval_type, *args) do
-              enqueue_recurring(name, config)
+            begin
+              job = rufus_scheduler.send(interval_type, *args) do
+                enqueue_recurring(name, config)
+              end
+              @scheduled_jobs[name] = job
+              interval_defined = true
+
+            rescue => e
+              log_error "[Bad Schedule] ignoring with: #{e.message}\n#{e.backtrace.join("\n")}"
             end
-            @scheduled_jobs[name] = job
-            interval_defined = true
             break
           end
           unless interval_defined

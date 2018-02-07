@@ -120,9 +120,14 @@ module Resque
       def next_item_for_timestamp(timestamp)
         key = "delayed:#{timestamp.to_i}"
 
+        # TODO: this shoudl be all done in lua lpop, srem should be atomic
         encoded_item = redis.lpop(key)
-        redis.srem("timestamps:#{encoded_item}", key)
-        item = decode(encoded_item)
+        if encoded_item
+          redis.srem("timestamps:#{encoded_item}", key)
+          item = decode(encoded_item)
+        else
+          item = nil
+        end
 
         # If the list is empty, remove it.
         clean_up_timestamp(key, timestamp)
@@ -291,6 +296,7 @@ module Resque
         # Use a watch here to ensure nobody adds jobs to this delayed
         # queue while we're removing it.
         redis.watch(key) do
+          # TODO: this should be done using lua script
           if redis.llen(key).to_i == 0
             # If the list is empty, remove it.
             redis.multi do

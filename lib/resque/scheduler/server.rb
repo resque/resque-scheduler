@@ -147,7 +147,7 @@ module Resque
 
         def queue_from_class_name(class_name)
           Resque.queue_from_class(
-            Resque::Scheduler::Util.constantize(class_name)
+            class_name
           )
         end
 
