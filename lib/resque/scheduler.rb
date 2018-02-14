@@ -177,21 +177,22 @@ module Resque
       def handle_delayed_items(at_time = nil)
         at_time ||= Time.now
         procline 'Processing Delayed Items'
-        item = nil
+        items = []
+        master = false
 
         loop do
           handle_shutdown do
-            if master?
-              item = Resque.next_delayed_item(before: at_time)
+            if (master = master?)
+              items = Resque.next_delayed_items(before: at_time, count: dequeue_batch_size)
 
-              if item
+              items.each do |item|
                 log "queuing #{item['class']} [delayed]"
                 enqueue(item)
               end
             end
           end
 
-          break if item.nil?
+          break if !master || items.empty?
         end
       end
 
