@@ -68,6 +68,13 @@ module Resque
         @poll_sleep_amount ||=
           Float(ENV.fetch('RESQUE_SCHEDULER_INTERVAL', '5'))
       end
+
+      attr_writer :dequeue_batch_size
+
+      def dequeue_batch_size
+        @dequeue_batch_size ||=
+          Integer(ENV.fetch('RESQUE_SCHEDULER_DEQUEUE_BATCH_SIZE', '10'))
+      end
     end
   end
 end

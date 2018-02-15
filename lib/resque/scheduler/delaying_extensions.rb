@@ -68,13 +68,10 @@ module Resque
         redis.zcard(:delayed_queue)
       end
 
-      def next_delayed_item(before:)
-        item, time = redis.zrangebyscore(:delayed_queue, 0.0, before.to_i, limit: [0, 1], with_scores: true).first
-
-        if item
-          redis.zrem(:delayed_queue, item)
-          decode_without_nonce(item)
-        end
+      def next_delayed_items(before:, count: 1)
+        items = redis.zrangebyscore(:delayed_queue, 0.0, before.to_i, limit: [0, count], with_scores: false)
+        redis.zrem(:delayed_queue, items) unless items.empty?
+        items.map { |item| decode_without_nonce(item) }
       end
 
       # Clears all jobs created with enqueue_at or enqueue_in

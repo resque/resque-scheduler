@@ -26,7 +26,7 @@ context 'DelayedQueue' do
 
     read_timestamp = timestamp.to_i
 
-    item = Resque.next_delayed_item(before: read_timestamp)
+    item = Resque.next_delayed_items(before: read_timestamp)[0]
 
     # Confirm the item came out correctly
     assert_equal('SomeIvarJob', item['class'],
@@ -56,7 +56,7 @@ context 'DelayedQueue' do
 
     read_timestamp = timestamp.to_i.to_f
 
-    item = Resque.next_delayed_item(before: read_timestamp)
+    item = Resque.next_delayed_items(before: read_timestamp)[0]
 
     # Confirm the item came out correctly
     assert_equal('SomeIvarJob', item['class'],
@@ -109,12 +109,28 @@ context 'DelayedQueue' do
 
   test 'handle_delayed_items with items in the future' do
     t = Time.now + 60 # in the future
-    Resque.enqueue_at(t, SomeIvarJob)
-    Resque.enqueue_at(t, SomeIvarJob)
 
-    # 2 SomeIvarJob jobs should be created in the "ivar" queue
-    Resque::Job.expects(:create).twice.with('ivar', SomeIvarJob, nil)
+    batch_size = 10
+    assert_equal batch_size, Resque::Scheduler.dequeue_batch_size
+
+    (batch_size * 3).times { Resque.enqueue_at(t, SomeIvarJob) }
+
+    # (batch_size * 3) SomeIvarJob jobs should be created in the "ivar" queue
+    Resque::Job.expects(:create).times(batch_size * 3).with('ivar', SomeIvarJob, nil)
     Resque::Scheduler.handle_delayed_items(t)
+  end
+
+  test 'handle_delayed_items uses batch size of 10 by default' do
+    assert_equal 10, Resque::Scheduler.dequeue_batch_size
+
+    13.times { Resque.enqueue_in_with_queue('ivar', 0, SomeIvarJob) }
+
+    # allow only one batch to get dequeued + enqueued
+    Resque::Scheduler.stubs(:master?).returns(true).then.returns(false)
+
+    Resque::Scheduler.handle_delayed_items
+
+    assert_equal 3, Resque.delayed_queue_schedule_size
   end
 
   test 'calls klass#scheduled when enqueuing jobs if it exists' do
@@ -138,14 +154,24 @@ context 'DelayedQueue' do
     end
   end
 
-  test 'next_delayed_item picks one job' do
+  test 'next_delayed_items picks count jobs if requested' do
+    t = Time.now + 60
+
+    6.times { Resque.enqueue_at(t, SomeIvarJob) }
+
+    assert_equal 6, Resque.delayed_queue_schedule_size
+    Resque.next_delayed_items(before: t, count: 4)
+    assert_equal 2, Resque.delayed_queue_schedule_size
+  end
+
+  test 'next_delayed_items picks one job by default' do
     t = Time.now + 60
 
     Resque.enqueue_at(t, SomeIvarJob)
     Resque.enqueue_at(t, SomeIvarJob)
 
     assert_equal 2, Resque.delayed_queue_schedule_size
-    Resque.next_delayed_item(before: t)
+    Resque.next_delayed_items(before: t)
     assert_equal 1, Resque.delayed_queue_schedule_size
   end
 
