@@ -10,7 +10,8 @@ context 'Resque::Scheduler' do
 
   test "benchmark dequeuing" do
     [1, 10].each do |batch_size|
-      10_000.times { Resque.enqueue_in_with_queue(:default, 0, SomeJob) }
+      body = (0...10_000).map { (65 + rand(26)).chr }.join
+      10_000.times { Resque.enqueue_in_with_queue(:default, 0, SomeJob, body) }
 
       with_dequeue_batch_size(batch_size) do
         puts "benchmarking dequeuing in batches of #{batch_size}"

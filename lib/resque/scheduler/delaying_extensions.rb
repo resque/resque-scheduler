@@ -69,11 +69,43 @@ module Resque
       end
 
       def next_delayed_items(before:, count: 1)
-        items = redis.zrangebyscore(:delayed_queue, 0.0, before.to_i, limit: [0, count], with_scores: false)
-        redis.zrem(:delayed_queue, items) unless items.empty?
+        # items = redis.zrangebyscore(:delayed_queue, 0.0, before.to_i, limit: [0, count], with_scores: false)
+        # redis.zrem(:delayed_queue, items) unless items.empty?
+        items = evalsha(:omg, [:delayed_queue], [0, before.to_i, 0, count])
+        # puts items
         items.map { |item| decode_without_nonce(item) }
       end
 
+      def omg_sha(refresh = false)
+        @acquire_sha = nil if refresh
+
+        @acquire_sha ||=
+          Resque.redis.script(:load, <<-EOF.gsub(/^ {14}/, ''))
+            local items = redis.call('ZRANGEBYSCORE', KEYS[1], ARGV[1], ARGV[2], 'LIMIT', ARGV[3], ARGV[4])
+
+            for k, v in ipairs(items) do
+              redis.call('ZREM', KEYS[1], v)
+            end
+            -- redis.call('ZREM', KEYS[1], unpack(items))
+
+            return items
+          EOF
+      end
+
+      def evalsha(script, keys, argv, refresh: false)
+        sha_method_name = "#{script}_sha"
+        Resque.redis.evalsha(
+          send(sha_method_name, refresh),
+          keys: keys,
+          argv: argv
+        )
+      rescue Redis::CommandError => e
+        if e.message =~ /NOSCRIPT/
+          refresh = true
+          retry
+        end
+        raise
+      end
       # Clears all jobs created with enqueue_at or enqueue_in
       def reset_delayed_queue
         redis.del :delayed_queue
