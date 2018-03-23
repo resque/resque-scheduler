@@ -13,7 +13,7 @@ resque-scheduler
 Resque-scheduler is an extension to [Resque](http://github.com/resque/resque)
 that adds support for queueing items in the future.
 
-Job scheduling is supported in two different way: Recurring (scheduled) and
+Job scheduling is supported in two different ways: Recurring (scheduled) and
 Delayed.
 
 Scheduled jobs are like cron jobs, recurring on a regular basis.  Delayed
