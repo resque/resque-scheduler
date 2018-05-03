@@ -14,6 +14,7 @@ module Resque
       logformat: 'LOGFORMAT',
       quiet: 'QUIET',
       pidfile: 'PIDFILE',
+      keep_pidfile: 'KEEP_PIDFILE',
       poll_sleep_amount: 'RESQUE_SCHEDULER_INTERVAL',
       verbose: 'VERBOSE'
     }.freeze
@@ -65,6 +66,11 @@ module Resque
         {
           args: ['-P', '--pidfile [PIDFILE]', 'PID file name'],
           callback: ->(options) { ->(p) { options[:pidfile] = p } }
+        },
+        {
+          args: ['-K', '--keep_pidfile',
+                 'Do not delete the pidfile on cleanup [KEEP_PIDFILE]'],
+          callback: ->(options) { ->(k) { options[:keep_pidfile] = k } }
         },
         {
           args: ['-q', '--quiet', 'Run with minimal output [QUIET]'],

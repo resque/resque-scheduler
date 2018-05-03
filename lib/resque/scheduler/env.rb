@@ -79,7 +79,7 @@ module Resque
       end
 
       def cleanup_pid_file
-        return unless pidfile_path
+        return if !pidfile_path || options[:keep_pidfile]
 
         File.delete(pidfile_path) if File.exist?(pidfile_path)
         @pidfile_path = nil

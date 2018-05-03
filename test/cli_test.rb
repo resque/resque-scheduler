@@ -84,6 +84,27 @@ context 'Cli' do
     assert_equal('foo', cli.send(:options)[:pidfile])
   end
 
+  test 'defaults to nil keep_pidfile' do
+    assert_equal(nil, new_cli.send(:options)[:keep_pidfile])
+  end
+
+  test 'initializes keep_pidfile from the env' do
+    cli = new_cli([], 'KEEP_PIDFILE' => 'YES')
+    assert_equal('YES', cli.send(:options)[:keep_pidfile])
+  end
+
+  test 'accepts keep_pidfile via -K' do
+    cli = new_cli(%w(-K))
+    cli.parse_options
+    assert_equal(true, cli.send(:options)[:keep_pidfile])
+  end
+
+  test 'accepts keep_pidfile via --pidfile' do
+    cli = new_cli(%w(--keep_pidfile))
+    cli.parse_options
+    assert_equal(true, cli.send(:options)[:keep_pidfile])
+  end
+
   test 'defaults to nil dynamic' do
     assert_equal(nil, new_cli.send(:options)[:dynamic])
   end

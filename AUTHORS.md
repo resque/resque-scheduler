@@ -21,6 +21,7 @@ Resque Scheduler authors
 - David Yang
 - Denis Yagofarov
 - dtaniwaki
+- Evan Black
 - Evan Tahler
 - Eugene Batogov
 - Giovanni Cappellotto
