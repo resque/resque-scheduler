@@ -492,41 +492,41 @@ context 'Resque::Scheduler' do
            /#{Resque::Scheduler.send(:internal_name)}: cage/
   end
 
+  test 'finishes enqueueing delayed jobs before shutting down' do
+    if RUBY_ENGINE == 'jruby' || RUBY_PLATFORM =~ /mingw|windows/i
+      omit("forking is not supported on #{RUBY_ENGINE}/#{RUBY_PLATFORM} but " \
+           'this behaviour is best tested using forks')
+    end
+
+    t = Time.now + 1 # in the future
+    Resque.enqueue_at(t, BeforeEnqueueJob, sleep_for: 5)
+
+    pid = fork do
+      Resque::Scheduler.run
+    end
+
+    begin
+      60.times do
+        break if BeforeEnqueueJob.enqueue_started?
+        sleep 0.1
+      end
+    ensure
+      Process.kill('TERM', pid)
+      Process.wait(pid)
+    end
+
+    assert BeforeEnqueueJob.enqueue_started?, "Job enqueue didn't start in time"
+    assert_equal 1, Resque.size('quick')
+  end
+
   test 'gracefully shuts down rufus-scheduler threads' do
     if RUBY_ENGINE == 'jruby' || RUBY_PLATFORM =~ /mingw|windows/i
       omit("forking is not supported on #{RUBY_ENGINE}/#{RUBY_PLATFORM} but " \
            'this behaviour is best tested using forks')
     end
 
-    class BeforeEnqueueJob
-      @queue = :quick
-
-      class << self
-        def before_enqueue_example(*)
-          return false if enqueue_started?
-          enqueue_started!
-
-          sleep 5
-          true
-        end
-
-        def enqueue_started?
-          Resque.redis.get('before_enqueue_job:enqueued') == 'true'
-        end
-
-        def perform(*)
-        end
-
-        private
-
-        def enqueue_started!
-          Resque.redis.set('before_enqueue_job:enqueued', 'true')
-        end
-      end
-    end
-
     schedule = {
-      'BeforeEnqueueJob' => { cron: '* * * * * *', class: 'BeforeEnqueueJob' }
+      'BeforeEnqueueJob' => { cron: '* * * * * *', class: 'BeforeEnqueueJob', args: { sleep_for: 5 } }
     }
 
     pid = fork do

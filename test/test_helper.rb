@@ -105,6 +105,33 @@ class JobWithParams
   end
 end
 
+class BeforeEnqueueJob
+  @queue = :quick
+
+  class << self
+    def before_enqueue_example(args)
+      return false if enqueue_started?
+      enqueue_started!
+
+      sleep args['sleep_for'].to_i
+      true
+    end
+
+    def enqueue_started?
+      Resque.redis.get('before_enqueue_job:enqueued') == 'true'
+    end
+
+    def perform(*)
+    end
+
+    private
+
+    def enqueue_started!
+      Resque.redis.set('before_enqueue_job:enqueued', 'true')
+    end
+  end
+end
+
 JobWithoutParams = Class.new(JobWithParams)
 
 class FakePHPClass < SomeJob
