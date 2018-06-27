@@ -22,6 +22,7 @@
     <th>All schedules</th>
   </tr>
   <% resque.delayed_queue_peek(start, 20).each do |timestamp| %>
+    <% next if resque.delayed_timestamp_size(timestamp).eql?(0) %>
     <tr>
       <td>
         <form action="<%= u "/delayed/queue_now" %>" method="post">
