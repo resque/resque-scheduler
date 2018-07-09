@@ -13,7 +13,17 @@
   <% jobs.each do |job| %>
     <tr>
       <td class='class'><%= job['class'] %></td>
-      <td class='args'><%=h job['args'].inspect %></td>
+      <td class='args'>
+        <% if job %>
+          <% if job['class'].to_s.eql?('PickupRequestWorker') %>
+            <a target='_blank' rel='noopener noreferrer' href="https://www.shipsticks.com/admin/pickup_requests/<%= job['args'].first %>">
+              <%= job['args'].inspect %>
+            </a>
+          <% else %>
+            <%= job['args'].inspect %>
+          <% end %>
+        <% end %>
+      </td>
     </tr>
   <% end %>
   <% if jobs.empty? %>

@@ -40,7 +40,17 @@
           <a href="<%= u "delayed/#{timestamp}" %>">see details</a>
         <% end %>
       </td>
-      <td><%= h(job['args'].inspect) if job && delayed_timestamp_size == 1 %></td>
+      <td>
+        <% if job && delayed_timestamp_size == 1 %>
+          <% if job['class'].to_s.eql?('PickupRequestWorker') %>
+            <a target='_blank' rel='noopener noreferrer' href="https://www.shipsticks.com/admin/pickup_requests/<%= job['args'].first %>">
+              <%= h(job['args'].inspect) if job && delayed_timestamp_size == 1 %>
+            </a>
+          <% else %>
+            <%= h(job['args'].inspect) if job && delayed_timestamp_size == 1 %>
+          <% end %>
+        <% end %>
+      </td>
       <td><a href="<%=u URI("/delayed/jobs/#{job['class']}?args=" + URI.encode(job['args'].to_json)) %>">All schedules</a></td>
     </tr>
   <% end %>
