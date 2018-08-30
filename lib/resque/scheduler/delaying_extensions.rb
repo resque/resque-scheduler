@@ -222,7 +222,7 @@ module Resque
       #   }
       #
       def remove_delayed_selection_with_all_job_infos
-        fail ArgumentError, 'Please supply a block' unless block_given?
+        raise ArgumentError, 'Please supply a block' unless block_given?
 
         abstract_remove_delayed_selection(
           find_delayed_selection do |payload|
@@ -238,7 +238,7 @@ module Resque
       # #remove_delayed_selection_with_all_job_infos method
       #
       def change_delayed_selection_timestamp(timestamp)
-        fail ArgumentError, 'Please supply a block' unless block_given?
+        raise ArgumentError, 'Please supply a block' unless block_given?
 
         found_jobs = find_delayed_selection do |payload|
           yield(payload)
@@ -406,8 +406,6 @@ module Resque
       def plugin
         Resque::Scheduler::Plugin
       end
-
-      private
 
       def abstract_remove_delayed_selection(found_jobs)
         found_jobs.reduce(0) do |sum, encoded_job|
