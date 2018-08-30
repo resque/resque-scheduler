@@ -22,11 +22,11 @@ module Resque
         names.each do |name|
           args = Module.method(:const_get).arity != 1 ? [false] : []
 
-          if constant.const_defined?(name, *args)
-            constant = constant.const_get(name)
-          else
-            constant = constant.const_missing(name)
-          end
+          constant = if constant.const_defined?(name, *args)
+                       constant.const_get(name)
+                     else
+                       constant.const_missing(name)
+                     end
         end
         constant
       end

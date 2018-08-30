@@ -9,9 +9,10 @@ context 'Resque::Scheduler' do
       c.env = nil
       c.app_name = nil
     end
-    Resque.redis.flushall
+    Resque.data_store.redis.flushall
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
+    Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
   end
 
   test 'enqueue constantizes' do
@@ -31,16 +32,16 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.env = 'production'
     config = {
       'cron' => '* * * * *',
-      'class' => 'SomeRealClass',
+      'class' => 'SomeJobWithResqueHooks',
       'args' => '/tmp'
     }
 
     Resque::Job.expects(:create).with(
-      SomeRealClass.queue, SomeRealClass, '/tmp'
+      SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
     )
-    SomeRealClass.expects(:before_delayed_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:before_enqueue_example).with('/tmp')
-    SomeRealClass.expects(:after_enqueue_example).with('/tmp')
+    SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example).with('/tmp')
+    SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp')
+    SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp')
 
     Resque::Scheduler.enqueue_from_config(config)
   end
@@ -59,7 +60,7 @@ context 'Resque::Scheduler' do
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
 
     Resque.schedule = {
-      some_ivar_job: {
+      'some_ivar_job' => {
         'cron' => '* * * * *',
         'class' => 'SomeIvarJob',
         'args' => '/tmp'
@@ -87,15 +88,13 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job')
 
     Resque.redis.del(:schedules)
-    Resque.redis.hset(
-      :schedules,
-      'some_ivar_job2',
-      Resque.encode(
+    Resque.schedule = {
+      'some_ivar_job2' => {
         'cron' => '* * * * *',
         'class' => 'SomeIvarJob',
         'args' => '/tmp/2'
-      )
-    )
+      }
+    }
 
     Resque::Scheduler.reload_schedule!
 
@@ -171,6 +170,41 @@ context 'Resque::Scheduler' do
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
     assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
+  end
+
+  test 'load_schedule_job updates last_enqueued_at' do
+    name = 'some_ivar_job'
+
+    Resque::Scheduler.load_schedule_job(
+      name,
+      'every' => '0.3s',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
+    last_enqueued_at = sleep_until(10) do
+      Resque.get_last_enqueued_at(name)
+    end
+    Resque.last_enqueued_at(name, nil)
+    assert !last_enqueued_at.nil?
+  end
+
+  test 'load_schedule_job does not update last_enqueued_at' do
+    name = 'some_ivar_job'
+    Resque::Scheduler.stubs(:enqueue).raises(StandardError, 'Test')
+
+    Resque::Scheduler.load_schedule_job(
+      name,
+      'every' => '0.3s',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
+    last_enqueued_at = sleep_until(10) do
+      Resque.get_last_enqueued_at(name)
+    end
+
+    Resque::Scheduler.unstub(:enqueue)
+    Resque.last_enqueued_at(name, nil)
+    assert last_enqueued_at.nil?
   end
 
   test 'update_schedule' do
@@ -313,7 +347,7 @@ context 'Resque::Scheduler' do
     }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/75' },
-      Resque.decode(Resque.redis.hget(:schedules, 'my_ivar_job'))
+      Resque.schedule['my_ivar_job']
     )
   end
 
@@ -346,7 +380,7 @@ context 'Resque::Scheduler' do
     } }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/75' },
-      Resque.decode(Resque.redis.hget(:schedules, 'SomeIvarJob'))
+      Resque.schedule['SomeIvarJob']
     )
     assert_equal('SomeIvarJob', Resque.schedule['SomeIvarJob']['class'])
   end
@@ -366,21 +400,19 @@ context 'Resque::Scheduler' do
     )
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/22' },
-      Resque.decode(Resque.redis.hget(:schedules, 'some_ivar_job'))
+      Resque.schedule['some_ivar_job']
     )
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job')
   end
 
   test 'fetch_schedule returns a schedule' do
-    Resque.redis.hset(
-      :schedules,
-      'some_ivar_job2',
-      Resque.encode(
+    Resque.schedule = {
+      'some_ivar_job2' => {
         'cron' => '* * * * *',
         'class' => 'SomeIvarJob',
         'args' => '/tmp/33'
-      )
-    )
+      }
+    }
     assert_equal(
       { 'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/33' },
       Resque.fetch_schedule('some_ivar_job2')
@@ -446,7 +478,7 @@ context 'Resque::Scheduler' do
   test 'procline omits app_name when absent' do
     Resque::Scheduler.app_name = nil
     assert Resque::Scheduler.send(:build_procline, 'bar') =~
-      /#{Resque::Scheduler.send(:internal_name)}: bar/
+           /#{Resque::Scheduler.send(:internal_name)}: bar/
   end
 
   test 'procline contains env when present' do
@@ -457,7 +489,64 @@ context 'Resque::Scheduler' do
   test 'procline omits env when absent' do
     Resque::Scheduler.env = nil
     assert Resque::Scheduler.send(:build_procline, 'cage') =~
-      /#{Resque::Scheduler.send(:internal_name)}: cage/
+           /#{Resque::Scheduler.send(:internal_name)}: cage/
+  end
+
+  test 'gracefully shuts down rufus-scheduler threads' do
+    if RUBY_ENGINE == 'jruby' || RUBY_PLATFORM =~ /mingw|windows/i
+      omit("forking is not supported on #{RUBY_ENGINE}/#{RUBY_PLATFORM} but " \
+           'this behaviour is best tested using forks')
+    end
+
+    class BeforeEnqueueJob
+      @queue = :quick
+
+      class << self
+        def before_enqueue_example(*)
+          return false if enqueue_started?
+          enqueue_started!
+
+          sleep 5
+          true
+        end
+
+        def enqueue_started?
+          Resque.redis.get('before_enqueue_job:enqueued') == 'true'
+        end
+
+        def perform(*)
+        end
+
+        private
+
+        def enqueue_started!
+          Resque.redis.set('before_enqueue_job:enqueued', 'true')
+        end
+      end
+    end
+
+    schedule = {
+      'BeforeEnqueueJob' => { cron: '* * * * * *', class: 'BeforeEnqueueJob' }
+    }
+
+    pid = fork do
+      Resque::Scheduler.clear_schedule!
+      Resque.schedule = schedule
+      Resque::Scheduler.run
+    end
+
+    begin
+      30.times do
+        break if BeforeEnqueueJob.enqueue_started?
+        sleep 0.1
+      end
+    ensure
+      Process.kill('TERM', pid)
+      Process.wait(pid)
+    end
+
+    assert BeforeEnqueueJob.enqueue_started?, "Job enqueue didn't start in time"
+    assert_equal 1, Resque.size('quick')
   end
 
   context 'printing schedule' do
@@ -468,9 +557,9 @@ context 'Resque::Scheduler' do
     test 'prints schedule' do
       fake_rufus_scheduler = mock
       fake_rufus_scheduler.expects(:jobs).at_least_once
-        .returns(foo: OpenStruct.new(t: nil, last: nil))
+                          .returns(foo: OpenStruct.new(t: nil, last: nil))
       Resque::Scheduler.expects(:rufus_scheduler).at_least_once
-        .returns(fake_rufus_scheduler)
+                       .returns(fake_rufus_scheduler)
       Resque::Scheduler.print_schedule
     end
   end

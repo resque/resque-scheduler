@@ -14,7 +14,7 @@ context 'scheduling jobs with arguments' do
 
   test 'enqueue_from_config puts stuff in resque without class loaded' do
     Resque::Job.stubs(:create).once.returns(true)
-      .with('joes_queue', 'UndefinedJob', '/tmp')
+               .with('joes_queue', 'UndefinedJob', '/tmp')
     Resque::Scheduler.enqueue_from_config(
       'cron' => '* * * * *',
       'class' => 'UndefinedJob',
@@ -25,7 +25,7 @@ context 'scheduling jobs with arguments' do
 
   test 'enqueue_from_config with_every_syntax' do
     Resque::Job.stubs(:create).once.returns(true)
-      .with('james_queue', 'JamesJob', '/tmp')
+               .with('james_queue', 'JamesJob', '/tmp')
     Resque::Scheduler.enqueue_from_config(
       'every' => '1m',
       'class' => 'JamesJob',
@@ -36,7 +36,7 @@ context 'scheduling jobs with arguments' do
 
   test 'enqueue_from_config puts jobs in the resque queue' do
     Resque::Job.stubs(:create).once.returns(true)
-      .with(:ivar, SomeIvarJob, '/tmp')
+               .with(:ivar, SomeIvarJob, '/tmp')
     Resque::Scheduler.enqueue_from_config(
       'cron' => '* * * * *',
       'class' => 'SomeIvarJob',
@@ -46,7 +46,7 @@ context 'scheduling jobs with arguments' do
 
   test 'enqueue_from_config with custom_class_job in resque' do
     FakeCustomJobClass.stubs(:scheduled).once.returns(true)
-      .with(:ivar, 'SomeIvarJob', '/tmp')
+                      .with(:ivar, 'SomeIvarJob', '/tmp')
     Resque::Scheduler.enqueue_from_config(
       'cron' => '* * * * *',
       'class' => 'SomeIvarJob',
@@ -207,7 +207,7 @@ context 'scheduling jobs with arguments' do
           second_key: value
     YAML
     SomeIvarJob.expects(:perform).once
-      .with('first_key' => { 'second_key' => 'value' })
+               .with('first_key' => { 'second_key' => 'value' })
     Resque.reserve('ivar').perform
   end
 

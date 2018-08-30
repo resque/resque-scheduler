@@ -5,6 +5,7 @@ require_relative 'scheduler/configuration'
 require_relative 'scheduler/locking'
 require_relative 'scheduler/logger_builder'
 require_relative 'scheduler/signal_handling'
+require_relative 'scheduler/failure_handler'
 
 module Resque
   module Scheduler
@@ -12,6 +13,9 @@ module Resque
     autoload :Extension, 'resque/scheduler/extension'
     autoload :Util, 'resque/scheduler/util'
     autoload :VERSION, 'resque/scheduler/version'
+    INTERMITTENT_ERRORS = [
+      Errno::EAGAIN, Errno::ECONNRESET, Redis::CannotConnectError, Redis::TimeoutError
+    ].freeze
 
     private
 
@@ -22,8 +26,13 @@ module Resque
     public
 
     class << self
+      attr_writer :logger
+
       # the Rufus::Scheduler jobs that are scheduled
       attr_reader :scheduled_jobs
+
+      # allow user to set an additional failure handler
+      attr_writer :failure_handler
 
       # Schedule all jobs and continually look for delayed jobs (never returns)
       def run
@@ -38,26 +47,31 @@ module Resque
         $stdout.sync = true
         $stderr.sync = true
 
-        # Load the schedule into rufus
-        # If dynamic is set, load that schedule otherwise use normal load
-        if dynamic
-          reload_schedule!
-        else
-          load_schedule!
-        end
+        was_master = nil
 
         begin
           @th = Thread.current
 
           # Now start the scheduling part of the loop.
           loop do
-            if master?
-              begin
+            begin
+              # Check on changes to master/child
+              @am_master = master?
+              if am_master != was_master
+                procline am_master ? 'Master scheduler' : 'Child scheduler'
+
+                # Load schedule because changed
+                reload_schedule!
+              end
+
+              if am_master
                 handle_delayed_items
                 update_schedule if dynamic
-              rescue Errno::EAGAIN, Errno::ECONNRESET => e
-                log! e.message
               end
+              was_master = am_master
+            rescue *INTERMITTENT_ERRORS => e
+              log! e.message
+              release_master_lock
             end
             poll_sleep
           end
@@ -92,7 +106,7 @@ module Resque
         Resque.schedule.each do |name, config|
           load_schedule_job(name, config)
         end
-        Resque.redis.del(:schedules_changed)
+        Resque.redis.del(:schedules_changed) if am_master && dynamic
         procline 'Schedules Loaded'
       end
 
@@ -129,16 +143,12 @@ module Resque
           interval_defined = false
           interval_types = %w(cron every)
           interval_types.each do |interval_type|
-            next unless !config[interval_type].nil? && config[interval_type].length > 0
+            next unless !config[interval_type].nil? && !config[interval_type].empty?
             args = optionizate_interval_value(config[interval_type])
             args = [args, nil, job: true] if args.is_a?(::String)
 
             job = rufus_scheduler.send(interval_type, *args) do
-              if master?
-                log! "queueing #{config['class']} (#{name})"
-                Resque.last_enqueued_at(name, Time.now.to_s)
-                handle_errors { enqueue_from_config(config) }
-              end
+              enqueue_recurring(name, config)
             end
             @scheduled_jobs[name] = job
             interval_defined = true
@@ -187,7 +197,7 @@ module Resque
 
         if item
           log "queuing #{item['class']} [delayed]"
-          handle_errors { enqueue_from_config(item) }
+          enqueue(item)
         end
 
         item
@@ -199,7 +209,7 @@ module Resque
         loop do
           handle_shutdown do
             # Continually check that it is still the master
-            item = enqueue_next_item(timestamp) if master?
+            item = enqueue_next_item(timestamp) if am_master
           end
           # continue processing until there are no more ready items in this
           # timestamp
@@ -207,16 +217,16 @@ module Resque
         end
       end
 
+      def enqueue(config)
+        enqueue_from_config(config)
+      rescue => e
+        Resque::Scheduler.failure_handler.on_enqueue_failure(config, e)
+      end
+
       def handle_shutdown
         exit if @shutdown
         yield
         exit if @shutdown
-      end
-
-      def handle_errors
-        yield
-      rescue => e
-        log_error "#{e.class.name}: #{e.message} #{e.backtrace.inspect}"
       end
 
       # Enqueues a job based on a config hash
@@ -335,11 +345,11 @@ module Resque
 
       def poll_sleep_loop
         @sleeping = true
-        if @poll_sleep_amount > 0
+        if poll_sleep_amount > 0
           start = Time.now
           loop do
             elapsed_sleep = (Time.now - start)
-            remaining_sleep = @poll_sleep_amount - elapsed_sleep
+            remaining_sleep = poll_sleep_amount - elapsed_sleep
             @do_break = false
             if remaining_sleep <= 0
               @do_break = true
@@ -360,11 +370,18 @@ module Resque
         handle_signals
         false
       rescue Interrupt
-        if @shutdown
-          Resque.clean_schedules
-          release_master_lock
-        end
+        before_shutdown if @shutdown
         true
+      end
+
+      def stop_rufus_scheduler
+        rufus_scheduler.shutdown(:wait)
+        rufus_scheduler.join
+      end
+
+      def before_shutdown
+        stop_rufus_scheduler
+        release_master_lock
       end
 
       # Sets the shutdown flag, clean schedules and exits if sleeping
@@ -394,9 +411,9 @@ module Resque
         $0 = argv0
       end
 
-      private
-
-      attr_writer :logger
+      def failure_handler
+        @failure_handler ||= Resque::Scheduler::FailureHandler
+      end
 
       def logger
         @logger ||= Resque::Scheduler::LoggerBuilder.new(
@@ -405,6 +422,16 @@ module Resque
           log_dev: logfile,
           format: logformat
         ).build
+      end
+
+      private
+
+      def enqueue_recurring(name, config)
+        if am_master
+          log! "queueing #{config['class']} (#{name})"
+          enqueue(config)
+          Resque.last_enqueued_at(name, Time.now.to_s)
+        end
       end
 
       def app_str
@@ -421,6 +448,11 @@ module Resque
 
       def internal_name
         "resque-scheduler-#{Resque::Scheduler::VERSION}"
+      end
+
+      def am_master
+        @am_master = master? unless defined?(@am_master)
+        @am_master
       end
     end
   end

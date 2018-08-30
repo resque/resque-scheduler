@@ -26,6 +26,7 @@ Resque Scheduler authors
 - Giovanni Cappellotto
 - Harry Lascelles
 - Henrik Nyh
+- Hormoz Kheradmand
 - James Le Cuirot
 - Jarkko Mönkkönen
 - John Crepezzi
@@ -34,6 +35,7 @@ Resque Scheduler authors
 - Jonathan Conley
 - Jonathan Hyman
 - Jonathan Owens
+- Jordan Gardner
 - Joshua Szmajda
 - Justin Weiss
 - Les Hill
@@ -45,6 +47,7 @@ Resque Scheduler authors
 - Michael Lovitt
 - Michael Nikitochkin
 - Michael Rykov
+- Mike MacDonald
 - Nickolas Means
 - Olek Janiszewski
 - Olivier Brisse

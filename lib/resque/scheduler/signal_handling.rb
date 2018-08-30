@@ -13,7 +13,7 @@ module Resque
       # poll/enqueing to finish (should be almost instant).  In the
       # case of sleeping, exit immediately.
       def register_signal_handlers
-        %w(INT TERM USR1 USR2 QUIT).each do |sig|
+        (Signal.list.keys & %w(INT TERM USR1 USR2 QUIT)).each do |sig|
           trap(sig) do
             signal_queue << sig
             # break sleep in the primary scheduler thread, alowing

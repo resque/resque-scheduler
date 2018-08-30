@@ -1,17 +1,19 @@
 resque-scheduler
 ================
 
-[![Dependency Status](https://gemnasium.com/resque/resque-scheduler.png)](https://gemnasium.com/resque/resque-scheduler)
-[![Gem Version](https://badge.fury.io/rb/resque-scheduler.png)](http://badge.fury.io/rb/resque-scheduler)
-[![Build Status](https://travis-ci.org/resque/resque-scheduler.png?branch=master)](https://travis-ci.org/resque/resque-scheduler)
-[![Code Climate](https://codeclimate.com/github/resque/resque-scheduler.png)](https://codeclimate.com/github/resque/resque-scheduler)
+
+[![Dependency Status](https://gemnasium.com/badges/github.com/resque/resque-scheduler.svg)](https://gemnasium.com/github.com/resque/resque-scheduler)
+[![Gem Version](https://badge.fury.io/rb/resque-scheduler.svg)](https://badge.fury.io/rb/resque-scheduler)
+[![Build Status](https://travis-ci.org/resque/resque-scheduler.svg?branch=master)](https://travis-ci.org/resque/resque-scheduler)
+[![Windows Build Status](https://ci.appveyor.com/api/projects/status/sxvf2086v5j0absb/branch/master?svg=true)](https://ci.appveyor.com/project/resque/resque-scheduler/branch/master)
+[![Code Climate](https://codeclimate.com/github/resque/resque-scheduler/badges/gpa.svg)](https://codeclimate.com/github/resque/resque-scheduler)
 
 ### Description
 
 Resque-scheduler is an extension to [Resque](http://github.com/resque/resque)
 that adds support for queueing items in the future.
 
-Job scheduling is supported in two different way: Recurring (scheduled) and
+Job scheduling is supported in two different ways: Recurring (scheduled) and
 Delayed.
 
 Scheduled jobs are like cron jobs, recurring on a regular basis.  Delayed
@@ -19,9 +21,9 @@ jobs are resque jobs that you want to run at some point in the future.
 The syntax is pretty explanatory:
 
 ```ruby
-Resque.enqueue_in(5.days, SendFollowupEmail) # run a job in 5 days
+Resque.enqueue_in(5.days, SendFollowupEmail, argument) # runs a job in 5 days, calling SendFollowupEmail.perform(argument)
 # or
-Resque.enqueue_at(5.days.from_now, SomeJob) # run SomeJob at a specific time
+Resque.enqueue_at(5.days.from_now, SomeJob, argument) # runs a job at a specific time, calling SomeJob.perform(argument)
 ```
 
 ### Documentation
@@ -158,7 +160,7 @@ following task to wherever tasks are kept, such as
 ```ruby
 task 'resque:pool:setup' do
   Resque::Pool.after_prefork do |job|
-    Resque.redis.client.reconnect
+    Resque.redis._client.reconnect
   end
 end
 ```
@@ -233,6 +235,17 @@ Resque.remove_delayed_selection { |args| args[0]['account_id'] == current_accoun
 Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
 ```
 
+If you need to cancel a delayed job based on some matching arguments AND by which class the job is, but don't wish to specify each argument from when the job was created, you can do like so:
+
+``` ruby
+# after you've enqueued a job like:
+Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
+# remove jobs matching just the account and that were of the class SendFollowUpEmail:
+Resque.remove_delayed_selection(SendFollowUpEmail) { |args| args[0]['account_id'] == current_account.id }
+# or remove jobs matching just the user and that were of the class SendFollowUpEmail:
+Resque.remove_delayed_selection(SendFollowUpEmail) { |args| args[0]['user_id'] == current_user.id }
+```
+
 If you need to enqueue immediately a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
 
 ``` ruby
@@ -289,6 +302,19 @@ clear_leaderboards_contributors:
   description: "This job resets the weekly leaderboard for contributions"
 ```
 
+If you would like to setup a job that is executed manually you can configure like this in your YAML file.
+
+```yaml
+ImportOrdersManual:
+  description: 'Import Amazon Orders Manual'
+  custom_job_class: 'AmazonMws::ImportOrdersJob'
+  never: "* * * * *"
+  queue: high
+  description: "This is a manual job for importing orders."
+  args:
+    days_in_arrears: 7
+```
+
 The queue value is optional, but if left unspecified resque-scheduler will
 attempt to get the queue from the job class, which means it needs to be
 defined.  If you're getting "uninitialized constant" errors, you probably
@@ -323,8 +349,8 @@ for handling the heavy lifting of the actual scheduling engine.
 #### Dynamic schedules
 
 Dynamic schedules are programmatically set on a running `resque-scheduler`.
-All [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
-when setting schedules.
+Most [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
+when setting schedules. Specifically the `overlap` option will not work.
 
 Dynamic schedules are not enabled by default. To be able to dynamically set schedules, you
 must pass the following to `resque-scheduler` initialization (see *Installation* above for a more complete example):
@@ -415,6 +441,13 @@ Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
   removed from the delayed queue, but not yet put on a normal queue. It is
   called before `before_enqueue`-hooks, and on the same job instance as the
   `before_enqueue`-hooks will be invoked on. Return values are ignored.
+* `on_enqueue_failure`: Called with the job args and the exception that was raised
+  while enqueueing a job to resque or external application fails.  Return
+  values are ignored. For example:
+
+  ```ruby
+  Resque::Scheduler.failure_handler = ExceptionHandlerClass
+  ```
 
 #### Support for resque-status (and other custom jobs)
 
@@ -494,7 +527,7 @@ RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
 
 ### resque-web Additions
 
-Resque-scheduler also adds to tabs to the resque-web UI.  One is for viewing
+Resque-scheduler also adds two tabs to the resque-web UI.  One is for viewing
 (and manually queueing) the schedule and one is for viewing pending jobs in
 the delayed queue.
 
@@ -528,11 +561,7 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
-#### Changes as of 2.0.0
-
-As of resque-scheduler 2.0.0, it's no longer necessary to have the resque-web
-process aware of the schedule because it reads it from redis.  But prior to
-2.0, you'll want to make sure you load the schedule in this file as well.
+You'll want to make sure you load the schedule in this file as well.
 Something like this:
 
 ```ruby
@@ -601,11 +630,11 @@ with resque could easily work on resque-scheduler.
 
 Working on resque-scheduler requires the following:
 
-* A relatively modern Ruby interpreter (MRI 1.9+ is what's tested)
+* A relatively modern Ruby interpreter
 * bundler
 
 The development setup looks like this, which is roughly the same thing
-that happens on Travis CI:
+that happens on Travis CI and Appveyor:
 
 ``` bash
 # Install everything

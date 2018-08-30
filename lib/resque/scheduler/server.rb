@@ -8,7 +8,7 @@ require 'json'
 module Resque
   module Scheduler
     module Server
-      TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S %z'
+      TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S %z'.freeze
 
       unless defined?(::Resque::Scheduler::Server::VIEW_PATH)
         VIEW_PATH = File.join(File.dirname(__FILE__), 'server', 'views')
@@ -158,7 +158,7 @@ module Resque
           dels = delayed_jobs_for_worker(worker)
           results += dels.select do |j|
             j['class'].downcase.include?(worker) &&
-            j.merge!('where_at' => 'delayed')
+              j.merge!('where_at' => 'delayed')
           end
 
           Resque.queues.each do |queue|
@@ -166,7 +166,7 @@ module Resque
             queued = [queued] unless queued.is_a?(Array)
             results += queued.select do |j|
               j['class'].downcase.include?(worker) &&
-              j.merge!('queue' => queue, 'where_at' => 'queued')
+                j.merge!('queue' => queue, 'where_at' => 'queued')
             end
           end
 
@@ -231,7 +231,7 @@ module Resque
             working = [*Resque.working]
             work = working.select do |w|
               w.job && w.job['payload'] &&
-              w.job['payload']['class'].downcase.include?(worker)
+                w.job['payload']['class'].downcase.include?(worker)
             end
             work.each do |w|
               results += [
@@ -248,9 +248,10 @@ module Resque
             schedule_size = Resque.delayed_queue_schedule_size
             Resque.delayed_queue_peek(0, schedule_size).each do |d|
               Resque.delayed_timestamp_peek(
-                d, 0, Resque.delayed_timestamp_size(d)).each do |j|
-                  dels << j.merge!('timestamp' => d)
-                end
+                d, 0, Resque.delayed_timestamp_size(d)
+              ).each do |j|
+                dels << j.merge!('timestamp' => d)
+              end
             end
           end
         end

@@ -4,7 +4,7 @@ require_relative 'test_helper'
 context 'DelayedQueue' do
   setup do
     Resque::Scheduler.quiet = true
-    Resque.redis.flushall
+    Resque.data_store.redis.flushall
   end
 
   test 'enqueue_at adds correct list and zset' do
@@ -247,7 +247,7 @@ context 'DelayedQueue' do
   test 'calls klass#scheduled when enqueuing jobs if it exists' do
     t = Time.now - 60
     FakeCustomJobClassEnqueueAt.expects(:scheduled)
-      .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
+                               .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
     Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
   end
 
@@ -258,7 +258,7 @@ context 'DelayedQueue' do
       Resque.inline = true
       t = Time.now - 60
       FakeCustomJobClassEnqueueAt.expects(:scheduled)
-        .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
+                                 .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, foo: 'bar')
       Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
     ensure
       Resque.inline = old_val
@@ -895,6 +895,16 @@ context 'DelayedQueue' do
   test 'invalid job class' do
     assert_raises Resque::NoQueueError do
       Resque.enqueue_in(10, String)
+    end
+  end
+
+  test 'invalid number of seconds' do
+    assert_raises ArgumentError do
+      Resque.enqueue_in(Time.now, SomeIvarJob)
+    end
+
+    assert_raises ArgumentError do
+      Resque.enqueue_in_with_queue('test', Time.now, SomeIvarJob)
     end
   end
 

@@ -6,16 +6,25 @@ context 'Resque::Scheduler' do
     ENV['VERBOSE'] = nil
     nullify_logger
     Resque::Scheduler.dynamic = false
-    Resque.redis.flushall
+    Resque.data_store.redis.flushall
     Resque::Scheduler.clear_schedule!
   end
 
   teardown { restore_devnull_logfile }
 
   test 'set custom logger' do
-    custom_logger = MonoLogger.new('/dev/null')
-    Resque::Scheduler.send(:logger=, custom_logger)
-    assert_equal(custom_logger, Resque::Scheduler.send(:logger))
+    custom_logger = MonoLogger.new(devnull_logfile)
+    Resque::Scheduler.logger = custom_logger
+
+    custom_logger.expects(:error).once
+    Resque::Scheduler.log_error('test')
+  end
+
+  test 'custom logger is accessible' do
+    custom_logger = MonoLogger.new(devnull_logfile)
+    Resque::Scheduler.logger = custom_logger
+
+    assert_equal custom_logger, Resque::Scheduler.logger
   end
 
   test 'configure block' do
@@ -77,11 +86,11 @@ context 'Resque::Scheduler' do
     teardown { restore_devnull_logfile }
 
     test 'uses logfile' do
-      Resque::Scheduler.logfile = '/dev/null'
+      Resque::Scheduler.logfile = devnull_logfile
       assert_equal(
         Resque::Scheduler.send(:logger)
           .instance_variable_get(:@logdev).filename,
-        '/dev/null'
+        devnull_logfile
       )
     end
 

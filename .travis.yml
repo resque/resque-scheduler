@@ -1,26 +1,27 @@
 language: ruby
 sudo: false
+cache: bundler
 rvm:
-- 1.9.3
-- 2.3.0
-- jruby-19mode
-- rbx
+- 2.1.10
+- 2.2.8
+- 2.3.5
+- 2.4.2
+- 2.5.0
+- jruby-9.1.13.0
 env:
   global:
-  - JRUBY_OPTS='-Xcext.enabled=true'
   - COVERAGE=1
+  - JRUBY_OPTS=''
+  - RUBYOPT='-W0'
 matrix:
   allow_failures:
-  - rvm: jruby-19mode
-  - rvm: rbx
+  - rvm: jruby-9.1.13.0
 services:
 - redis-server
-notifications:
-  irc:
-    channels:
-    - 'chat.freenode.net#resque'
-    on_success: change
-    on_failure: change
+addons:
+  apt:
+    packages:
+      - redis-server
 deploy:
   provider: rubygems
   api_key:
@@ -29,5 +30,5 @@ deploy:
   on:
     tags: true
     repo: resque/resque-scheduler
-    rvm: 2.3.0
+    rvm: 2.4.2
     all_branches: true
