@@ -401,9 +401,12 @@ module Resque
       end
 
       def payload_matches_selection?(decoded_payload, klass)
-        return false if decoded_payload.nil?
-        relevant_class = (klass.nil? || klass.to_s == decoded_payload['class'])
-        relevant_class && yield(decoded_payload)
+        if decoded_payload.nil?
+          false
+        else
+          relevant_class = (klass.nil? || klass.to_s == decoded_payload['class'])
+          relevant_class && yield(decoded_payload)
+        end
       end
 
       def plugin
