@@ -648,7 +648,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.count_all_scheduled_jobs)
   end
 
-  test 'remove_delayed_selection_with_all_job_infos removes items only from' \
+  test 'remove_delayed_selection_with_all_job_infos removes items only from ' \
        'matching job class' do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
@@ -678,7 +678,7 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
-  test 'change_delayed_selection_timestamp removes multiple items matching ' \
+  test 'change_delayed_selection_timestamp modifies timestamp multiple items matching ' \
        'arguments at same timestamp' do
     t1 = Time.now + 120
     t2 = Time.now + 180
@@ -698,7 +698,7 @@ context 'DelayedQueue' do
     assert_equal(5, Resque.delayed_timestamp_size(t2))
   end
 
-  test 'change_delayed_selection_timestamp removes single item matching arguments' do
+  test 'change_delayed_selection_timestamp modifies timestamp single item matching arguments' do
     t1 = Time.now + 120
     t2 = Time.now + 180
     Resque.enqueue_at(t1, SomeIvarJob, 'foo')
@@ -714,7 +714,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.delayed_timestamp_size(t2))
   end
 
-  test 'change_delayed_selection_timestamp removes multiple items' \
+  test 'change_delayed_selection_timestamp modifies timestamp multiple items' \
        'matching arguments' do
     t1 = Time.now + 120
     t2 = Time.now + 180
@@ -731,7 +731,7 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.delayed_timestamp_size(t2))
   end
 
-  test 'change_delayed_selection_timestamp removes multiple items matching ' \
+  test 'change_delayed_selection_timestamp modifies timestamp multiple items matching ' \
        'arguments as hash' do
     t1 = Time.now + 120
     t2 = Time.now + 180
@@ -767,7 +767,7 @@ context 'DelayedQueue' do
     assert_equal(0, Resque.delayed_timestamp_size(t2))
   end
 
-  test "change_delayed_selection_timestamp doesn't remove items it shouldn't" do
+  test "change_delayed_selection_timestamp doesn't modify timestamp items it shouldn't" do
     t1 = Time.now + 120
     t2 = Time.now + 180
     Resque.enqueue_at(t1, SomeIvarJob, 'foo')
@@ -797,7 +797,7 @@ context 'DelayedQueue' do
     assert_equal(0, Resque.delayed_timestamp_size(t2))
   end
 
-  test 'change_delayed_selection_timestamp removes item by class' do
+  test 'change_delayed_selection_timestamp modifies timestamp item by class' do
     t1 = Time.now + 120
     t2 = Time.now + 180
     Resque.enqueue_at(t1, SomeIvarJob, 'foo')
@@ -811,35 +811,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.delayed_timestamp_size(t2))
   end
 
-  test 'change_delayed_selection_timestamp removes item by class name as a string' do
-    t1 = Time.now + 120
-    t2 = Time.now + 180
-    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t1, SomeQuickJob, 'foo')
-
-    assert_equal(0, Resque.delayed_timestamp_size(t2))
-    assert_equal(1, Resque.change_delayed_selection_timestamp(t2) do |a|
-      a['class'] == 'SomeIvarJob' && a['args'].first == 'foo'
-    end)
-    assert_equal(2, Resque.count_all_scheduled_jobs)
-    assert_equal(1, Resque.delayed_timestamp_size(t2))
-  end
-
-  test 'change_delayed_selection_timestamp removes item by class name as a symbol' do
-    t1 = Time.now + 120
-    t2 = Time.now + 180
-    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t1, SomeQuickJob, 'foo')
-
-    assert_equal(0, Resque.delayed_timestamp_size(t2))
-    assert_equal(1, Resque.change_delayed_selection_timestamp(t2) do |a|
-      a['class'].to_sym == :SomeIvarJob && a['args'].first == 'foo'
-    end)
-    assert_equal(2, Resque.count_all_scheduled_jobs)
-    assert_equal(1, Resque.delayed_timestamp_size(t2))
-  end
-
-  test 'change_delayed_selection_timestamp removes items only from' \
+  test 'change_delayed_selection_timestamp modifies timestamp items only from ' \
        'matching job class' do
     t1 = Time.now + 120
     t2 = Time.now + 180
@@ -858,7 +830,7 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.delayed_timestamp_size(t2))
   end
 
-  test 'change_delayed_selection_timestamp removes items from matching job class ' \
+  test 'change_delayed_selection_timestamp modifies timestamp items from matching job class ' \
        'without params' do
     t1 = Time.now + 120
     t2 = Time.now + 180
