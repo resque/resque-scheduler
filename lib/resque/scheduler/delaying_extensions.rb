@@ -238,13 +238,9 @@ module Resque
       def change_delayed_selection_timestamp(timestamp)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        found_jobs = find_delayed_selection do |payload|
-          yield(payload)
-        end
+        found_jobs = find_delayed_selection { |payload| yield(payload) }
         count = do_remove_delayed_selection(found_jobs)
-        found_jobs.each do |encoded_job|
-          delayed_push(timestamp, encoded_job, false)
-        end
+        found_jobs.each { |encoded_job| delayed_push(timestamp, encoded_job, false) }
         count
       end
 
