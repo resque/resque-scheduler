@@ -31,7 +31,7 @@ Now, for the same job,  it gives you this:
 ```ruby
 {
   "class": "SendFollowUpEmail",
-  "args": [{"account_id": 1, "user_id": 1}],
+  "args": [{"account_id": 0, "user_id": 1}],
   "queue": "queue_name"
 }
 ```
