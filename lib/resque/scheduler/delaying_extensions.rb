@@ -206,7 +206,7 @@ module Resque
       #
       #     {
       #       "class": "SendFollowUpEmail",
-      #       "args": [{"account_id": 1, "user_id": 1}],
+      #       "args": [{"account_id": 0, "user_id": 1}],
       #       "queue": "queue_name"
       #     }
       #
