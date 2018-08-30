@@ -222,11 +222,7 @@ module Resque
       def remove_delayed_selection_with_all_job_infos
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        do_remove_delayed_selection(
-          find_delayed_selection do |payload|
-            yield(payload)
-          end
-        )
+        do_remove_delayed_selection(find_delayed_selection { |payload| yield(payload) })
       end
 
       # Given a block, change the execution date of jobs that
