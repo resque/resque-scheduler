@@ -399,7 +399,9 @@ module Resque
       end
 
       def do_remove_delayed_selection(found_jobs)
-        found_jobs.reduce(0) { |a, e| a + remove_delayed_job(e) }
+        found_jobs.reduce(0) do |sum, encoded_job|
+          sum + remove_delayed_job(encoded_job)
+        end
       end
 
       def delayed_key(timestamp)

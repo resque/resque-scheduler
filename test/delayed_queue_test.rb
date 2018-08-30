@@ -700,6 +700,203 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
+  test 'change_delayed_selection_timestamp removes multiple items matching ' \
+       'arguments at same timestamp' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'bar', 'llama')
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1, SomeIvarJob, 'bar', 'monkey')
+    Resque.enqueue_at(t1, SomeIvarJob, 'bar', 'platypus')
+    Resque.enqueue_at(t1, SomeIvarJob, 'baz')
+    Resque.enqueue_at(t1, SomeIvarJob, 'bar', 'llama')
+    Resque.enqueue_at(t1, SomeIvarJob, 'bar', 'llama')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(5, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['args'].first == 'bar'
+    end)
+    assert_equal(7, Resque.count_all_scheduled_jobs)
+    assert_equal(5, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes single item matching arguments' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1 + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t1 + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t1 + 3, SomeIvarJob, 'baz')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(1, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['args'].first == 'foo'
+    end)
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes multiple items' \
+       'matching arguments' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1 + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t1 + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t1 + 3, SomeIvarJob, 'baz')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(2, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['args'].first == 'bar'
+    end)
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes multiple items matching ' \
+       'arguments as hash' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, foo: 'foo')
+    Resque.enqueue_at(t1 + 1, SomeIvarJob, foo: 'bar')
+    Resque.enqueue_at(t1 + 2, SomeIvarJob, foo: 'bar')
+    Resque.enqueue_at(t1 + 3, SomeIvarJob, foo: 'baz')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(
+      2,
+      Resque.change_delayed_selection_timestamp(t2) do |a|
+        a['args'].first['foo'] == 'bar'
+      end
+    )
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp ignores jobs with no arguments' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob)
+    Resque.enqueue_at(t1 + 1, SomeIvarJob)
+    Resque.enqueue_at(t1 + 2, SomeIvarJob)
+    Resque.enqueue_at(t1 + 3, SomeIvarJob)
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(0, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['args'].first == 'bar'
+    end)
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+  end
+
+  test "change_delayed_selection_timestamp doesn't remove items it shouldn't" do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1 + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t1 + 2, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t1 + 3, SomeIvarJob, 'baz')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(0, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['args'].first == 'qux'
+    end)
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp ignores last_enqueued_at redis key' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob)
+    Resque.last_enqueued_at(SomeIvarJob, t1)
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(0, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['args'].first == 'bar'
+    end)
+    assert_equal(t1.to_s, Resque.get_last_enqueued_at(SomeIvarJob))
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes item by class' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1, SomeQuickJob, 'foo')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(1, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['class'] == SomeIvarJob.to_s && a['args'].first == 'foo'
+    end)
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes item by class name as a string' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1, SomeQuickJob, 'foo')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(1, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['class'] == 'SomeIvarJob' && a['args'].first == 'foo'
+    end)
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes item by class name as a symbol' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1, SomeQuickJob, 'foo')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(1, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['class'].to_sym == :SomeIvarJob && a['args'].first == 'foo'
+    end)
+    assert_equal(2, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes items only from' \
+       'matching job class' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1, SomeQuickJob, 'foo')
+    Resque.enqueue_at(t1 + 1, SomeIvarJob, 'bar')
+    Resque.enqueue_at(t1 + 1, SomeQuickJob, 'bar')
+    Resque.enqueue_at(t1 + 1, SomeIvarJob, 'foo')
+    Resque.enqueue_at(t1 + 2, SomeQuickJob, 'foo')
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(2, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['class'] == SomeIvarJob.to_s && a['args'].first == 'foo'
+    end)
+    assert_equal(6, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_timestamp_size(t2))
+  end
+
+  test 'change_delayed_selection_timestamp removes items from matching job class ' \
+       'without params' do
+    t1 = Time.now + 120
+    t2 = Time.now + 180
+    Resque.enqueue_at(t1, SomeIvarJob)
+    Resque.enqueue_at(t1 + 1, SomeQuickJob)
+    Resque.enqueue_at(t1 + 2, SomeIvarJob)
+    Resque.enqueue_at(t1 + 3, SomeQuickJob)
+
+    assert_equal(0, Resque.delayed_timestamp_size(t2))
+    assert_equal(2, Resque.change_delayed_selection_timestamp(t2) do |a|
+      a['class'] == SomeQuickJob.to_s
+    end)
+    assert_equal(4, Resque.count_all_scheduled_jobs)
+    assert_equal(2, Resque.delayed_timestamp_size(t2))
+  end
+
   test 'enqueue_delayed_selection enqueues multiple items matching ' \
        'arguments at same timestamp' do
     t = Time.now + 120
