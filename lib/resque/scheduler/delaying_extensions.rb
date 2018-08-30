@@ -259,9 +259,7 @@ module Resque
       def enqueue_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        found_jobs = find_delayed_selection(klass) do |payload|
-          yield(payload['args'])
-        end
+        found_jobs = find_delayed_selection(klass) { |payload| yield(payload['args']) }
         found_jobs.reduce(0) do |sum, encoded_job|
           decoded_job = decode(encoded_job)
           klass = Util.constantize(decoded_job['class'])
