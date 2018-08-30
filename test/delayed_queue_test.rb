@@ -648,28 +648,6 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.count_all_scheduled_jobs)
   end
 
-  test 'remove_delayed_selection_with_all_job_infos removes item by class name as a string' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t, SomeQuickJob, 'foo')
-
-    assert_equal(1, Resque.remove_delayed_selection_with_all_job_infos do |a|
-      a['class'] == 'SomeIvarJob' && a['args'].first == 'foo'
-    end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
-  end
-
-  test 'remove_delayed_selection_with_all_job_infos removes item by class name as a symbol' do
-    t = Time.now + 120
-    Resque.enqueue_at(t, SomeIvarJob, 'foo')
-    Resque.enqueue_at(t, SomeQuickJob, 'foo')
-
-    assert_equal(1, Resque.remove_delayed_selection_with_all_job_infos do |a|
-      a['class'].to_sym == :SomeIvarJob && a['args'].first == 'foo'
-    end)
-    assert_equal(1, Resque.count_all_scheduled_jobs)
-  end
-
   test 'remove_delayed_selection_with_all_job_infos removes items only from' \
        'matching job class' do
     t = Time.now + 120
