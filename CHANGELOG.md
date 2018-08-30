@@ -22,7 +22,7 @@ Resque.enqueue_at(
 )
 ```
 
-this method gave you this as parameter for your block:
+this method gave you this as parameter to your block:
 ```ruby
 [{"account_id": 0, "user_id": 1}]
 ```
