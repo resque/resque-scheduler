@@ -101,13 +101,13 @@ The scheduler rake task is responsible for both queueing items from the
 schedule and polling the delayed queue for items ready to be pushed on
 to the work queues.  For obvious reasons, this process never exits.
 
-``` bash
+```bash
 rake resque:scheduler
 ```
 
 or, if you want to load the environment first:
 
-``` bash
+```bash
 rake environment resque:scheduler
 ```
 
@@ -117,7 +117,7 @@ rake environment resque:scheduler
 The scheduler may also be run via a standalone `resque-scheduler`
 executable, which will be available once the gem is installed.
 
-``` bash
+```bash
 # Get some help
 resque-scheduler --help
 ```
@@ -226,7 +226,7 @@ Resque.remove_delayed(SendFollowUpEmail, :user_id => current_user.id)
 
 If you need to cancel a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
 
-``` ruby
+```ruby
 # after you've enqueued a job like:
 Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
 # remove jobs matching just the account:
@@ -237,7 +237,7 @@ Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
 
 If you need to cancel a delayed job based on some matching arguments AND by which class the job is, but don't wish to specify each argument from when the job was created, you can do like so:
 
-``` ruby
+```ruby
 # after you've enqueued a job like:
 Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
 # remove jobs matching just the account and that were of the class SendFollowUpEmail:
@@ -248,7 +248,7 @@ Resque.remove_delayed_selection(SendFollowUpEmail) { |args| args[0]['user_id'] =
 
 If you need to cancel a delayed job based on more complex matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
 
-``` ruby
+```ruby
 # after you've enqueued a job like:
 Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, account_id: current_account.id, user_id: current_user.id)
 Resque.enqueue_at(5.days.from_now, SendFollowUpSms, account_id: current_account.id, user_id: current_user.id)
@@ -263,7 +263,7 @@ For more information on the `payload` the `remove_delayed_selection_with_all_job
 
 If you need to enqueue immediately a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
 
-``` ruby
+```ruby
 # after you've enqueued a job like:
 Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
 # enqueue immediately jobs matching just the account:
@@ -271,6 +271,21 @@ Resque.enqueue_delayed_selection { |args| args[0]['account_id'] == current_accou
 # or enqueue immediately jobs matching just the user:
 Resque.enqueue_delayed_selection { |args| args[0]['user_id'] == current_user.id }
 ```
+
+If you need to change the execution schedule of some delayed jobs, you can do like so:
+
+```ruby
+# after you've enqueued a job like:
+Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, account_id: current_account.id, user_id: current_user.id)
+Resque.enqueue_at(5.days.from_now, SendFollowUpSms, account_id: current_account.id, user_id: current_user.id)
+Resque.enqueue_at(5.days.from_now, SendFollowUpCall, account_id: current_account.id, user_id: current_user.id)
+# Change the execution shcedule of jobs matching just the account and that were of the class SendFollowUpEmail or SendFollowUpSms:
+Resque.change_delayed_selection_timestamp(6.days.from_now) { |payload| 
+  (payload['class'] == SendFollowUpEmail.to_s || payload['class'] == SendFollowUpSms.to_s) && payload['args'][0]['account_id'] == current_account.id 
+}
+```
+
+This `payload` content is the same of the `remove_delayed_selection_with_all_job_infos` method.
 
 ### Scheduled Jobs (Recurring Jobs)
 
@@ -536,7 +551,7 @@ run, leading to undesired behaviour. To allow different scheduler configs run at
 on one redis, you can either namespace your redis connections, or supply an environment variable
 to split the shared lock key resque-scheduler uses thus:
 
-``` bash
+```bash
 RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
 ```
 
@@ -651,7 +666,7 @@ Working on resque-scheduler requires the following:
 The development setup looks like this, which is roughly the same thing
 that happens on Travis CI and Appveyor:
 
-``` bash
+```bash
 # Install everything
 bundle install
 
@@ -665,7 +680,7 @@ If you have [vagrant](http://www.vagrantup.com) installed, there is a
 development box available that requires no plugins or external
 provisioners:
 
-``` bash
+```bash
 vagrant up
 ```
 
