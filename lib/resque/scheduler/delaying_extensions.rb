@@ -69,12 +69,13 @@ module Resque
       # that time, else false
       def delayed_push(timestamp, item, should_encode_item = true)
         encoded_item = should_encode_item ? encode(item) : item
+        delayed_key  = delayed_key(timestamp.to_i)
 
         # First add this item to the list for this timestamp
-        redis.rpush("delayed:#{timestamp.to_i}", encoded_item)
+        redis.rpush(delayed_key, encoded_item)
 
         # Store the timestamps at with this item occurs
-        redis.sadd("timestamps:#{encoded_item}", "delayed:#{timestamp.to_i}")
+        redis.sadd(timestamp_key(encoded_item), delayed_key)
 
         # Now, add this timestamp to the zsets.  The score and the value are
         # the same since we'll be querying by timestamp, and we don't have
@@ -97,16 +98,17 @@ module Resque
       # Returns the number of jobs for a given timestamp in the delayed queue
       # schedule
       def delayed_timestamp_size(timestamp)
-        redis.llen("delayed:#{timestamp.to_i}").to_i
+        redis.llen(delayed_key(timestamp.to_i)).to_i
       end
 
       # Returns an array of delayed items for the given timestamp
       def delayed_timestamp_peek(timestamp, start, count)
+        delayed_key = delayed_key(timestamp.to_i)
         if 1 == count
-          r = list_range "delayed:#{timestamp.to_i}", start, count
+          r = list_range delayed_key, start, count
           r.nil? ? [] : [r]
         else
-          list_range "delayed:#{timestamp.to_i}", start, count
+          list_range delayed_key, start, count
         end
       end
 
@@ -120,10 +122,10 @@ module Resque
       # done. (don't call directly)
       # +timestamp+ can either be in seconds or a datetime
       def next_item_for_timestamp(timestamp)
-        key = "delayed:#{timestamp.to_i}"
+        key = delayed_key(timestamp.to_i)
 
         encoded_item = redis.lpop(key)
-        redis.srem("timestamps:#{encoded_item}", key)
+        redis.srem(timestamp_key(encoded_item), key)
         item = decode(encoded_item)
 
         # If the list is empty, remove it.
@@ -134,10 +136,10 @@ module Resque
       # Clears all jobs created with enqueue_at or enqueue_in
       def reset_delayed_queue
         Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |item|
-          key = "delayed:#{item}"
+          key = delayed_key(item)
           items = redis.lrange(key, 0, -1)
           redis.pipelined do
-            items.each { |ts_item| redis.del("timestamps:#{ts_item}") }
+            items.each { |ts_item| redis.del(timestamp_key(ts_item)) }
           end
           redis.del key
         end
@@ -210,7 +212,7 @@ module Resque
       #       "queue": "queue_name"
       #     }
       #
-      # Usefull if, in your passed block, you want to match by
+      # Useful if, in your passed block, you want to match by
       # class and/or queue (not only args) !
       #
       # For example:
@@ -279,8 +281,8 @@ module Resque
         # Beyond 100 there's almost no improvement in speed
         found = timestamps.each_slice(100).map do |ts_group|
           jobs = redis.pipelined do |r|
-            ts_group.each do |ts|
-              r.lrange("delayed:#{ts}", 0, -1)
+            ts_group.each do |timestamp|
+              r.lrange(delayed_key(timestamp), 0, -1)
             end
           end
 
@@ -300,10 +302,10 @@ module Resque
       def remove_delayed_job_from_timestamp(timestamp, klass, *args)
         return 0 if Resque.inline?
 
-        key = "delayed:#{timestamp.to_i}"
+        key = delayed_key(timestamp.to_i)
         encoded_job = encode(job_to_hash(klass, args))
 
-        redis.srem("timestamps:#{encoded_job}", key)
+        redis.srem(timestamp_key(encoded_job), key)
         count = redis.lrem(key, 0, encoded_job)
         clean_up_timestamp(key, timestamp)
 
@@ -312,8 +314,8 @@ module Resque
 
       def count_all_scheduled_jobs
         total_jobs = 0
-        Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |ts|
-          total_jobs += redis.llen("delayed:#{ts}").to_i
+        Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |timestamp|
+          total_jobs += redis.llen(delayed_key(timestamp)).to_i
         end
         total_jobs
       end
@@ -330,7 +332,7 @@ module Resque
       # Returns delayed jobs schedule timestamp for +klass+, +args+.
       def scheduled_at(klass, *args)
         search = encode(job_to_hash(klass, args))
-        redis.smembers("timestamps:#{search}").map do |key|
+        redis.smembers(timestamp_key(search)).map do |key|
           key.tr('delayed:', '').to_i
         end
       end
@@ -356,12 +358,13 @@ module Resque
       def remove_delayed_job(encoded_job)
         return 0 if Resque.inline?
 
-        timestamps = redis.smembers("timestamps:#{encoded_job}")
+        timestamp_key = timestamp_key(encoded_job)
+        timestamps = redis.smembers(timestamp_key)
 
         replies = redis.pipelined do
           timestamps.each do |key|
             redis.lrem(key, 0, encoded_job)
-            redis.srem("timestamps:#{encoded_job}", key)
+            redis.srem(timestamp_key, key)
           end
         end
 
@@ -412,6 +415,15 @@ module Resque
           sum + remove_delayed_job(encoded_job)
         end
       end
+
+      def delayed_key(timestamp)
+        "delayed:#{timestamp}"
+      end
+
+      def timestamp_key(object)
+        "timestamps:#{object}"
+      end
+
     end
   end
 end
