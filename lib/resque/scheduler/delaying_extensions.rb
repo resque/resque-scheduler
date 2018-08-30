@@ -183,11 +183,7 @@ module Resque
       def remove_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        abstract_remove_delayed_selection(
-          find_delayed_selection(klass) do |payload|
-            yield(payload['args'])
-          end
-        )
+        abstract_remove_delayed_selection(find_delayed_selection(klass) { |payload| yield(payload['args']) })
       end
 
       # Given a block, remove jobs that return true from a block
