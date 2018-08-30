@@ -14,7 +14,6 @@
  
 Before this change, for this example job: 
 ```ruby
-#  With the following job:
 Resque.enqueue_at(
   5.days.from_now,
   SendFollowUpEmail,
