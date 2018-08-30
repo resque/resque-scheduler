@@ -273,7 +273,13 @@ module Resque
           end
 
           jobs.flatten.select do |payload|
-            payload_matches_selection?(decode(payload), klass, &block)
+            decoded_payload = decode(payload)
+            if decoded_payload.nil?
+              false
+            else
+              relevant_class = (klass.nil? || klass.to_s == decoded_payload['class'])
+              relevant_class && block.call(decoded_payload)
+            end
           end
         end
 
@@ -384,15 +390,6 @@ module Resque
         )
         timestamp = items.nil? ? nil : Array(items).first
         timestamp.to_i unless timestamp.nil?
-      end
-
-      def payload_matches_selection?(decoded_payload, klass)
-        if decoded_payload.nil?
-          false
-        else
-          relevant_class = (klass.nil? || klass.to_s == decoded_payload['class'])
-          relevant_class && yield(decoded_payload)
-        end
       end
 
       def plugin
