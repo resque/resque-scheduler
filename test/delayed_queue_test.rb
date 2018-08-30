@@ -539,10 +539,6 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
-  ######################################
-  ######################################
-  ########### Begin ##############
-
   test 'remove_delayed_selection_with_all_job_infos removes multiple items matching ' \
        'arguments at same timestamp' do
     t = Time.now + 120
@@ -684,11 +680,6 @@ context 'DelayedQueue' do
     assert_equal(2, Resque.remove_delayed_selection_with_all_job_infos { |a| a['class'] == SomeQuickJob.to_s })
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
-
-  ######### END ###########
-  ######################################
-  ######################################
-
 
   test 'enqueue_delayed_selection enqueues multiple items matching ' \
        'arguments at same timestamp' do
