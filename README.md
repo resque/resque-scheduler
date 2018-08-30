@@ -279,7 +279,7 @@ If you need to change the execution schedule of some delayed jobs, you can do li
 Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, account_id: current_account.id, user_id: current_user.id)
 Resque.enqueue_at(5.days.from_now, SendFollowUpSms, account_id: current_account.id, user_id: current_user.id)
 Resque.enqueue_at(5.days.from_now, SendFollowUpCall, account_id: current_account.id, user_id: current_user.id)
-# Change the execution shcedule of jobs matching just the account and that were of the class SendFollowUpEmail or SendFollowUpSms:
+# Change the execution schedule of jobs matching just the account and that were of the class SendFollowUpEmail or SendFollowUpSms:
 Resque.change_delayed_selection_timestamp(6.days.from_now) { |payload| 
   (payload['class'] == SendFollowUpEmail.to_s || payload['class'] == SendFollowUpSms.to_s) && payload['args'][0]['account_id'] == current_account.id 
 }
