@@ -279,9 +279,9 @@ module Resque
         timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
 
         # Beyond 100 there's almost no improvement in speed
-        found = timestamps.each_slice(100).map do |ts_group|
+        found = timestamps.each_slice(100).map do |timestamps_group|
           jobs = redis.pipelined do |r|
-            ts_group.each do |timestamp|
+            timestamps_group.each do |timestamp|
               r.lrange(delayed_key(timestamp), 0, -1)
             end
           end
