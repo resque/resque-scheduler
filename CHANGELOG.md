@@ -2,6 +2,41 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+
+### Added
+
+- Add the `remove_delayed_selection_with_all_job_infos` method
+- Add the `change_delayed_selection_timestamp` method
+
+### Changed
+
+- **[Breaking change]** The `find_delayed_selection` now method pass you more info.
+ 
+Before this change, this method for this example job: 
+```ruby
+#  With the following job:
+Resque.enqueue_at(
+  5.days.from_now,
+  SendFollowUpEmail,
+  account_id: 0,
+  user_id: 1
+)
+```
+
+gave you this as parameter for your block:
+```ruby
+[{"account_id": 0, "user_id": 1}]
+```
+
+Now, for the same job,  it gives you this:
+```ruby
+{
+  "class": "SendFollowUpEmail",
+  "args": [{"account_id": 1, "user_id": 1}],
+  "queue": "queue_name"
+}
+```
+
 ## [4.3.1] - 2017-11-20
 ### Changed
 - Add support and testing for ruby 2.4
