@@ -12,7 +12,7 @@
 
 - **[Breaking change]** The `find_delayed_selection` now method pass you more info.
  
-Before this change, this method for this example job: 
+Before this change, for this example job: 
 ```ruby
 #  With the following job:
 Resque.enqueue_at(
@@ -23,7 +23,7 @@ Resque.enqueue_at(
 )
 ```
 
-gave you this as parameter for your block:
+this method gave you this as parameter for your block:
 ```ruby
 [{"account_id": 0, "user_id": 1}]
 ```
