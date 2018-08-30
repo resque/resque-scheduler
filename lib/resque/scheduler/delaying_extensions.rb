@@ -183,7 +183,9 @@ module Resque
       def remove_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        do_remove_delayed_selection(find_delayed_selection(klass) { |payload| yield(payload['args']) })
+        do_remove_delayed_selection(
+          find_delayed_selection(klass) { |payload| yield(payload['args']) }
+        )
       end
 
       # Given a block, remove jobs that return true from a block
@@ -259,7 +261,7 @@ module Resque
       #
       # This allows for finding of delayed jobs that have arguments matching
       # certain criteria
-      def find_delayed_selection(klass = nil, &block)
+      def find_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
         timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
@@ -278,7 +280,7 @@ module Resque
               false
             else
               relevant_class = (klass.nil? || klass.to_s == decoded_payload['class'])
-              relevant_class && block.call(decoded_payload)
+              relevant_class && yield(decoded_payload)
             end
           end
         end
@@ -397,7 +399,7 @@ module Resque
       end
 
       def do_remove_delayed_selection(found_jobs)
-        found_jobs.reduce(0) { |sum, encoded_job| sum + remove_delayed_job(encoded_job) }
+        found_jobs.reduce(0) { |a, e| a + remove_delayed_job(e) }
       end
 
       def delayed_key(timestamp)
@@ -407,7 +409,6 @@ module Resque
       def timestamp_key(object)
         "timestamps:#{object}"
       end
-
     end
   end
 end

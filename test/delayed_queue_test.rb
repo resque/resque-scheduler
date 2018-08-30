@@ -550,7 +550,9 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
     Resque.enqueue_at(t, SomeIvarJob, 'bar', 'llama')
 
-    assert_equal(5, Resque.remove_delayed_selection_with_all_job_infos { |a| a['args'].first == 'bar' })
+    assert_equal(5, Resque.remove_delayed_selection_with_all_job_infos do |a|
+      a['args'].first == 'bar'
+    end)
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
@@ -561,18 +563,23 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
-    assert_equal(1, Resque.remove_delayed_selection_with_all_job_infos { |a| a['args'].first == 'foo' })
+    assert_equal(1, Resque.remove_delayed_selection_with_all_job_infos do |a|
+      a['args'].first == 'foo'
+    end)
     assert_equal(3, Resque.count_all_scheduled_jobs)
   end
 
-  test 'remove_delayed_selection_with_all_job_infos removes multiple items matching arguments' do
+  test 'remove_delayed_selection_with_all_job_infos removes multiple items' \
+       'matching arguments' do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
     Resque.enqueue_at(t + 1, SomeIvarJob, 'bar')
     Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
-    assert_equal(2, Resque.remove_delayed_selection_with_all_job_infos { |a| a['args'].first == 'bar' })
+    assert_equal(2, Resque.remove_delayed_selection_with_all_job_infos do |a|
+      a['args'].first == 'bar'
+    end)
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
@@ -585,7 +592,10 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 3, SomeIvarJob, foo: 'baz')
 
     assert_equal(
-      2, Resque.remove_delayed_selection_with_all_job_infos { |a| a['args'].first['foo'] == 'bar' }
+      2,
+      Resque.remove_delayed_selection_with_all_job_infos do |a|
+        a['args'].first['foo'] == 'bar'
+      end
     )
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
@@ -597,7 +607,9 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 2, SomeIvarJob)
     Resque.enqueue_at(t + 3, SomeIvarJob)
 
-    assert_equal(0, Resque.remove_delayed_selection_with_all_job_infos { |a| a['args'].first == 'bar' })
+    assert_equal(0, Resque.remove_delayed_selection_with_all_job_infos do |a|
+      a['args'].first == 'bar'
+    end)
     assert_equal(4, Resque.count_all_scheduled_jobs)
   end
 
@@ -608,7 +620,9 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 2, SomeIvarJob, 'bar')
     Resque.enqueue_at(t + 3, SomeIvarJob, 'baz')
 
-    assert_equal(0, Resque.remove_delayed_selection_with_all_job_infos { |a| a['args'].first == 'qux' })
+    assert_equal(0, Resque.remove_delayed_selection_with_all_job_infos do |a|
+      a['args'].first == 'qux'
+    end)
     assert_equal(4, Resque.count_all_scheduled_jobs)
   end
 
@@ -617,7 +631,9 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob)
     Resque.last_enqueued_at(SomeIvarJob, t)
 
-    assert_equal(0, Resque.remove_delayed_selection_with_all_job_infos { |a| a['args'].first == 'bar' })
+    assert_equal(0, Resque.remove_delayed_selection_with_all_job_infos do |a|
+      a['args'].first == 'bar'
+    end)
     assert_equal(t.to_s, Resque.get_last_enqueued_at(SomeIvarJob))
   end
 
@@ -654,7 +670,8 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.count_all_scheduled_jobs)
   end
 
-  test 'remove_delayed_selection_with_all_job_infos removes items only from matching job class' do
+  test 'remove_delayed_selection_with_all_job_infos removes items only from' \
+       'matching job class' do
     t = Time.now + 120
     Resque.enqueue_at(t, SomeIvarJob, 'foo')
     Resque.enqueue_at(t, SomeQuickJob, 'foo')
@@ -677,7 +694,9 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t + 2, SomeIvarJob)
     Resque.enqueue_at(t + 3, SomeQuickJob)
 
-    assert_equal(2, Resque.remove_delayed_selection_with_all_job_infos { |a| a['class'] == SomeQuickJob.to_s })
+    assert_equal(2, Resque.remove_delayed_selection_with_all_job_infos do |a|
+      a['class'] == SomeQuickJob.to_s
+    end)
     assert_equal(2, Resque.count_all_scheduled_jobs)
   end
 
