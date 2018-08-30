@@ -183,7 +183,7 @@ module Resque
       def remove_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        abstract_remove_delayed_selection(find_delayed_selection(klass) { |payload| yield(payload['args']) })
+        do_remove_delayed_selection(find_delayed_selection(klass) { |payload| yield(payload['args']) })
       end
 
       # Given a block, remove jobs that return true from a block
@@ -222,7 +222,7 @@ module Resque
       def remove_delayed_selection_with_all_job_infos
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        abstract_remove_delayed_selection(
+        do_remove_delayed_selection(
           find_delayed_selection do |payload|
             yield(payload)
           end
@@ -241,7 +241,7 @@ module Resque
         found_jobs = find_delayed_selection do |payload|
           yield(payload)
         end
-        count = abstract_remove_delayed_selection(found_jobs)
+        count = do_remove_delayed_selection(found_jobs)
         found_jobs.each do |encoded_job|
           delayed_push(timestamp, encoded_job, false)
         end
@@ -407,7 +407,7 @@ module Resque
         Resque::Scheduler::Plugin
       end
 
-      def abstract_remove_delayed_selection(found_jobs)
+      def do_remove_delayed_selection(found_jobs)
         found_jobs.reduce(0) do |sum, encoded_job|
           sum + remove_delayed_job(encoded_job)
         end
