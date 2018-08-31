@@ -14,7 +14,7 @@
 
 <table>
   <tr>
-    <th></th>
+    <!-- <th></th> -->
     <th>Timestamp</th>
     <th>Job count</th>
     <th>Class</th>
@@ -24,12 +24,12 @@
   <% resque.delayed_queue_peek(start, 20).each do |timestamp| %>
     <% next if resque.delayed_timestamp_size(timestamp).eql?(0) %>
     <tr>
-      <td>
-        <form action="<%= u "/delayed/queue_now" %>" method="post">
-          <input type="hidden" name="timestamp" value="<%= timestamp.to_i %>">
+<!--       <td>
+        <form action="<%#= u "/delayed/queue_now" %>" method="post">
+          <input type="hidden" name="timestamp" value="<%#= timestamp.to_i %>">
           <input type="submit" value="Queue now">
         </form>
-      </td>
+      </td> -->
       <td><a href="<%= u "delayed/#{timestamp}" %>"><%= format_time(Time.at(timestamp)) %></a></td>
       <td><%= delayed_timestamp_size = resque.delayed_timestamp_size(timestamp) %></td>
       <% job = resque.delayed_timestamp_peek(timestamp, 0, 1).first %>
