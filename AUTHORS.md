@@ -27,6 +27,7 @@ Resque Scheduler authors
 - Harry Lascelles
 - Henrik Nyh
 - Hormoz Kheradmand
+- Ian Davies
 - James Le Cuirot
 - Jarkko Mönkkönen
 - John Crepezzi
