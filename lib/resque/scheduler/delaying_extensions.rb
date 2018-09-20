@@ -308,7 +308,8 @@ module Resque
 
         change_delayed_selection_timestamp_with_batch_size(
           DEFAULT_BATCH_SIZE,
-          timestamp, &block
+          timestamp,
+          &block
         )
       end
 
