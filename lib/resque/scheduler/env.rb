@@ -64,7 +64,7 @@ module Resque
 
           c.dynamic = !!options[:dynamic] if options.key?(:dynamic)
 
-          c.env = options[:env] if options.key(:env)
+          c.env = options[:env] if options.key?(:env)
 
           c.logfile = options[:logfile] if options.key?(:logfile)
 
