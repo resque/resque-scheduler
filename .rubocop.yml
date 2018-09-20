@@ -16,5 +16,3 @@ Metrics/PerceivedComplexity:
   Enabled: false
 Metrics/ClassLength:
   Max: 110
-Performance/RedundantBlockCall:
-  Enabled: false
