@@ -396,7 +396,7 @@ module Resque
         # Beyond 100 there's almost no improvement in speed
         found = timestamps.each_slice(batch_size).map do |timestamps_group|
           jobs = redis.pipelined do |r|
-            timestamps_group.map do |timestamp|
+            timestamps_group.each do |timestamp|
               r.lrange(delayed_key(timestamp), 0, -1)
             end
           end
