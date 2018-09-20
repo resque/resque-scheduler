@@ -187,7 +187,7 @@ module Resque
       def remove_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        remove_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass)
+        remove_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass) { yield }
       end
 
       # Given a block, remove jobs that return true from a block.
@@ -255,7 +255,7 @@ module Resque
       def remove_delayed_selection_with_all_job_infos
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        remove_delayed_selection_with_all_job_infos_with_batch_size(DEFAULT_BATCH_SIZE)
+        remove_delayed_selection_with_all_job_infos_with_batch_size(DEFAULT_BATCH_SIZE) { yield }
       end
 
       # Given a block, remove jobs that return true from a block.
@@ -305,7 +305,7 @@ module Resque
       def change_delayed_selection_timestamp(timestamp)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        change_delayed_selection_timestamp_with_batch_size(DEFAULT_BATCH_SIZE, timestamp)
+        change_delayed_selection_timestamp_with_batch_size(DEFAULT_BATCH_SIZE, timestamp)  { yield }
       end
 
       # Given a block, change the execution date of jobs that return true from a block.
@@ -329,7 +329,7 @@ module Resque
       def enqueue_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        enqueue_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass)
+        enqueue_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass)  { yield }
       end
 
       # Given a block, enqueue jobs now that return true from a block.
@@ -354,7 +354,7 @@ module Resque
       # certain criteria.
       #
       def find_delayed_selection(klass = nil)
-        find_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass)
+        find_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass) { yield }
       end
 
       # Given a block, find jobs that return true from a block.
