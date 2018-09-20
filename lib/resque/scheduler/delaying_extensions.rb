@@ -6,7 +6,6 @@ require_relative '../scheduler'
 module Resque
   module Scheduler
     module DelayingExtensions
-
       DEFAULT_BATCH_SIZE = 100
 
       # This method is nearly identical to +enqueue+ only it also
@@ -214,7 +213,9 @@ module Resque
         raise ArgumentError, 'Please supply a block' unless block_given?
 
         do_remove_delayed_selection(
-          find_delayed_selection_with_batch_size(batch_size, klass) { |payload| yield(payload['args']) }
+          find_delayed_selection_with_batch_size(batch_size, klass) do |payload|
+            yield(payload['args'])
+          end
         )
       end
 
@@ -255,7 +256,9 @@ module Resque
       def remove_delayed_selection_with_all_job_infos
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        remove_delayed_selection_with_all_job_infos_with_batch_size(DEFAULT_BATCH_SIZE) { yield }
+        remove_delayed_selection_with_all_job_infos_with_batch_size(DEFAULT_BATCH_SIZE) do
+          yield
+        end
       end
 
       # Given a block, remove jobs that return true from a block.
@@ -295,7 +298,11 @@ module Resque
       def remove_delayed_selection_with_all_job_infos_with_batch_size(batch_size)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        do_remove_delayed_selection(find_delayed_selection_with_batch_size(batch_size) { |payload| yield(payload) })
+        do_remove_delayed_selection(
+          find_delayed_selection_with_batch_size(batch_size) do |payload|
+            yield(payload)
+          end
+        )
       end
 
       # Given a block, change the execution date of jobs that return true from a block.
@@ -305,7 +312,9 @@ module Resque
       def change_delayed_selection_timestamp(timestamp)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        change_delayed_selection_timestamp_with_batch_size(DEFAULT_BATCH_SIZE, timestamp)  { yield }
+        change_delayed_selection_timestamp_with_batch_size(DEFAULT_BATCH_SIZE, timestamp) do
+          yield
+        end
       end
 
       # Given a block, change the execution date of jobs that return true from a block.
@@ -315,7 +324,9 @@ module Resque
       def change_delayed_selection_timestamp_with_batch_size(batch_size, timestamp)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        found_jobs = find_delayed_selection_with_batch_size(batch_size) { |payload| yield(payload) }
+        found_jobs = find_delayed_selection_with_batch_size(batch_size) do |payload|
+          yield(payload)
+        end
         count = do_remove_delayed_selection(found_jobs)
         found_jobs.each { |encoded_job| delayed_push(timestamp, encoded_job, false) }
         count
@@ -329,7 +340,9 @@ module Resque
       def enqueue_delayed_selection(klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        enqueue_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass)  { yield }
+        enqueue_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass) do
+          yield
+        end
       end
 
       # Given a block, enqueue jobs now that return true from a block.
@@ -340,7 +353,9 @@ module Resque
       def enqueue_delayed_selection_with_batch_size(batch_size, klass = nil)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        found_jobs = find_delayed_selection_with_batch_size(batch_size, klass) { |payload| yield(payload['args']) }
+        found_jobs = find_delayed_selection_with_batch_size(batch_size, klass) do |payload|
+          yield(payload['args'])
+        end
         found_jobs.reduce(0) do |sum, encoded_job|
           decoded_job = decode(encoded_job)
           klass = Util.constantize(decoded_job['class'])
@@ -380,7 +395,9 @@ module Resque
 
           jobs.flatten.select do |payload|
             decoded_payload = decode(payload)
-            (!decoded_payload.nil?) && (is_klass_nil || klass_s == decoded_payload[klass_key]) && yield(decoded_payload)
+            !decoded_payload.nil? &&
+              (is_klass_nil || klass_s == decoded_payload[klass_key]) &&
+              yield(decoded_payload)
           end
         end
 
