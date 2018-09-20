@@ -44,4 +44,18 @@ context 'Env' do
     env.setup
     assert_equal(false, Resque::Scheduler.dynamic)
   end
+
+  test 'keep set environment if no option given' do
+    Resque::Scheduler.configure { |c| c.env = 'development' }
+    env = new_env
+    env.setup
+    assert_equal('development', Resque::Scheduler.env)
+  end
+
+  test 'override environment if option given' do
+    Resque::Scheduler.configure { |c| c.env = 'development' }
+    env = new_env(env: 'test')
+    env.setup
+    assert_equal('test', Resque::Scheduler.env)
+  end
 end
