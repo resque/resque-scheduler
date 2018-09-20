@@ -366,6 +366,9 @@ module Resque
         raise ArgumentError, 'Please supply a block' unless block_given?
 
         timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
+        is_klass_nil = klass.nil?
+        klass_s = klass.to_s
+        klass_key = 'class'
 
         # Beyond 100 there's almost no improvement in speed
         found = timestamps.each_slice(batch_size).map do |timestamps_group|
@@ -377,12 +380,7 @@ module Resque
 
           jobs.flatten.select do |payload|
             decoded_payload = decode(payload)
-            if decoded_payload.nil?
-              false
-            else
-              relevant_class = (klass.nil? || klass.to_s == decoded_payload['class'])
-              relevant_class && yield(decoded_payload)
-            end
+            (!decoded_payload.nil?) && (is_klass_nil || klass_s == decoded_payload[klass_key]) && yield(decoded_payload)
           end
         end
 
