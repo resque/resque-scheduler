@@ -5,6 +5,8 @@
 
 ### Added
 
+- Optimize `find_delayed_selection_with_batch_size` code performances.
+- Add the ability to tune the "batch size" of the `find_delayed_selection` method. The current default value, `100`, is not always appropriate.
 - Add the `remove_delayed_selection_with_all_job_infos` method
 - Add the `change_delayed_selection_timestamp` method
 
