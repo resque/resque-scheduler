@@ -183,10 +183,10 @@ module Resque
       #
       #     [{"account_id": 0, "user_id": 1}]
       #
-      def remove_delayed_selection(klass = nil)
+      def remove_delayed_selection(klass = nil, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        remove_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass) { yield }
+        remove_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass, &block)
       end
 
       # Given a block, remove jobs that return true from a block.
@@ -209,12 +209,12 @@ module Resque
       #
       #     [{"account_id": 0, "user_id": 1}]
       #
-      def remove_delayed_selection_with_batch_size(batch_size, klass = nil)
+      def remove_delayed_selection_with_batch_size(batch_size, klass = nil, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
         do_remove_delayed_selection(
           find_delayed_selection_with_batch_size(batch_size, klass) do |payload|
-            yield(payload['args'])
+            block.call(payload['args'])
           end
         )
       end
@@ -253,12 +253,10 @@ module Resque
       #     } && job["args"][0]['account_id'] == current_account.id]
       #   }
       #
-      def remove_delayed_selection_with_all_job_infos
+      def remove_delayed_selection_with_all_job_infos(&block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        remove_delayed_selection_with_all_job_infos_with_batch_size(DEFAULT_BATCH_SIZE) do
-          yield
-        end
+        remove_delayed_selection_with_all_job_infos_with_batch_size(DEFAULT_BATCH_SIZE, &block)
       end
 
       # Given a block, remove jobs that return true from a block.
@@ -295,38 +293,30 @@ module Resque
       #     } && job["args"][0]['account_id'] == current_account.id]
       #   }
       #
-      def remove_delayed_selection_with_all_job_infos_with_batch_size(batch_size)
+      def remove_delayed_selection_with_all_job_infos_with_batch_size(batch_size, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        do_remove_delayed_selection(
-          find_delayed_selection_with_batch_size(batch_size) do |payload|
-            yield(payload)
-          end
-        )
+        do_remove_delayed_selection(find_delayed_selection_with_batch_size(batch_size, &block))
       end
 
       # Given a block, change the execution date of jobs that return true from a block.
       #
       # Same signature that the #remove_delayed_selection_with_all_job_infos method.
       #
-      def change_delayed_selection_timestamp(timestamp)
+      def change_delayed_selection_timestamp(timestamp, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        change_delayed_selection_timestamp_with_batch_size(DEFAULT_BATCH_SIZE, timestamp) do
-          yield
-        end
+        change_delayed_selection_timestamp_with_batch_size(DEFAULT_BATCH_SIZE, timestamp, &block)
       end
 
       # Given a block, change the execution date of jobs that return true from a block.
       #
       # Same signature that the #remove_delayed_selection_with_all_job_infos method.
       #
-      def change_delayed_selection_timestamp_with_batch_size(batch_size, timestamp)
+      def change_delayed_selection_timestamp_with_batch_size(batch_size, timestamp, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        found_jobs = find_delayed_selection_with_batch_size(batch_size) do |payload|
-          yield(payload)
-        end
+        found_jobs = find_delayed_selection_with_batch_size(batch_size, &block)
         count = do_remove_delayed_selection(found_jobs)
         found_jobs.each { |encoded_job| delayed_push(timestamp, encoded_job, false) }
         count
@@ -337,12 +327,10 @@ module Resque
       # This allows for enqueuing of delayed jobs that have arguments matching
       # certain criteria.
       #
-      def enqueue_delayed_selection(klass = nil)
+      def enqueue_delayed_selection(klass = nil, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        enqueue_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass) do
-          yield
-        end
+        enqueue_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass, &block)
       end
 
       # Given a block, enqueue jobs now that return true from a block.
@@ -350,11 +338,11 @@ module Resque
       # This allows for enqueuing of delayed jobs that have arguments matching
       # certain criteria.
       #
-      def enqueue_delayed_selection_with_batch_size(batch_size, klass = nil)
+      def enqueue_delayed_selection_with_batch_size(batch_size, klass = nil, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
         found_jobs = find_delayed_selection_with_batch_size(batch_size, klass) do |payload|
-          yield(payload['args'])
+          block.call(payload['args'])
         end
         found_jobs.reduce(0) do |sum, encoded_job|
           decoded_job = decode(encoded_job)
@@ -368,8 +356,10 @@ module Resque
       # This allows for finding of delayed jobs that have arguments matching
       # certain criteria.
       #
-      def find_delayed_selection(klass = nil)
-        find_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass) { yield }
+      def find_delayed_selection(klass = nil, &block)
+        raise ArgumentError, 'Please supply a block' unless block_given?
+
+        find_delayed_selection_with_batch_size(DEFAULT_BATCH_SIZE, klass, &block)
       end
 
       # Given a block, find jobs that return true from a block.
@@ -377,7 +367,7 @@ module Resque
       # This allows for finding of delayed jobs that have arguments matching
       # certain criteria.
       #
-      def find_delayed_selection_with_batch_size(batch_size, klass = nil)
+      def find_delayed_selection_with_batch_size(batch_size, klass = nil, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
         timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
@@ -397,7 +387,7 @@ module Resque
             decoded_payload = decode(payload)
             !decoded_payload.nil? &&
               (is_klass_nil || klass_s == decoded_payload[klass_key]) &&
-              yield(decoded_payload)
+              block.call(decoded_payload)
           end
         end
 
