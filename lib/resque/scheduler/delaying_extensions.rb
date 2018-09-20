@@ -306,7 +306,10 @@ module Resque
       def change_delayed_selection_timestamp(timestamp, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        change_delayed_selection_timestamp_with_batch_size(DEFAULT_BATCH_SIZE, timestamp, &block)
+        change_delayed_selection_timestamp_with_batch_size(
+          DEFAULT_BATCH_SIZE,
+          timestamp, &block
+        )
       end
 
       # Given a block, change the execution date of jobs that return true from a block.
