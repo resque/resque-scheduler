@@ -2,6 +2,8 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [5.0.0] - Unreleased
+
 ## [4.4.0] - 2019-04-11
 ### Added
 - Support Resque 2
