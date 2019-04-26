@@ -1,5 +1,6 @@
 # vim:fileencoding=utf-8
 
+require 'redis/errors'
 require 'rufus/scheduler'
 require_relative 'scheduler/configuration'
 require_relative 'scheduler/locking'
