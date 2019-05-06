@@ -36,7 +36,7 @@ module Resque
       # :args can be any yaml which will be converted to a ruby literal and
       # passed in a params. (optional)
       #
-      # :rails_envs is the list of envs where the job gets loaded. Envs are
+      # :rails_env is the list of envs where the job gets loaded. Envs are
       # comma separated (optional)
       #
       # :description is just that, a description of the job (optional). If
