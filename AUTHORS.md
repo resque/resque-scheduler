@@ -30,6 +30,7 @@ Resque Scheduler authors
 - Ian Davies
 - James Le Cuirot
 - Jarkko Mönkkönen
+- Jimmy Chao
 - John Crepezzi
 - John Griffin
 - Jon Larkowski and Les Hill

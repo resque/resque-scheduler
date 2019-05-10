@@ -101,12 +101,13 @@ module Resque
       end
 
       # remove a given schedule by name
-      def remove_schedule(name)
+      # Preventing a reload is optional and available to batch operations
+      def remove_schedule(name, reload = true)
         non_persistent_schedules.delete(name)
         redis.hdel(:persistent_schedules, name)
         redis.sadd(:schedules_changed, name)
 
-        reload_schedule!
+        reload_schedule! if reload
       end
 
       private
