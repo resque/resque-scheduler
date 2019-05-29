@@ -928,6 +928,18 @@ context 'DelayedQueue' do
     end
   end
 
+  test 'requeues a job in the queue originally specified regardless' \
+       'of the queue attached to the class' do
+    Resque.enqueue_in_with_queue('notivar', 1, SomeIvarJob)
+
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.enqueue_delayed_selection { true })
+    assert_equal(0, Resque.count_all_scheduled_jobs)
+
+    assert_equal(1, Resque.size('notivar'))
+    assert_equal(0, Resque.size(Resque.queue_from_class(SomeIvarJob)))
+  end
+
   test 'inlining jobs with Resque.inline config' do
     begin
       Resque.inline = true
