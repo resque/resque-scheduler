@@ -32,6 +32,9 @@ before_install:
   - sudo mv redis.conf /etc/redis
   - sudo service redis-server start
   - echo PING | nc localhost 6379
+script:
+  - bundle exec rake
+  - bin/bundle_console_test.sh
 addons:
   apt:
     packages:
