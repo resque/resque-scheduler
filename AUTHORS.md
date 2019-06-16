@@ -62,6 +62,7 @@ Resque Scheduler authors
 - Scott Francis
 - Sean Stephens
 - Sebastian Kippe
+- Sharang Dashputre
 - Spring MC
 - tbprojects
 - Tim Liner
