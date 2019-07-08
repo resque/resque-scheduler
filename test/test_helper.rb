@@ -107,6 +107,14 @@ end
 
 JobWithoutParams = Class.new(JobWithParams)
 
+class FakePHPClass < SomeJob
+  @queue = :'some-other-kinda::queue-maybe'
+
+  def self.to_s
+    'Namespace\\For\\Job\\Class'
+  end
+end
+
 %w(
   APP_NAME
   DYNAMIC_SCHEDULE
@@ -131,9 +139,15 @@ def nullify_logger
   ENV['LOGFILE'] = nil
 end
 
+def devnull_logfile
+  @devnull_logfile ||= (
+    RUBY_PLATFORM =~ /mingw|windows/i ? 'nul' : '/dev/null'
+  )
+end
+
 def restore_devnull_logfile
   nullify_logger
-  ENV['LOGFILE'] = '/dev/null'
+  ENV['LOGFILE'] = devnull_logfile
 end
 
 def with_failure_handler(handler)
@@ -142,6 +156,16 @@ def with_failure_handler(handler)
   yield
 ensure
   Resque::Scheduler.failure_handler = original_handler
+end
+
+# Copied from https://stackoverflow.com/questions/4975747/sleep-until-condition-is-true-in-ruby
+def sleep_until(time, delay = 0.1)
+  time.times do
+    yielded = yield
+    return yielded if yielded
+    sleep(delay)
+  end
+  nil
 end
 
 restore_devnull_logfile

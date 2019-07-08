@@ -2,7 +2,7 @@
 require_relative 'test_helper'
 
 context 'scheduling jobs with hooks' do
-  setup { Resque.redis.flushall }
+  setup { Resque.data_store.redis.flushall }
 
   def config
     {

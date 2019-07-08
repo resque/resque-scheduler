@@ -89,7 +89,7 @@ context 'Resque::Scheduler::Locking' do
   end
 
   test 'should use the basic lock mechanism for <= Redis 2.4' do
-    Resque.redis.stubs(:info).returns('redis_version' => '2.4.16')
+    Resque.data_store.redis.stubs(:info).returns('redis_version' => '2.4.16')
 
     assert_equal @subject.master_lock.class, Resque::Scheduler::Lock::Basic
   end
@@ -220,6 +220,17 @@ context 'Resque::Scheduler::Lock::Resilient' do
       lock_is_not_held(@lock)
 
       assert !@lock.locked?, 'you should not have the lock'
+    end
+
+    test 'refreshes sha cache when the sha cannot be found on ' \
+         'the redis server' do
+      assert @lock.acquire!
+      assert @lock.locked?
+
+      Resque.data_store.redis.script(:flush)
+
+      assert @lock.locked?
+      assert_false @lock.acquire!
     end
 
     test 'you should not be able to acquire the lock if someone ' \

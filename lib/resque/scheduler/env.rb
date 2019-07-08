@@ -32,14 +32,18 @@ module Resque
 
         # Need to set this here for conditional Process.daemon redirect of
         # stderr/stdout to /dev/null
-        Resque::Scheduler.quiet = !!options[:quiet]
+        Resque::Scheduler.quiet = if options.key?(:quiet)
+                                    !!options[:quiet]
+                                  else
+                                    true
+                                  end
 
         unless Process.respond_to?('daemon')
           abort 'background option is set, which requires ruby >= 1.9'
         end
 
         Process.daemon(true, !Resque::Scheduler.quiet)
-        Resque.redis.client.reconnect
+        Resque.redis._client.reconnect
       end
 
       def setup_pid_file
@@ -60,13 +64,13 @@ module Resque
 
           c.dynamic = !!options[:dynamic] if options.key?(:dynamic)
 
-          c.env = options[:env] if options.key(:env)
+          c.env = options[:env] if options.key?(:env)
 
           c.logfile = options[:logfile] if options.key?(:logfile)
 
           c.logformat = options[:logformat] if options.key?(:logformat)
 
-          if psleep = options[:poll_sleep_amount] && !psleep.nil?
+          if (psleep = options[:poll_sleep_amount]) && !psleep.nil?
             c.poll_sleep_amount = Float(psleep)
           end
 
