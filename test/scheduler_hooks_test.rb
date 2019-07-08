@@ -4,6 +4,14 @@ require_relative 'test_helper'
 context 'scheduling jobs with hooks' do
   setup { Resque.data_store.redis.flushall }
 
+  def config
+    {
+      'cron' => '* * * * *',
+      'class' => 'SomeRealClass',
+      'args' => '/tmp'
+    }
+  end
+
   test 'before_schedule hook that does not return false should be enqueued' do
     enqueue_time = Time.now + 1
     SomeRealClass.expects(:before_schedule_example).with(:foo)
@@ -23,12 +31,6 @@ context 'scheduling jobs with hooks' do
   end
 
   test 'default failure hooks are called when enqueueing a job fails' do
-    config = {
-      'cron' => '* * * * *',
-      'class' => 'SomeRealClass',
-      'args' => '/tmp'
-    }
-
     e = RuntimeError.new('custom error')
     Resque::Scheduler.expects(:enqueue_from_config).raises(e)
 
@@ -38,12 +40,6 @@ context 'scheduling jobs with hooks' do
 
   test 'failure hooks are called when enqueueing a job fails' do
     with_failure_handler(ExceptionHandlerClass) do
-      config = {
-        'cron' => '* * * * *',
-        'class' => 'SomeRealClass',
-        'args' => '/tmp'
-      }
-
       e = RuntimeError.new('custom error')
       Resque::Scheduler.expects(:enqueue_from_config).raises(e)
 
