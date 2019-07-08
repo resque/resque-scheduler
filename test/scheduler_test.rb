@@ -39,9 +39,11 @@ context 'Resque::Scheduler' do
     Resque::Job.expects(:create).with(
       SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
     )
+    SomeJobWithResqueHooks.expects(:before_schedule).with('/tmp')
     SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example).with('/tmp')
     SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp')
     SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp')
+    SomeJobWithResqueHooks.expects(:after_schedule).with('/tmp')
 
     Resque::Scheduler.enqueue_from_config(config)
   end
