@@ -62,9 +62,9 @@ module Resque
       end
 
       # Used internally to stuff the item into the schedule sorted list.
-      # +timestamp+ can be either in seconds or a datetime object Insertion
-      # if O(log(n)).  Returns true if it's the first job to be scheduled at
-      # that time, else false
+      # +timestamp+ can be either in seconds or a datetime object. The
+      # insertion time complexity is O(log(n)). Returns true if it's
+      # the first job to be scheduled at that time, else false.
       def delayed_push(timestamp, item)
         # First add this item to the list for this timestamp
         redis.rpush("delayed:#{timestamp.to_i}", encode(item))
