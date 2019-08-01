@@ -24,6 +24,7 @@ Resque Scheduler authors
 - Evan Tahler
 - Eugene Batogov
 - Giovanni Cappellotto
+- Greg Weisbrod
 - Harry Lascelles
 - Henrik Nyh
 - Hormoz Kheradmand

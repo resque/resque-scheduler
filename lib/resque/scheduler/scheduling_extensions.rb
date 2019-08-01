@@ -110,6 +110,16 @@ module Resque
         reload_schedule! if reload
       end
 
+      # purge the entire dynamic schedule. only allowed if you have already
+      # disabled dynamic schedules in your config
+      def purge_dynamic_schedule!
+        unless dynamic
+          redis.del(:persistent_schedules)
+          redis.del(:schedules_changed)
+          reload_schedule!
+        end
+      end
+
       private
 
       # we store our non-persistent schedules in this hash
