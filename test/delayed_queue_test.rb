@@ -285,6 +285,13 @@ context 'DelayedQueue' do
     Resque.enqueue_at(Time.now - 10, SomeFancyJob, 'foo', 'bar')
   end
 
+  test 'enqueue_at calls Resque#enqueue when given the current time' do
+    Timecop.freeze do
+      Resque.expects(:enqueue_to).with(:fancy, SomeFancyJob, 'foo', 'bar')
+      Resque.enqueue_at(Time.now, SomeFancyJob, 'foo', 'bar')
+    end
+  end
+
   test 'enqueue_next_item picks one job' do
     t = Time.now + 60
 

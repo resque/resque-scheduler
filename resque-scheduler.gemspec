@@ -48,6 +48,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'test-unit'
   spec.add_development_dependency 'yard'
   spec.add_development_dependency 'tzinfo-data'
+  spec.add_development_dependency 'timecop'
 
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.
