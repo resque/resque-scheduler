@@ -24,7 +24,7 @@ module Resque
       def enqueue_at_with_queue(queue, timestamp, klass, *args)
         return false unless plugin.run_before_schedule_hooks(klass, *args)
 
-        if Resque.inline? || timestamp.to_i < Time.now.to_i
+        if Resque.inline? || timestamp.to_i <= Time.now.to_i
           # Just create the job and let resque perform it right away with
           # inline.  If the class is a custom job class, call self#scheduled
           # on it. This allows you to do things like

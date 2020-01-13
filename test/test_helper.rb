@@ -6,6 +6,7 @@ require 'minitest'
 require 'mocha/setup'
 require 'rack/test'
 require 'resque'
+require 'timecop'
 
 $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
