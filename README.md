@@ -48,6 +48,9 @@ Adding the resque:scheduler rake task:
 require 'resque/scheduler/tasks'
 ```
 
+In a Rails app, you can skip this step. A Railtie loads the
+`resque:scheduler` rake task and the Resque web UI tabs automatically.
+
 ### Rake integration
 
 By default, `resque-scheduler` depends on the "resque:setup" rake task.
