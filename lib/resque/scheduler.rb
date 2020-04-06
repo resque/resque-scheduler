@@ -276,6 +276,8 @@ module Resque
             # CustomJobClass). Otherwise, pass off to Resque.
             if klass.respond_to?(:scheduled)
               klass.scheduled(queue, klass_name, *params)
+            elsif klass.respond_to?(:perform_later)
+              klass.set(queue: queue).perform_later(*params)
             else
               Resque.enqueue_to(queue, klass, *params)
             end
