@@ -49,7 +49,7 @@ module Resque
             erb scheduler_template('requeue-params')
           else
             Resque::Scheduler.enqueue_from_config(config)
-            redirect u('/overview')
+            redirect u('/schedule')
           end
         end
 
@@ -69,7 +69,7 @@ module Resque
           # Insert the args hash into config and queue the resque job
           config = config.merge('args' => config_args)
           Resque::Scheduler.enqueue_from_config(config)
-          redirect u('/overview')
+          redirect u('/schedule')
         end
 
         def delete_schedule

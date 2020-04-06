@@ -29,7 +29,7 @@
   <% Resque.schedule.keys.sort.each_with_index do |name, index| %>
     <% config = Resque.schedule[name] %>
     <tr style="<%= scheduled_in_this_env?(name) ? '' : 'color: #9F6000;background: #FEEFB3;' %>">
-	    <td style="padding-left: 15px;"><%= index+ 1 %>.</td>
+      <td style="padding-left: 15px;"><%= index+ 1 %>.</td>
       <% if Resque::Scheduler.dynamic %>
         <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
           <form action="<%= u "/schedule" %>" method="post" style="margin-left: 0">
