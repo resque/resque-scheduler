@@ -266,6 +266,11 @@ context 'on POST to /delayed/search' do
     assert last_response.status == 200
     assert last_response.body.include?('SomeQuickJob')
   end
+
+  test 'should escape XSS attempt' do
+    post '/delayed/search', 'search' => '"><script>alert(document.cookie);</script>"'
+    assert !last_response.body.include?('<script>alert(document.cookie);</script>')
+  end
 end
 
 context 'on POST to /delayed/cancel_now' do
