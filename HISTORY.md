@@ -1,3 +1,7 @@
+## 2.1.0 (2020-06-08)
+
+* Supports redis up to v3.0
+
 ## 2.0.0
 
 * Add support for Resque.inline configuration (carlosantoniodasilva)
