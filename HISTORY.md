@@ -1,6 +1,6 @@
 ## 2.1.0 (2020-06-08)
 
-* Supports redis up to v3.0
+* Now supports redis < 3.1
 
 ## 2.0.0
 
