@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.executables  = `git ls-files`.split("\n").map{|f| f =~ /^bin\/(.*)/ ? $1 : nil}.compact
   s.require_path = 'lib'
 
-  s.add_runtime_dependency 'redis', '~> 2.2.2'
+  s.add_runtime_dependency 'redis', '>= 2.2.2', '< 3.1'
   s.add_runtime_dependency 'resque', '>= 1.22'
   s.add_runtime_dependency 'rufus-scheduler', '~> 2.0'
 end
