@@ -1,6 +1,8 @@
 ## 2.1.0 (2020-06-08)
 
-* Now supports redis < 3.1
+* Support redis < 3.1
+* Add version restrictions for rufus-scheduler, resque, and mocha
+* Add all-in-one target for Yesware CI
 
 ## 2.0.0
 
