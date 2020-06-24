@@ -174,13 +174,33 @@ module Resque
       #
       # This allows for removal of delayed jobs that have arguments matching
       # certain criteria
-      def remove_delayed_selection(klass = nil)
+      # progress - if set to true will output progress to STDOUT
+      def remove_delayed_selection(klass = nil, progress: false, &block)
         raise ArgumentError, 'Please supply a block' unless block_given?
 
-        found_jobs = find_delayed_selection(klass) { |args| yield(args) }
-        found_jobs.reduce(0) do |sum, encoded_job|
-          sum + remove_delayed_job(encoded_job)
+        timestamps = redis.zrange(:delayed_queue_schedule, 0, -1)
+        deleted = scanned = 0
+        ts_total = timestamps.size
+
+        timestamps.each.with_index do |ts, ts_index|
+          key = "delayed:#{ts}"
+          redis.lrange(key, 0, -1).each do |job|
+            scanned += 1
+            if payload_matches_selection?(decode(job), klass, &block)
+              redis.lrem(key, 0, job)
+              redis.srem("timestamps:#{job}", key)
+              deleted += 1
+            end
+
+            if progress && scanned % 1000 == 0
+              print "\r#{ts_index + 1}/#{ts_total}: scanned: #{scanned}, deleted: #{deleted}"
+            end
+          end
         end
+
+        puts "\r#{ts_total}/#{ts_total}: scanned: #{scanned}, deleted: #{deleted}" if progress
+
+        deleted
       end
 
       # Given a block, enqueue jobs now that return true from a block
