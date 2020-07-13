@@ -113,7 +113,7 @@ module Resque
       # purge the entire dynamic schedule. only allowed if you have already
       # disabled dynamic schedules in your config
       def purge_dynamic_schedule!
-        unless dynamic
+        unless ::Resque::Scheduler.dynamic
           redis.del(:persistent_schedules)
           redis.del(:schedules_changed)
           reload_schedule!

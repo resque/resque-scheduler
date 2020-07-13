@@ -431,7 +431,7 @@ context 'Resque::Scheduler' do
     Resque.remove_schedule('some_ivar_job3')
     assert_equal nil, Resque.redis.hget(:schedules, 'some_ivar_job3')
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job3')
-    assert_equal [], Resque.redis.smembers(:persisted_schedules)
+    assert_equal [], Resque.redis.smembers(:persistent_schedules)
   end
 
   test 'remove_schedule does not reload schedule when disabling reload flag' do
@@ -467,10 +467,10 @@ context 'Resque::Scheduler' do
     assert_equal true, Resque.schedule['some_ivar_job5'].nil?
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job4')
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job5')
-    assert_equal [], Resque.redis.smembers(:persisted_schedules)
+    assert_equal [], Resque.redis.smembers(:persistent_schedules)
   end
 
-  test 'persisted schedules' do
+  test 'persistent schedules' do
     Resque.set_schedule(
       'some_ivar_job',
       'cron' => '* * * * *',
@@ -583,6 +583,44 @@ context 'Resque::Scheduler' do
 
     assert BeforeEnqueueJob.enqueue_started?, "Job enqueue didn't start in time"
     assert_equal 1, Resque.size('quick')
+  end
+
+  context 'dynamic mode is on' do
+    setup do
+      Resque::Scheduler.dynamic = true
+    end
+
+    test '#purge_dynamic_schedule! does not delete redis keys' do
+      Resque.set_schedule(
+        'some_ivar_job',
+        'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/2 ',
+        'persist' => true
+      )
+      assert_equal 1, Resque.redis.scard(:schedules_changed)
+      assert_equal 1, Resque.redis.hlen(:persistent_schedules)
+      Resque.purge_dynamic_schedule!
+      assert_equal 1, Resque.redis.scard(:schedules_changed)
+      assert_equal 1, Resque.redis.hlen(:persistent_schedules)
+    end
+  end
+
+  context 'dynamic mode is off' do
+    setup do
+      Resque::Scheduler.dynamic = false
+    end
+
+    test '#purge_dynamic_schedule! deletes redis keys' do
+      Resque.set_schedule(
+        'some_ivar_job',
+        'cron' => '* * * * *', 'class' => 'SomeIvarJob', 'args' => '/tmp/2 ',
+        'persist' => true
+      )
+      assert_equal 1, Resque.redis.scard(:schedules_changed)
+      assert_equal 1, Resque.redis.hlen(:persistent_schedules)
+      Resque.purge_dynamic_schedule!
+      assert_equal 0, Resque.redis.scard(:schedules_changed)
+      assert_equal 0, Resque.redis.hlen(:persistent_schedules)
+    end
   end
 
   context 'printing schedule' do
