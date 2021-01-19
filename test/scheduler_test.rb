@@ -9,7 +9,7 @@ context 'Resque::Scheduler' do
       c.env = nil
       c.app_name = nil
     end
-    Resque.redis.flushall
+    Resque.data_store.redis.flushall
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
     Resque::Scheduler.send(:instance_variable_set, :@shutdown, false)
@@ -170,6 +170,41 @@ context 'Resque::Scheduler' do
     assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
     assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
     assert !Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
+  end
+
+  test 'load_schedule_job updates last_enqueued_at' do
+    name = 'some_ivar_job'
+
+    Resque::Scheduler.load_schedule_job(
+      name,
+      'every' => '0.3s',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
+    last_enqueued_at = sleep_until(10) do
+      Resque.get_last_enqueued_at(name)
+    end
+    Resque.last_enqueued_at(name, nil)
+    assert !last_enqueued_at.nil?
+  end
+
+  test 'load_schedule_job does not update last_enqueued_at' do
+    name = 'some_ivar_job'
+    Resque::Scheduler.stubs(:enqueue).raises(StandardError, 'Test')
+
+    Resque::Scheduler.load_schedule_job(
+      name,
+      'every' => '0.3s',
+      'class' => 'SomeIvarJob',
+      'args' => '/tmp'
+    )
+    last_enqueued_at = sleep_until(10) do
+      Resque.get_last_enqueued_at(name)
+    end
+
+    Resque::Scheduler.unstub(:enqueue)
+    Resque.last_enqueued_at(name, nil)
+    assert last_enqueued_at.nil?
   end
 
   test 'update_schedule' do
@@ -396,6 +431,42 @@ context 'Resque::Scheduler' do
     Resque.remove_schedule('some_ivar_job3')
     assert_equal nil, Resque.redis.hget(:schedules, 'some_ivar_job3')
     assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job3')
+    assert_equal [], Resque.redis.smembers(:persisted_schedules)
+  end
+
+  test 'remove_schedule does not reload schedule when disabling reload flag' do
+    assert_equal true, Resque.schedule['some_ivar_job4'].nil?
+
+    Resque.set_schedule(
+      'some_ivar_job4', {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp/44',
+        'persist' => true
+      },
+      false
+    )
+
+    Resque.set_schedule(
+      'some_ivar_job5', {
+        'cron' => '* * * * *',
+        'class' => 'SomeIvarJob',
+        'args' => '/tmp/44',
+        'persist' => true
+      },
+      false
+    )
+
+    Resque.remove_schedule('some_ivar_job4', false)
+
+    assert_equal true, Resque.schedule['some_ivar_job5'].nil?
+
+    Resque.remove_schedule('some_ivar_job5')
+
+    assert_equal true, Resque.schedule['some_ivar_job4'].nil?
+    assert_equal true, Resque.schedule['some_ivar_job5'].nil?
+    assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job4')
+    assert Resque.redis.sismember(:schedules_changed, 'some_ivar_job5')
     assert_equal [], Resque.redis.smembers(:persisted_schedules)
   end
 

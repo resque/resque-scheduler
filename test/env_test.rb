@@ -16,7 +16,7 @@ context 'Env' do
     Process.stubs(:daemon)
     mock_redis_client = mock('redis_client')
     mock_redis = mock('redis')
-    mock_redis.expects(:client).returns(mock_redis_client)
+    mock_redis.expects(:_client).returns(mock_redis_client)
     mock_redis_client.expects(:reconnect)
     Resque.expects(:redis).returns(mock_redis)
     env = new_env(background: true)
@@ -49,5 +49,19 @@ context 'Env' do
     env = new_env
     env.setup
     assert_equal(false, Resque::Scheduler.quiet)
+  end
+
+  test 'keep set environment if no option given' do
+    Resque::Scheduler.configure { |c| c.env = 'development' }
+    env = new_env
+    env.setup
+    assert_equal('development', Resque::Scheduler.env)
+  end
+
+  test 'override environment if option given' do
+    Resque::Scheduler.configure { |c| c.env = 'development' }
+    env = new_env(env: 'test')
+    env.setup
+    assert_equal('test', Resque::Scheduler.env)
   end
 end

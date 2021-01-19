@@ -48,13 +48,14 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'test-unit'
   spec.add_development_dependency 'yard'
   spec.add_development_dependency 'tzinfo-data'
+  spec.add_development_dependency 'timecop'
 
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.
   spec.add_development_dependency 'rubocop', '~> 0.40.0'
 
   spec.add_runtime_dependency 'mono_logger', '~> 1.0'
-  spec.add_runtime_dependency 'redis', '~> 3.3'
-  spec.add_runtime_dependency 'resque', '~> 1.26'
+  spec.add_runtime_dependency 'redis', '>= 3.3'
+  spec.add_runtime_dependency 'resque', '>= 1.27'
   spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2'
 end

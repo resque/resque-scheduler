@@ -24,7 +24,7 @@ module Resque
       def enqueue_at_with_queue(queue, timestamp, klass, *args)
         return false unless plugin.run_before_schedule_hooks(klass, *args)
 
-        if Resque.inline? || timestamp.to_i < Time.now.to_i
+        if Resque.inline? || timestamp.to_i <= Time.now.to_i
           # Just create the job and let resque perform it right away with
           # inline.  If the class is a custom job class, call self#scheduled
           # on it. This allows you to do things like
@@ -33,7 +33,7 @@ module Resque
           if klass.respond_to?(:scheduled)
             klass.scheduled(queue, klass.to_s, *args)
           else
-            Resque::Job.create(queue, klass, *args)
+            Resque.enqueue_to(queue, klass, *args)
           end
         else
           delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
@@ -45,6 +45,9 @@ module Resque
       # Identical to enqueue_at but takes number_of_seconds_from_now
       # instead of a timestamp.
       def enqueue_in(number_of_seconds_from_now, klass, *args)
+        unless number_of_seconds_from_now.is_a?(Numeric)
+          raise ArgumentError, 'Please supply a numeric number of seconds'
+        end
         enqueue_at(Time.now + number_of_seconds_from_now, klass, *args)
       end
 
@@ -53,14 +56,17 @@ module Resque
       # number of seconds has passed.
       def enqueue_in_with_queue(queue, number_of_seconds_from_now,
                                 klass, *args)
+        unless number_of_seconds_from_now.is_a?(Numeric)
+          raise ArgumentError, 'Please supply a numeric number of seconds'
+        end
         enqueue_at_with_queue(queue, Time.now + number_of_seconds_from_now,
                               klass, *args)
       end
 
       # Used internally to stuff the item into the schedule sorted list.
-      # +timestamp+ can be either in seconds or a datetime object Insertion
-      # if O(log(n)).  Returns true if it's the first job to be scheduled at
-      # that time, else false
+      # +timestamp+ can be either in seconds or a datetime object. The
+      # insertion time complexity is O(log(n)). Returns true if it's
+      # the first job to be scheduled at that time, else false.
       def delayed_push(timestamp, item)
         # First add this item to the list for this timestamp
         redis.rpush("delayed:#{timestamp.to_i}", encode(item))
@@ -82,6 +88,7 @@ module Resque
       end
 
       # Returns the size of the delayed queue schedule
+      # this does not represent the number of items in the queue to be scheduled
       def delayed_queue_schedule_size
         redis.zcard :delayed_queue_schedule
       end
@@ -143,10 +150,22 @@ module Resque
         remove_delayed_job(search)
       end
 
+      def remove_delayed_in_queue(klass, queue, *args)
+        search = encode(job_to_hash_with_queue(queue, klass, args))
+        remove_delayed_job(search)
+      end
+
       # Given an encoded item, enqueue it now
       def enqueue_delayed(klass, *args)
         hash = job_to_hash(klass, args)
         remove_delayed(klass, *args).times do
+          Resque::Scheduler.enqueue_from_config(hash)
+        end
+      end
+
+      def enqueue_delayed_with_queue(klass, queue, *args)
+        hash = job_to_hash_with_queue(queue, klass, args)
+        remove_delayed_in_queue(klass, queue, *args).times do
           Resque::Scheduler.enqueue_from_config(hash)
         end
       end
@@ -175,7 +194,15 @@ module Resque
         found_jobs.reduce(0) do |sum, encoded_job|
           decoded_job = decode(encoded_job)
           klass = Util.constantize(decoded_job['class'])
-          sum + enqueue_delayed(klass, *decoded_job['args'])
+          queue = decoded_job['queue']
+
+          if queue
+            jobs_queued = enqueue_delayed_with_queue(klass, queue, *decoded_job['args'])
+          else
+            jobs_queued = enqueue_delayed(klass, *decoded_job['args'])
+          end
+
+          jobs_queued + sum
         end
       end
 
@@ -265,6 +292,8 @@ module Resque
         { class: klass.to_s, args: args, queue: queue }
       end
 
+      # Removes a job from the queue, but not modify the timestamp schedule. This method
+      # will not effect the output of `delayed_queue_schedule_size`
       def remove_delayed_job(encoded_job)
         return 0 if Resque.inline?
 
@@ -276,6 +305,9 @@ module Resque
             redis.srem("timestamps:#{encoded_job}", key)
           end
         end
+
+        # timestamp key is not removed from the schedule, this is done later
+        # by the scheduler loop
 
         return 0 if replies.nil? || replies.empty?
         replies.each_slice(2).map(&:first).inject(:+)

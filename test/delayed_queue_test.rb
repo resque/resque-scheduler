@@ -4,7 +4,7 @@ require_relative 'test_helper'
 context 'DelayedQueue' do
   setup do
     Resque::Scheduler.quiet = true
-    Resque.redis.flushall
+    Resque.data_store.redis.flushall
   end
 
   test 'enqueue_at adds correct list and zset' do
@@ -262,6 +262,33 @@ context 'DelayedQueue' do
       Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
     ensure
       Resque.inline = old_val
+    end
+  end
+
+  test 'when Resque.inline = true, calls Resque#enqueue ' \
+       'when klass#scheduled is not defined' do
+    old_val = Resque.inline
+    begin
+      Resque.inline = true
+      assert_false(SomeFancyJob.respond_to?(:scheduled))
+      Resque.expects(:enqueue_to).with(:fancy, SomeFancyJob, 'foo', 'bar')
+      Resque.enqueue_at(Time.now + 10, SomeFancyJob, 'foo', 'bar')
+    ensure
+      Resque.inline = old_val
+    end
+  end
+
+  test 'enqueue_at calls Resque#enqueue when given a moment in the past' \
+       'when klass#scheduled is not defined' do
+    assert_false(SomeFancyJob.respond_to?(:scheduled))
+    Resque.expects(:enqueue_to).with(:fancy, SomeFancyJob, 'foo', 'bar')
+    Resque.enqueue_at(Time.now - 10, SomeFancyJob, 'foo', 'bar')
+  end
+
+  test 'enqueue_at calls Resque#enqueue when given the current time' do
+    Timecop.freeze do
+      Resque.expects(:enqueue_to).with(:fancy, SomeFancyJob, 'foo', 'bar')
+      Resque.enqueue_at(Time.now, SomeFancyJob, 'foo', 'bar')
     end
   end
 
@@ -896,6 +923,28 @@ context 'DelayedQueue' do
     assert_raises Resque::NoQueueError do
       Resque.enqueue_in(10, String)
     end
+  end
+
+  test 'invalid number of seconds' do
+    assert_raises ArgumentError do
+      Resque.enqueue_in(Time.now, SomeIvarJob)
+    end
+
+    assert_raises ArgumentError do
+      Resque.enqueue_in_with_queue('test', Time.now, SomeIvarJob)
+    end
+  end
+
+  test 'requeues a job in the queue originally specified regardless' \
+       'of the queue attached to the class' do
+    Resque.enqueue_in_with_queue('notivar', 1, SomeIvarJob)
+
+    assert_equal(1, Resque.count_all_scheduled_jobs)
+    assert_equal(1, Resque.enqueue_delayed_selection { true })
+    assert_equal(0, Resque.count_all_scheduled_jobs)
+
+    assert_equal(1, Resque.size('notivar'))
+    assert_equal(0, Resque.size(Resque.queue_from_class(SomeIvarJob)))
   end
 
   test 'inlining jobs with Resque.inline config' do

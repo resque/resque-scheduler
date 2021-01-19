@@ -24,3 +24,4 @@ before_test:
 
 test_script:
 - bundle exec rake
+- bin\bundle_console_test.bat

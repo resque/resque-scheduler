@@ -2,18 +2,43 @@ language: ruby
 sudo: false
 cache: bundler
 rvm:
-- 2.3.1
-- jruby-9.1.2.0
+  - 2.6
+  - 2.5
+  - 2.4
+  - 2.3
+  - ruby-head
+  - jruby-9.2.7.0
+  - jruby-9.1.17.0
 env:
   global:
-  - COVERAGE=1
-  - JRUBY_OPTS=''
-  - RUBYOPT='-W0'
+    - COVERAGE=1
+    - JRUBY_OPTS=''
+    - RUBYOPT='-W0'
+  matrix:
+    - RESQUE='master'
+    - RESQUE='~> 2.0.0'
+    - RESQUE='~> 1.27'
+
 matrix:
+  fast_finish: true
   allow_failures:
-  - rvm: jruby-9.1.2.0
+    - rvm: ruby-head
+    - rvm: jruby-9.2.7.0
+    - rvm: jruby-9.1.17.0
 services:
-- redis-server
+  - redis-server
+before_install:
+  - sudo sed -e 's/^bind.*/bind 127.0.0.1/' /etc/redis/redis.conf > redis.conf
+  - sudo mv redis.conf /etc/redis
+  - sudo service redis-server start
+  - echo PING | nc localhost 6379
+script:
+  - bundle exec rake
+  - bin/bundle_console_test.sh
+addons:
+  apt:
+    packages:
+      - redis-server
 deploy:
   provider: rubygems
   api_key:
@@ -22,5 +47,5 @@ deploy:
   on:
     tags: true
     repo: resque/resque-scheduler
-    rvm: 2.3.1
+    rvm: 2.4.2
     all_branches: true

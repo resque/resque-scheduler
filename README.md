@@ -13,7 +13,7 @@ resque-scheduler
 Resque-scheduler is an extension to [Resque](http://github.com/resque/resque)
 that adds support for queueing items in the future.
 
-Job scheduling is supported in two different way: Recurring (scheduled) and
+Job scheduling is supported in two different ways: Recurring (scheduled) and
 Delayed.
 
 Scheduled jobs are like cron jobs, recurring on a regular basis.  Delayed
@@ -160,7 +160,7 @@ following task to wherever tasks are kept, such as
 ```ruby
 task 'resque:pool:setup' do
   Resque::Pool.after_prefork do |job|
-    Resque.redis.client.reconnect
+    Resque.redis._client.reconnect
   end
 end
 ```
@@ -233,6 +233,17 @@ Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_acc
 Resque.remove_delayed_selection { |args| args[0]['account_id'] == current_account.id }
 # or remove jobs matching just the user:
 Resque.remove_delayed_selection { |args| args[0]['user_id'] == current_user.id }
+```
+
+If you need to cancel a delayed job based on some matching arguments AND by which class the job is, but don't wish to specify each argument from when the job was created, you can do like so:
+
+``` ruby
+# after you've enqueued a job like:
+Resque.enqueue_at(5.days.from_now, SendFollowUpEmail, :account_id => current_account.id, :user_id => current_user.id)
+# remove jobs matching just the account and that were of the class SendFollowUpEmail:
+Resque.remove_delayed_selection(SendFollowUpEmail) { |args| args[0]['account_id'] == current_account.id }
+# or remove jobs matching just the user and that were of the class SendFollowUpEmail:
+Resque.remove_delayed_selection(SendFollowUpEmail) { |args| args[0]['user_id'] == current_user.id }
 ```
 
 If you need to enqueue immediately a delayed job based on some matching arguments, but don't wish to specify each argument from when the job was created, you can do like so:
@@ -338,8 +349,8 @@ for handling the heavy lifting of the actual scheduling engine.
 #### Dynamic schedules
 
 Dynamic schedules are programmatically set on a running `resque-scheduler`.
-All [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
-when setting schedules.
+Most [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler) options are supported
+when setting schedules. Specifically the `overlap` option will not work.
 
 Dynamic schedules are not enabled by default. To be able to dynamically set schedules, you
 must pass the following to `resque-scheduler` initialization (see *Installation* above for a more complete example):
@@ -516,7 +527,7 @@ RESQUE_SCHEDULER_MASTER_LOCK_PREFIX=MyApp: rake resque:scheduler
 
 ### resque-web Additions
 
-Resque-scheduler also adds to tabs to the resque-web UI.  One is for viewing
+Resque-scheduler also adds two tabs to the resque-web UI.  One is for viewing
 (and manually queueing) the schedule and one is for viewing pending jobs in
 the delayed queue.
 
@@ -550,11 +561,7 @@ require 'resque/scheduler/server'
 
 That should make the scheduler tabs show up in `resque-web`.
 
-#### Changes as of 2.0.0
-
-As of resque-scheduler 2.0.0, it's no longer necessary to have the resque-web
-process aware of the schedule because it reads it from redis.  But prior to
-2.0, you'll want to make sure you load the schedule in this file as well.
+You'll want to make sure you load the schedule in this file as well.
 Something like this:
 
 ```ruby
