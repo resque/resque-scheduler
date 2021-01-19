@@ -44,4 +44,10 @@ context 'Env' do
     env.setup
     assert_equal(false, Resque::Scheduler.dynamic)
   end
+
+  test 'quiet is false if not provided' do
+    env = new_env
+    env.setup
+    assert_equal(false, Resque::Scheduler.quiet)
+  end
 end

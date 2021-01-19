@@ -35,7 +35,7 @@ module Resque
         Resque::Scheduler.quiet = if options.key?(:quiet)
                                     !!options[:quiet]
                                   else
-                                    true
+                                    false
                                   end
 
         unless Process.respond_to?('daemon')
