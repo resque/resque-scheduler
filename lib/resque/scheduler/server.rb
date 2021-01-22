@@ -24,7 +24,7 @@ module Resque
           post('/schedule/requeue_with_params') do
             schedule_requeue_with_params
           end
-          delete('/schedule') { delete_schedule }
+          post('/schedule') { delete_schedule }
           get('/delayed') { delayed }
           get('/delayed/jobs/:klass') { delayed_jobs_klass }
           post('/delayed/search') { delayed_search }
