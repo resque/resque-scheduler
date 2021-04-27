@@ -46,7 +46,7 @@
       <td><%= h(show_job_arguments(job['args'])) if job && delayed_timestamp_size == 1 %></td>
       <td>
         <% if job %>
-          <a href="<%=u URI("/delayed/jobs/#{URI.escape(job['class'])}?args=" + URI.encode(job['args'].to_json)) %>">All schedules</a>
+          <a href="<%=u URI("/delayed/jobs/#{CGI.escape(job['class'])}?args=" + URI.encode_www_form(job['args'])) %>">All schedules</a>
         <% end %>
       </td>
     </tr>
