@@ -1,4 +1,6 @@
 <form method="POST" action="<%= u 'delayed/search' %>">
+  <input type='checkbox' id='search_args' name='search_args' value="checked" <%= 'checked' if params[:search_args]=='checked' %>/>
+  <label for="search_args"> Search Args?</label><br>
   <input type='input' name='search' value="<%= h params[:search] %>"/>
   <input type='submit' value='Search'/>
 </form>
