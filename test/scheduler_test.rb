@@ -8,7 +8,9 @@ context 'Resque::Scheduler' do
       c.quiet = true
       c.env = nil
       c.app_name = nil
+      c.auto_load = nil
     end
+    Resque.schedule.clear
     Resque.data_store.redis.flushall
     Resque::Scheduler.clear_schedule!
     Resque::Scheduler.send(:instance_variable_set, :@scheduled_jobs, {})
@@ -102,6 +104,33 @@ context 'Resque::Scheduler' do
 
     assert_equal '/tmp/2', Resque.schedule['some_ivar_job2']['args']
     assert Resque::Scheduler.scheduled_jobs.include?('some_ivar_job2')
+  end
+
+  test 'can load jobs with auto_load' do
+    Resque::Scheduler.auto_load = 'test/fixtures/valid*job.rb'
+
+    Resque::Scheduler.reload_schedule!
+
+    assert_equal(2, Resque::Scheduler.rufus_scheduler.jobs.size)
+    assert_equal(2, Resque::Scheduler.scheduled_jobs.size)
+    %w(valid_cron_job valid_every_job).each do |job_name|
+      assert Resque::Scheduler.scheduled_jobs.keys.include?(job_name)
+    end
+
+    cron_job = Resque::Scheduler.scheduled_jobs['valid_cron_job']
+    assert_equal('*/2 * * * *', cron_job.original)
+
+    every_job = Resque::Scheduler.scheduled_jobs['valid_every_job']
+    assert_equal('1d', every_job.original)
+  end
+
+  test 'do not load error job with auto_load' do
+    Resque::Scheduler.auto_load = 'test/fixtures/error_job.rb'
+
+    Resque::Scheduler.reload_schedule!
+
+    assert_equal(0, Resque::Scheduler.rufus_scheduler.jobs.size)
+    assert_equal(0, Resque::Scheduler.scheduled_jobs.size)
   end
 
   test 'load_schedule_job loads a schedule' do

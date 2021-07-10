@@ -107,6 +107,26 @@ module Resque
         Resque.schedule.each do |name, config|
           load_schedule_job(name, config)
         end
+
+        Dir[auto_load.to_s].each do |file|
+          require File.absolute_path(file)
+          name = File.basename(file, '.rb')
+          begin
+            klass = Resque::Scheduler::Util.constantize(name)
+          rescue NameError
+            log! "Can't load file #{file}"
+          end
+          load_schedule_job(
+            name,
+            'class' => klass.name,
+            'cron' => klass.respond_to?(:cron) ? klass.cron : nil,
+            'every' => klass.respond_to?(:every) ? klass.every : nil,
+            'queue' => klass.respond_to?(:queue) ? klass.queue : nil,
+            'args' => klass.respond_to?(:args) ? klass.args : nil,
+            'description' => klass.respond_to?(:description) ? klass.description : nil
+          ) if klass
+        end
+
         Resque.redis.del(:schedules_changed) if am_master && dynamic
         procline 'Schedules Loaded'
       end

@@ -88,6 +88,10 @@ context 'Cli' do
     assert_equal(nil, new_cli.send(:options)[:dynamic])
   end
 
+  test 'defaults to nil auto_load' do
+    assert_equal(nil, new_cli.send(:options)[:auto_load])
+  end
+
   test 'initializes env from the env' do
     cli = new_cli([], 'RAILS_ENV' => 'flurb')
     assert_equal('flurb', cli.send(:options)[:env])
@@ -222,6 +226,18 @@ context 'Cli' do
     cli = new_cli(%w(--app-name flimsy))
     cli.parse_options
     assert_equal('flimsy', cli.send(:options)[:app_name])
+  end
+
+  test 'accepts auto_load via -A' do
+    cli = new_cli(%w(-A /some/path_*_job.rb))
+    cli.parse_options
+    assert_equal('/some/path_*_job.rb', cli.send(:options)[:auto_load])
+  end
+
+  test 'accepts auto_load via --auto-load' do
+    cli = new_cli(%w(--auto-load /some/path_*_job.rb))
+    cli.parse_options
+    assert_equal('/some/path_*_job.rb', cli.send(:options)[:auto_load])
   end
 
   test 'runs Resque::Scheduler' do

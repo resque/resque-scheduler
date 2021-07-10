@@ -15,4 +15,8 @@ context 'Util' do
   test 'constantizing with a dash' do
     assert util.constantize('re-schedul-izer') == ReSchedulIzer
   end
+
+  test 'constantizing with an underscore' do
+    assert util.constantize('re_schedul_izer') == ReSchedulIzer
+  end
 end

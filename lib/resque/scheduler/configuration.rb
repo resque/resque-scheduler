@@ -58,6 +58,13 @@ module Resque
         @dynamic ||= to_bool(environment['DYNAMIC_SCHEDULE'])
       end
 
+      # If set, will try to automatically load those jobs
+      attr_writer :auto_load
+
+      def auto_load
+        @auto_load ||= !!ENV['AUTO_LOAD']
+      end
+
       # If set, will append the app name to procline
       attr_writer :app_name
 

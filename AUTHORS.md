@@ -4,6 +4,7 @@ Resque Scheduler authors
 - Aaron Suggs
 - Alexander Simonov
 - Andrea Campolonghi
+- Andrea Lorenzetti
 - Ben VandenBos
 - Bernerd Schaefer
 - Bogdan Gusiev
@@ -87,3 +88,4 @@ Resque Scheduler authors
 - sawanoboly
 - serek
 - iloveitaly
+- Andrea Lorenzetti
