@@ -97,7 +97,11 @@ module Resque
         end
 
         def delayed_search
-          @jobs = find_job(params[:search])
+          @jobs = if params[:search_args]=='checked'
+            find_jobs_with_expr(params[:search])
+          else
+            find_job(params[:search])
+          end
           erb scheduler_template('search')
         end
 
@@ -149,6 +153,11 @@ module Resque
           Resque.queue_from_class(
             Resque::Scheduler::Util.constantize(class_name)
           )
+        end
+
+        def find_jobs_with_expr(search_expr)
+          results = working_jobs_for_expr(search_expr)
+          results + delayed_jobs_for_search_expr(search_expr)
         end
 
         def find_job(worker)
@@ -239,6 +248,33 @@ module Resque
                   'queue' => w.job['queue'], 'where_at' => 'working'
                 )
               ]
+            end
+          end
+        end
+
+        def working_jobs_for_expr(expr)
+          [].tap do |results|
+            working = [*Resque.working]
+            work = working.select do |w|
+              w.job && w.job['payload'].inspect.match(/#{expr}/)
+            end
+            work.each do |w|
+              results += [
+                w.job['payload'].merge(
+                  'queue' => w.job['queue'], 'where_at' => 'working'
+                )
+              ]
+            end
+          end
+        end
+
+        def delayed_jobs_for_search_expr(expr)
+          schedule_size = Resque.delayed_queue_schedule_size
+          [].tap do |dels|
+            Resque.delayed_queue_peek(0, schedule_size).map do |d|
+              Resque.delayed_timestamp_peek(d, 0, Resque.delayed_timestamp_size(d)).select do |j|
+                dels << j.merge!('timestamp' => d, 'where_at' => 'delayed') if j.inspect.match(/#{expr}/i)
+              end
             end
           end
         end
