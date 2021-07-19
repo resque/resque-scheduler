@@ -112,7 +112,7 @@ context 'on GET to /delayed/jobs/:klass' do
     Resque.enqueue_at(@t, SomeIvarJob, 'foo', 'bar')
     get(
       URI('/delayed/jobs/SomeIvarJob?args=' <<
-          URI.encode(%w(foo bar).to_json)).to_s
+          URI.encode_www_form_component(%w(foo bar).to_json)).to_s
     )
   end
 
@@ -135,7 +135,7 @@ context 'on GET to /delayed/jobs/:klass' do
       Resque.enqueue_at(@t, Foo::Bar, 'foo', 'bar')
       get(
         URI('/delayed/jobs/Foo::Bar?args=' <<
-            URI.encode(%w(foo bar).to_json)).to_s
+            URI.encode_www_form_component(%w(foo bar).to_json)).to_s
       )
     end
 
