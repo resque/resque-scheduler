@@ -101,7 +101,7 @@ context 'on GET to /delayed' do
     test "contains link to all schedules for class #{job['class']}" do
       Resque.enqueue_at(Time.now + job['t'], job['class'], *job['args'])
       get '/delayed'
-      assert !(last_response.body =~ %r{/delayed/jobs/#{URI.escape(job['class'].to_s)}}).nil?
+      assert !(last_response.body =~ %r{/delayed/jobs/#{URI::Parser.new.escape(job['class'].to_s)}}).nil?
     end
   end
 end
