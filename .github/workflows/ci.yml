@@ -1,0 +1,46 @@
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version:
+          - 2.3
+          - 2.4
+          - 2.5
+          - 2.6
+          - 2.7
+          - "3.0"
+          - head
+          - jruby-9.1.17.0
+          - jruby-9.2.9.0
+          - jruby-9.2.19.0
+        resque-version:
+          - "master"
+          - "~> 2.0.0"
+          - "~> 1.27"
+    env:
+      RESQUE: "${{ matrix.resque-version }}"
+      COVERAGE: 1
+      JRUBY_OPTS: ""
+      RUBYOPT: "-W0"
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{ matrix.ruby-version }}"
+          bundler-cache: true
+      - run: bundle exec rake
+      - run: bin/bundle_console_test.sh
