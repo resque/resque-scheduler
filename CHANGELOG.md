@@ -3,6 +3,21 @@
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
 ## [5.0.0] - Unreleased
+### Added
+- Support Ruby 3
+- Add optional argument to `remove_schedule` to control reloading of the schedule
+
+### Fixed
+- Fix XSS vulnerability on the `/delayed/search` page
+- Ensure that jobs are directly created for jobs enqueued at `Time.now`
+- Fix queuing to custom job queues in `enqueue_delayed_selection`
+- Ensure `before_enqueue` and `after_enqueue` callbacks are called in all cases of queuing a job
+- Fix redis error when running resque-scheduler without Redis
+
+### Changed
+- Change CI from Travis to GitHub Actions
+- Only allow rufus-scheduler versions lower than 3.7
+- Update vagrant configuration
 
 ## [4.4.0] - 2019-04-11
 ### Added
@@ -16,7 +31,7 @@
 - Fix setting the `poll_sleep_amount` option
 - Escape class names in resque-web /delayed URLs
 
-## Changed
+### Changed
 - Addressed redis-namespace deprecation warnings
 - Ensure `enqueue_in` args are Numeric, catching a common issue passing `ActiveSupport::Duration`
 
