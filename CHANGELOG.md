@@ -2,7 +2,9 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
-## [5.0.0] - Unreleased
+## Unreleased
+
+## [4.5.0]
 ### Added
 - Support Ruby 3
 - Add optional argument to `remove_schedule` to control reloading of the schedule

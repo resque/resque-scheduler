@@ -11,12 +11,14 @@ Gem::Specification.new do |spec|
     Simon Eskildsen
     Ryan Biesemeyer
     Dan Buch
+    Michael Bianco
   EOF
   spec.email = %w(
     bvandenbos@gmail.com
     sirup@sirupsen.com
     ryan@yaauie.com
     dan@meatballhat.com
+    mike@mikebian.co
   )
   spec.summary = 'Light weight job scheduling on top of Resque'
   spec.description = <<-DESCRIPTION
@@ -29,7 +31,7 @@ Gem::Specification.new do |spec|
 
   spec.files = `git ls-files -z`.split("\0").reject do |f|
     f.match(%r{^(test|spec|features|examples|bin|tasks)/}) ||
-      f.match(/^(Vagrantfile|Gemfile\.lock|appveyor\.yml)/) ||
+      f.match(/^(Vagrantfile|Gemfile\.lock)/) ||
       f.match(/^\.(rubocop|simplecov|travis|vagrant|gitignore)/)
   end
   spec.bindir = 'exe'

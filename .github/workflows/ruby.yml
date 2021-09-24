@@ -1,4 +1,4 @@
-name: Ruby specs
+name: CI
 
 on:
   push:
