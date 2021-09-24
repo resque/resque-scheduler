@@ -85,3 +85,4 @@ Resque Scheduler authors
 - malomalo
 - sawanoboly
 - serek
+- iloveitaly
