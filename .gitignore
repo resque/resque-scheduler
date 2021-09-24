@@ -16,3 +16,4 @@ nbproject
 .env
 .env.*
 /nul
+vendor/
