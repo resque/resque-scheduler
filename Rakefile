@@ -1,13 +1,9 @@
 # vim:fileencoding=utf-8
 require 'bundler/gem_tasks'
 require 'rake/testtask'
-require 'rubocop/rake_task'
 require 'yard'
 
-task default: [:rubocop, :test] unless RUBY_PLATFORM =~ /java/
-task default: [:test] if RUBY_PLATFORM =~ /java/
-
-RuboCop::RakeTask.new
+task default: :test
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
