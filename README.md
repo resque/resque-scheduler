@@ -4,7 +4,8 @@ resque-scheduler
 
 [![Dependency Status](https://gemnasium.com/badges/github.com/resque/resque-scheduler.svg)](https://gemnasium.com/github.com/resque/resque-scheduler)
 [![Gem Version](https://badge.fury.io/rb/resque-scheduler.svg)](https://badge.fury.io/rb/resque-scheduler)
-[![Build Status](https://travis-ci.org/resque/resque-scheduler.svg?branch=master)](https://travis-ci.org/resque/resque-scheduler)
+[![Ruby specs](https://github.com/resque/resque-scheduler/actions/workflows/ruby.yml/badge.svg)](https://github.com/resque/resque-scheduler/actions)
+[![Rubocop](https://github.com/resque/resque-scheduler/actions/workflows/rubocop.yml/badge.svg)](https://github.com/resque/resque-scheduler/actions)
 [![Windows Build Status](https://ci.appveyor.com/api/projects/status/sxvf2086v5j0absb/branch/master?svg=true)](https://ci.appveyor.com/project/resque/resque-scheduler/branch/master)
 [![Code Climate](https://codeclimate.com/github/resque/resque-scheduler/badges/gpa.svg)](https://codeclimate.com/github/resque/resque-scheduler)
 
@@ -641,7 +642,7 @@ that happens on Travis CI and Appveyor:
 bundle install
 
 # Make sure tests are green before you change stuff
-bundle exec rake
+bundle exec rubocop && bundle exec rake
 # Change stuff
 # Repeat
 ```

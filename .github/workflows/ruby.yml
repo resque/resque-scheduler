@@ -1,3 +1,5 @@
+name: Ruby specs
+
 on:
   push:
     branches: [master]
