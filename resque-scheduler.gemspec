@@ -54,7 +54,7 @@ Gem::Specification.new do |spec|
 
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.
-  spec.add_development_dependency 'rubocop', '~> 0.40.0'
+  spec.add_development_dependency 'rubocop', '~> 1.22.1'
 
   spec.add_runtime_dependency 'mono_logger', '~> 1.0'
   spec.add_runtime_dependency 'redis', '>= 3.3'
