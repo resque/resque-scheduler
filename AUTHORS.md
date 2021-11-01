@@ -88,4 +88,3 @@ Resque Scheduler authors
 - sawanoboly
 - serek
 - iloveitaly
-- Andrea Lorenzetti

@@ -458,18 +458,18 @@ Resque::Scheduler.auto_load = 'path/to/*_job.rb'
 Auto load enables a job to declare it's scheduling. In order to do that file must follow `snake_case` convention for filename and `CamelCase` for class name. It also must include `Resque::Scheduler::Job` and declares it's schedule:
 
 ```ruby
-  cron '*/2 * * * *'
-  queue 'default'
+resque_schedule cron: '*/2 * * * *'
 ```
 
 All options available:
 
 ```ruby
-cron '* */3 * * *' # use cron or every option, don't use both
-every '3d' # use every or cron option, don't use both
-queue 'default'
-args 'custom arg'
-description 'Nice description'
+resque_schedule(
+  cron: '* */3 * * *', # use cron or every option, don't use both
+  every: '3d', # use every or cron option, don't use both
+  args: 'Custom arg',
+  description: 'Nice description'
+)
 ```
 
 Job's example:
@@ -481,10 +481,9 @@ require 'resque/scheduler/job'
 class MyGreatJob
   include Resque::Scheduler::Job
 
-  cron '*/2 * * * *'
-  queue 'default'
-  args 'args'
-  description 'description'
+  @queue = :default
+
+  resque_schedule cron: '*/2 * * * *', args: 'args', description: 'description'
 end
 
 ```

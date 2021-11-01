@@ -5,8 +5,7 @@ require 'resque/scheduler/job'
 class ValidEveryJob
   include Resque::Scheduler::Job
 
-  every '1d'
-  queue 'default'
-  args 'args'
-  description 'description'
+  @queue = :default
+
+  resque_schedule every: '1d', args: 'args', description: 'description'
 end

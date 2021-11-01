@@ -10,29 +10,16 @@ module Resque
       end
 
       module ClassMethods
-        def cron(value = nil)
-          return @cron ||= nil if value.nil?
-          @cron = value
-        end
-
-        def every(value = nil)
-          return @every ||= nil if value.nil?
-          @every = value
-        end
-
-        def queue(value = nil)
-          return @queue ||= nil if value.nil?
-          @queue = value
-        end
-
-        def args(value = nil)
-          return @args ||= nil if value.nil?
-          @args = value
-        end
-
-        def description(value = nil)
-          return @description ||= nil if value.nil?
-          @description = value
+        def resque_schedule(cron: nil, every: nil, args: nil, description: nil)
+          Resque::Scheduler.load_schedule_job(
+            name,
+            'class' => name,
+            'cron' => cron,
+            'every' => every,
+            'queue' => @queue,
+            'args' => args,
+            'description' => description
+          )
         end
       end
     end
