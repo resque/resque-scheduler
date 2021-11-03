@@ -304,7 +304,6 @@ If you would like to setup a job that is executed manually you can configure lik
 
 ```yaml
 ImportOrdersManual:
-  description: 'Import Amazon Orders Manual'
   custom_job_class: 'AmazonMws::ImportOrdersJob'
   never: "* * * * *"
   queue: high

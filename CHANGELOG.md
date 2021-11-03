@@ -4,7 +4,7 @@
 
 ## Unreleased
 
-## [4.5.0]
+## [4.5.0] - 2021-09-25
 ### Added
 - Support Ruby 3
 - Add optional argument to `remove_schedule` to control reloading of the schedule
@@ -444,6 +444,7 @@
 - Initial release
 
 [Unreleased]: https://github.com/resque/resque-scheduler/compare/v4.4.0...HEAD
+[4.5.0]: https://github.com/resque/resque-scheduler/compare/v4.4.0...v4.5.0
 [4.4.0]: https://github.com/resque/resque-scheduler/compare/v4.3.1...v4.4.0
 [4.3.1]: https://github.com/resque/resque-scheduler/compare/v4.3.0...v4.3.1
 [4.3.0]: https://github.com/resque/resque-scheduler/compare/v4.2.1...v4.3.0
