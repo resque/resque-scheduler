@@ -41,7 +41,7 @@ context 'DelayedQueue' do
                  'Should have the same arguments that we queued')
 
     # And now confirm the keys are gone
-    assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
+    assert(!Resque.redis.exists?("delayed:#{timestamp.to_i}"))
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule),
                  'delayed queue should be empty')
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
@@ -84,7 +84,7 @@ context 'DelayedQueue' do
                  'Should have the queue that we asked for')
 
     # And now confirm the keys are gone
-    assert(!Resque.redis.exists("delayed:#{timestamp.to_i}"))
+    assert(!Resque.redis.exists?("delayed:#{timestamp.to_i}"))
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule),
                  'delayed queue should be empty')
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
@@ -915,7 +915,7 @@ context 'DelayedQueue' do
     assert_equal(
       1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, 'foo')
     )
-    assert !Resque.redis.exists("delayed:#{t.to_i}")
+    assert !Resque.redis.exists?("delayed:#{t.to_i}")
     assert Resque.delayed_queue_peek(0, 100).empty?
   end
 
@@ -956,7 +956,7 @@ context 'DelayedQueue' do
       Resque.enqueue_at(timestamp, SomeIvarJob, 'foo', 'bar')
 
       assert_equal 0, Resque.count_all_scheduled_jobs
-      assert !Resque.redis.exists("delayed:#{timestamp.to_i}")
+      assert !Resque.redis.exists?("delayed:#{timestamp.to_i}")
     ensure
       Resque.inline = false
     end
