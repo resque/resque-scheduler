@@ -3,7 +3,7 @@ require 'simplecov'
 
 require 'test/unit'
 require 'minitest'
-require 'mocha/setup'
+require 'mocha/test_unit'
 require 'rack/test'
 require 'resque'
 require 'timecop'
