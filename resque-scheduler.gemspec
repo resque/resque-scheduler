@@ -29,6 +29,8 @@ Gem::Specification.new do |spec|
   spec.homepage = 'http://github.com/resque/resque-scheduler'
   spec.license = 'MIT'
 
+  spec.required_ruby_version = '>= 2.3.0'
+
   spec.files = `git ls-files -z`.split("\0").reject do |f|
     f.match(%r{^(test|spec|features|examples|bin|tasks)/}) ||
       f.match(/^(Vagrantfile|Gemfile\.lock)/) ||

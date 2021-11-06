@@ -38,10 +38,6 @@ module Resque
                                     true
                                   end
 
-        unless Process.respond_to?('daemon')
-          abort 'background option is set, which requires ruby >= 1.9'
-        end
-
         Process.daemon(true, !Resque::Scheduler.quiet)
         Resque.redis._client.reconnect
       end
