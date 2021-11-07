@@ -33,7 +33,6 @@
       </tr>
   <% end %>
 </table>
-</h1>
 
 <% queued = @jobs.select { |j| j['where_at'] == 'queued' } %>
 <h1>Queued jobs</h1>
@@ -68,5 +67,3 @@
   </tr>
   <% end %>
 </table>
-
-

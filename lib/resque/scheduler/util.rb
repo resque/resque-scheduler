@@ -4,7 +4,7 @@ module Resque
   module Scheduler
     class Util
       # In order to upgrade to resque(1.25) which has deprecated following
-      # methods, we just added these usefull helpers back to use in Resque
+      # methods, we just added these useful helpers back to use in Resque
       # Scheduler.  refer to:
       # https://github.com/resque/resque-scheduler/pull/273
 

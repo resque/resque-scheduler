@@ -2,7 +2,7 @@
 
 # ### Locking the scheduler process
 #
-# There are two places in resque-scheduler that need to be synchonized in order
+# There are two places in resque-scheduler that need to be synchronized in order
 # to be able to run redundant scheduler processes while ensuring jobs don't get
 # queued multiple times when the master process changes.
 #

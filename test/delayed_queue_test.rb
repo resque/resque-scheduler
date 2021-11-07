@@ -131,7 +131,7 @@ context 'DelayedQueue' do
                  'one we put in')
   end
 
-  test 'enqueue_at and enqueue_in are equivelent' do
+  test 'enqueue_at and enqueue_in are equivalent' do
     timestamp = Time.now + 60
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
