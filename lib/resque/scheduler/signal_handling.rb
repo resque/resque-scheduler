@@ -10,13 +10,13 @@ module Resque
       end
 
       # For all signals, set the shutdown flag and wait for current
-      # poll/enqueing to finish (should be almost instant).  In the
+      # poll/enqueuing to finish (should be almost instant).  In the
       # case of sleeping, exit immediately.
       def register_signal_handlers
         (Signal.list.keys & %w(INT TERM USR1 USR2 QUIT)).each do |sig|
           trap(sig) do
             signal_queue << sig
-            # break sleep in the primary scheduler thread, alowing
+            # break sleep in the primary scheduler thread, allowing
             # the signal queue to get processed as soon as possible.
             @th.wakeup if @th && @th.alive?
           end

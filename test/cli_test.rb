@@ -124,13 +124,13 @@ context 'Cli' do
     assert_equal('hambone.rb', cli.send(:options)[:initializer_path])
   end
 
-  test 'accepts initializer_path via --initalizer-path' do
+  test 'accepts initializer_path via --initializer-path' do
     cli = new_cli(%w(--initializer-path cookies.rb))
     cli.parse_options
     assert_equal('cookies.rb', cli.send(:options)[:initializer_path])
   end
 
-  test 'loads given initilalizer_path' do
+  test 'loads given initializer_path' do
     cli = new_cli(%w(--initializer-path fuzzbert.rb))
     cli.expects(:load).with('fuzzbert.rb')
     cli.pre_run

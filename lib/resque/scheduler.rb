@@ -251,7 +251,7 @@ module Resque
         if job_klass && job_klass != 'Resque::Job'
           # The custom job class API must offer a static "scheduled" method. If
           # the custom job class can not be constantized (via a requeue call
-          # from the web perhaps), fall back to enqueing normally via
+          # from the web perhaps), fall back to enqueuing normally via
           # Resque::Job.create.
           begin
             Resque::Scheduler::Util.constantize(job_klass).scheduled(
