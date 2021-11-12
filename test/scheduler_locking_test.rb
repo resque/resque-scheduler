@@ -7,6 +7,77 @@ module LockTestHelper
   end
 end
 
+module LockSharedTests
+  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable Metrics/AbcSize
+  def self.included(mod)
+    mod.class_eval do
+      test 'you should not have the lock if someone else holds it' do
+        lock_is_not_held(@lock)
+
+        assert !@lock.locked?
+      end
+
+      test 'you should not be able to acquire the lock if someone ' \
+          'else holds it' do
+        lock_is_not_held(@lock)
+
+        assert !@lock.acquire!
+      end
+
+      test 'the lock should receive a TTL on acquiring' do
+        @lock.acquire!
+
+        assert Resque.redis.ttl(@lock.key) > 0, 'lock should expire'
+      end
+
+      test 'releasing should release the master lock' do
+        assert @lock.acquire!, 'should have acquired the master lock'
+        assert @lock.locked?, 'should be locked'
+
+        @lock.release!
+
+        assert !@lock.locked?, 'should not be locked'
+      end
+
+      test 'checking the lock should increase the TTL if we hold it' do
+        @lock.acquire!
+        Resque.redis.setex(@lock.key, 10, @lock.value)
+
+        @lock.locked?
+
+        assert Resque.redis.ttl(@lock.key) > 10, 'TTL should have been updated'
+      end
+
+      test 'checking the lock should not increase the TTL if we do not hold it' do
+        Resque.redis.setex(@lock.key, 10, @lock.value)
+        lock_is_not_held(@lock)
+
+        @lock.locked?
+
+        assert Resque.redis.ttl(@lock.key) <= 10,
+               'TTL should not have been updated'
+      end
+
+      test 'setting the lock timeout changes the key TTL if we hold it' do
+        @lock.acquire!
+
+        @lock.stubs(:locked?).returns(true)
+        @lock.timeout = 120
+        ttl = Resque.redis.ttl(@lock.key)
+        assert_send [ttl, :>, 100]
+
+        @lock.stubs(:locked?).returns(true)
+        @lock.timeout = 180
+        ttl = Resque.redis.ttl(@lock.key)
+        assert_send [ttl, :>, 120]
+      end
+    end
+  end
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength
+end
+
 context '#master_lock_key' do
   setup do
     @subject = Class.new { extend Resque::Scheduler::Locking }
@@ -94,11 +165,19 @@ context 'Resque::Scheduler::Locking' do
     assert_equal @subject.master_lock.class, Resque::Scheduler::Lock::Basic
   end
 
-  test 'should use the resilient lock mechanism for > Redis 2.4' do
-    Resque.redis.stubs(:info).returns('redis_version' => '2.5.12')
+  test 'should use the resilient lock mechanism for > Redis 2.4 and < 2.6.12' do
+    Resque.data_store.redis.stubs(:info).returns('redis_version' => '2.5.12')
 
     assert_equal(
       @subject.master_lock.class, Resque::Scheduler::Lock::Resilient
+    )
+  end
+
+  test 'should use the resilient lock mechanism for >= Redis 2.6.12' do
+    Resque.data_store.redis.stubs(:info).returns('redis_version' => '2.8.0')
+
+    assert_equal(
+      @subject.master_lock.class, Resque::Scheduler::Lock::ResilientModern
     )
   end
 
@@ -153,52 +232,7 @@ context 'Resque::Scheduler::Lock::Basic' do
     @lock.release!
   end
 
-  test 'you should not have the lock if someone else holds it' do
-    lock_is_not_held(@lock)
-
-    assert !@lock.locked?
-  end
-
-  test 'you should not be able to acquire the lock if someone ' \
-       'else holds it' do
-    lock_is_not_held(@lock)
-
-    assert !@lock.acquire!
-  end
-
-  test 'the lock should receive a TTL on acquiring' do
-    @lock.acquire!
-
-    assert Resque.redis.ttl(@lock.key) > 0, 'lock should expire'
-  end
-
-  test 'releasing should release the master lock' do
-    assert @lock.acquire!, 'should have acquired the master lock'
-    assert @lock.locked?, 'should be locked'
-
-    @lock.release!
-
-    assert !@lock.locked?, 'should not be locked'
-  end
-
-  test 'checking the lock should increase the TTL if we hold it' do
-    @lock.acquire!
-    Resque.redis.setex(@lock.key, 10, @lock.value)
-
-    @lock.locked?
-
-    assert Resque.redis.ttl(@lock.key) > 10, 'TTL should have been updated'
-  end
-
-  test 'checking the lock should not increase the TTL if we do not hold it' do
-    Resque.redis.setex(@lock.key, 10, @lock.value)
-    lock_is_not_held(@lock)
-
-    @lock.locked?
-
-    assert Resque.redis.ttl(@lock.key) <= 10,
-           'TTL should not have been updated'
-  end
+  include LockSharedTests
 end
 
 context 'Resque::Scheduler::Lock::Resilient' do
@@ -216,11 +250,7 @@ context 'Resque::Scheduler::Lock::Resilient' do
       @lock.release!
     end
 
-    test 'you should not have the lock if someone else holds it' do
-      lock_is_not_held(@lock)
-
-      assert !@lock.locked?, 'you should not have the lock'
-    end
+    include LockSharedTests
 
     test 'refreshes sha cache when the sha cannot be found on ' \
          'the redis server' do
@@ -231,62 +261,6 @@ context 'Resque::Scheduler::Lock::Resilient' do
 
       assert @lock.locked?
       assert_false @lock.acquire!
-    end
-
-    test 'you should not be able to acquire the lock if someone ' \
-         'else holds it' do
-      lock_is_not_held(@lock)
-
-      assert !@lock.acquire!
-    end
-
-    test 'the lock should receive a TTL on acquiring' do
-      @lock.acquire!
-
-      assert Resque.redis.ttl(@lock.key) > 0, 'lock should expire'
-    end
-
-    test 'releasing should release the master lock' do
-      assert @lock.acquire!, 'should have acquired the master lock'
-      assert @lock.locked?, 'should be locked'
-
-      @lock.release!
-
-      assert !@lock.locked?, 'should not be locked'
-    end
-
-    test 'checking the lock should increase the TTL if we hold it' do
-      @lock.acquire!
-      Resque.redis.setex(@lock.key, 10, @lock.value)
-
-      @lock.locked?
-
-      assert Resque.redis.ttl(@lock.key) > 10, 'TTL should have been updated'
-    end
-
-    test 'checking the lock should not increase the TTL if we do ' \
-         'not hold it' do
-      Resque.redis.setex(@lock.key, 10, @lock.value)
-      lock_is_not_held(@lock)
-
-      @lock.locked?
-
-      assert Resque.redis.ttl(@lock.key) <= 10,
-             'TTL should not have been updated'
-    end
-
-    test 'setting the lock timeout changes the key TTL if we hold it' do
-      @lock.acquire!
-
-      @lock.stubs(:locked?).returns(true)
-      @lock.timeout = 120
-      ttl = Resque.redis.ttl(@lock.key)
-      assert_send [ttl, :>, 100]
-
-      @lock.stubs(:locked?).returns(true)
-      @lock.timeout = 180
-      ttl = Resque.redis.ttl(@lock.key)
-      assert_send [ttl, :>, 120]
     end
 
     test 'setting lock timeout is a noop if not held' do
@@ -323,5 +297,24 @@ context 'Resque::Scheduler::Lock::Resilient' do
       @lock.timeout = 100
       assert_not_nil @lock.instance_variable_get(:@acquire_sha)
     end
+  end
+end
+
+context 'Resque::Scheduler::Lock::ResilientModern' do
+  include LockTestHelper
+
+  if !Resque::Scheduler.supports_get_x_options?
+    puts '*** Skipping Resque::Scheduler::Lock::ResilientModern ' \
+         'tests, as they require Redis >= 2.6.2.'
+  else
+    setup do
+      @lock = Resque::Scheduler::Lock::ResilientModern.new('test_resilient_modern_lock')
+    end
+
+    teardown do
+      @lock.release!
+    end
+
+    include LockSharedTests
   end
 end
