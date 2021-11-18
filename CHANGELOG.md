@@ -5,6 +5,7 @@
 ## [Unreleased]
 ### Changed
 - Remove support for Ruby < 2.3
+- Allow use of duration (e.g. `30.minutes`) for interval type scheduling
 
 ## [4.5.0] - 2021-09-25
 ### Added
