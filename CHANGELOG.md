@@ -6,6 +6,9 @@
 ### Changed
 - Remove support for Ruby < 2.3
 
+### Fixed
+- Reading configuration from environment for boolean values
+
 ## [4.5.0] - 2021-09-25
 ### Added
 - Support Ruby 3
