@@ -7,6 +7,7 @@
 - Remove support for Ruby < 2.3
 - Configuration to use a set of truthy values to enable boolean settings instead of simply existence
 - Add `delay_or_enqueue_at` for delaying existing jobs or creating a new job
+- Unblock rufus-scheduler lock on lower than 3.7 by fixing scheduler shutdown
 
 ## [4.5.0] - 2021-09-25
 ### Added

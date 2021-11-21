@@ -377,7 +377,6 @@ module Resque
 
       def stop_rufus_scheduler
         rufus_scheduler.shutdown(:wait)
-        rufus_scheduler.join
       end
 
       def before_shutdown
