@@ -85,13 +85,17 @@ module Resque
       def set_schedule(name, config, reload = true)
         persist = config.delete(:persist) || config.delete('persist')
 
-        if persist
-          redis.hset(:persistent_schedules, name, encode(config))
-        else
-          non_persistent_schedules[name] = decode(encode(config))
-        end
+        redis.pipelined do
+          redis.multi do
+            if persist
+              redis.hset(:persistent_schedules, name, encode(config))
+            else
+              non_persistent_schedules[name] = decode(encode(config))
+            end
 
-        redis.sadd(:schedules_changed, name)
+            redis.sadd(:schedules_changed, name)
+          end
+        end
         reload_schedule! if reload
       end
 
@@ -104,8 +108,12 @@ module Resque
       # Preventing a reload is optional and available to batch operations
       def remove_schedule(name, reload = true)
         non_persistent_schedules.delete(name)
-        redis.hdel(:persistent_schedules, name)
-        redis.sadd(:schedules_changed, name)
+        redis.pipelined do
+          redis.multi do
+            redis.hdel(:persistent_schedules, name)
+            redis.sadd(:schedules_changed, name)
+          end
+        end
 
         reload_schedule! if reload
       end

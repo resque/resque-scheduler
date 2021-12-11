@@ -68,16 +68,20 @@ module Resque
       # insertion time complexity is O(log(n)). Returns true if it's
       # the first job to be scheduled at that time, else false.
       def delayed_push(timestamp, item)
-        # First add this item to the list for this timestamp
-        redis.rpush("delayed:#{timestamp.to_i}", encode(item))
+        redis.pipelined do
+          redis.multi do
+            # First add this item to the list for this timestamp
+            redis.rpush("delayed:#{timestamp.to_i}", encode(item))
 
-        # Store the timestamps at with this item occurs
-        redis.sadd("timestamps:#{encode(item)}", "delayed:#{timestamp.to_i}")
+            # Store the timestamps at with this item occurs
+            redis.sadd("timestamps:#{encode(item)}", "delayed:#{timestamp.to_i}")
 
-        # Now, add this timestamp to the zsets.  The score and the value are
-        # the same since we'll be querying by timestamp, and we don't have
-        # anything else to store.
-        redis.zadd :delayed_queue_schedule, timestamp.to_i, timestamp.to_i
+            # Now, add this timestamp to the zsets.  The score and the value are
+            # the same since we'll be querying by timestamp, and we don't have
+            # anything else to store.
+            redis.zadd :delayed_queue_schedule, timestamp.to_i, timestamp.to_i
+          end
+        end
       end
 
       # Returns an array of timestamps based on start and count
@@ -318,10 +322,10 @@ module Resque
         # queue while we're removing it.
         redis.watch(key) do
           if redis.llen(key).to_i == 0
-            # If the list is empty, remove it.
-            redis.multi do
-              redis.del(key)
-              redis.zrem(:delayed_queue_schedule, timestamp.to_i)
+            redis.pipelined do
+              redis.multi do
+                redis.zrem(:delayed_queue_schedule, timestamp.to_i)
+              end
             end
           else
             redis.redis.unwatch
