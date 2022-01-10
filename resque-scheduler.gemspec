@@ -62,5 +62,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'redis', '>= 3.3'
   spec.add_runtime_dependency 'resque', '>= 1.27'
   # rufus-scheduler v3.7 causes a failure in test/multi_process_test.rb
-  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2', '< 3.7'
+  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2', '< 3.9'
 end
