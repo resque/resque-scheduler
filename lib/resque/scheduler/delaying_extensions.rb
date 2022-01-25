@@ -135,10 +135,7 @@ module Resque
         Array(redis.zrange(:delayed_queue_schedule, 0, -1)).each do |item|
           key = "delayed:#{item}"
           items = redis.lrange(key, 0, -1)
-          redis.pipelined do
-            items.each { |ts_item| redis.del("timestamps:#{ts_item}") }
-          end
-          redis.del key
+          redis.del(key, items.map { |ts_item| "timestamps:#{ts_item}" })
         end
 
         redis.del :delayed_queue_schedule
@@ -217,9 +214,9 @@ module Resque
 
         # Beyond 100 there's almost no improvement in speed
         found = timestamps.each_slice(100).map do |ts_group|
-          jobs = redis.pipelined do |r|
+          jobs = redis.pipelined do |pipeline|
             ts_group.each do |ts|
-              r.lrange("delayed:#{ts}", 0, -1)
+              pipeline.lrange("delayed:#{ts}", 0, -1)
             end
           end
 
@@ -299,10 +296,10 @@ module Resque
 
         timestamps = redis.smembers("timestamps:#{encoded_job}")
 
-        replies = redis.pipelined do
+        replies = redis.pipelined do |pipeline|
           timestamps.each do |key|
-            redis.lrem(key, 0, encoded_job)
-            redis.srem("timestamps:#{encoded_job}", key)
+            pipeline.lrem(key, 0, encoded_job)
+            pipeline.srem("timestamps:#{encoded_job}", key)
           end
         end
 
@@ -319,9 +316,9 @@ module Resque
         redis.watch(key) do
           if redis.llen(key).to_i == 0
             # If the list is empty, remove it.
-            redis.multi do
-              redis.del(key)
-              redis.zrem(:delayed_queue_schedule, timestamp.to_i)
+            redis.multi do |transaction|
+              transaction.del(key)
+              transaction.zrem(:delayed_queue_schedule, timestamp.to_i)
             end
           else
             redis.redis.unwatch
