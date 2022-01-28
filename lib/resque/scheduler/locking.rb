@@ -50,6 +50,7 @@
 # were missed when it starts up again.
 
 require_relative 'lock'
+require 'rubygems/version'
 
 module Resque
   module Scheduler
@@ -59,7 +60,11 @@ module Resque
       end
 
       def supports_lua?
-        redis_master_version >= 2.5
+        redis_master_version >= Gem::Version.new('2.5')
+      end
+
+      def supports_get_x_options?
+        redis_master_version >= Gem::Version.new('2.6.12')
       end
 
       def master?
@@ -83,7 +88,9 @@ module Resque
       private
 
       def build_master_lock
-        if supports_lua?
+        if supports_get_x_options?
+          Resque::Scheduler::Lock::ResilientModern.new(master_lock_key)
+        elsif supports_lua?
           Resque::Scheduler::Lock::Resilient.new(master_lock_key)
         else
           Resque::Scheduler::Lock::Basic.new(master_lock_key)
@@ -97,7 +104,7 @@ module Resque
       end
 
       def redis_master_version
-        Resque.data_store.redis.info['redis_version'].to_f
+        Gem::Version.new(Resque.data_store.redis.info['redis_version'])
       end
     end
   end
