@@ -211,7 +211,7 @@ since the jobs are stored in a redis sorted set (zset).  I can't imagine this
 being an issue for someone since redis is stupidly fast even at log(n), but full
 disclosure is always best.
 
-#### Removing Delayed jobs
+#### Removing Delayed Jobs
 
 If you have the need to cancel a delayed job, you can do like so:
 
@@ -254,6 +254,49 @@ Resque.enqueue_delayed_selection { |args| args[0]['account_id'] == current_accou
 # or enqueue immediately jobs matching just the user:
 Resque.enqueue_delayed_selection { |args| args[0]['user_id'] == current_user.id }
 ```
+
+#### Updating Delayed Jobs
+
+Previously delayed jobs may be delayed even further into the future like so:
+
+```ruby
+# after you've enqueued a job like:
+Resque.enqueue_at(1.minute.from_now, SendNotifications, :user_id => current_user.id)
+# delay running the job until two minutes from now
+Resque.delay_or_enqueue_at(2.minutes.from_now, SendNotifications, :user_id => current_user.id)
+```
+
+You don't need to worry if a matching job has already been queued, because if no matching jobs are found a new job is created and enqueued as if you had called `enqueue_at`. This means you don't need any special conditionals to know if a job has already been queued. You simply create the job like so:
+
+```ruby
+Resque.delay_or_enqueue_at(1.minute.from_now, SendNotifications, :user_id => current_user.id)
+```
+
+If multiple matching jobs are found, all of the matching jobs will be updated to have the same timestamp even if their original timestamps were not the same.
+
+```ruby
+# enqueue multiple jobs with different delay timestamps
+Resque.enqueue_at(1.minute.from_now, SendNotifications, :user_id => current_user.id)
+Resque.enqueue_at(2.minutes.from_now, SendNotifications, :user_id => current_user.id)
+
+# delay running the two jobs until 5 minutes from now
+Resque.delay_or_enqueue_at(5.minutes.from_now, SendNotifications, :user_id => current_user.id)
+```
+
+The most useful case for increasing the delay of an already delayed job is to batch together work based on multiple events. For example, if you wanted to send a notification email to a user when an event triggers but didn't want to send 10 emails if many events happened within a short period, you could use this technique to delay the noficication email until no events have triggered for a period of time. This way you could send 1 email containing the 10 notifications once no events have triggered for 2 minutes. You could implement this like so:
+
+```ruby
+# Send a notification when an event is created.
+# app/models/event.rb
+after_commit on: :create do
+  Resque.delay_or_enqueue_in(2.minutes, SendNotifications, :user_id => user.id)
+end
+```
+
+When the first event is created a job will be scheduled to send unsent notifications to the associated user. If another event is created within the 2 minute window, the timer will be reset to 2 minutes. This will continue as long as new events are created for the specific user before the 2 minute timer expires. Once the timer expires and the job is scheduled any new events that are created will schedule a new job and start the process over. By adjusting the window you can tweak the trade-off between sending notification emails quickly after an event happens and sending fewer emails.
+
+Read more in the [original PR](https://github.com/resque/resque-scheduler/pull/645)
+
 
 ### Scheduled Jobs (Recurring Jobs)
 

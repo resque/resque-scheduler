@@ -10,6 +10,7 @@ Resque Scheduler authors
 - Brian Landau
 - Brian P O'Rourke
 - Carlos Antonio da Silva
+- Chris Bisnett
 - Chris Kampmeier
 - DJ Hartman
 - Damon P. Cortesi

@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
     Adds methods enqueue_at/enqueue_in to schedule jobs in the future.
     Also supports queueing jobs on a fixed, cron-like schedule.
   DESCRIPTION
-  spec.homepage = 'http://github.com/resque/resque-scheduler'
+  spec.homepage = 'https://github.com/resque/resque-scheduler'
   spec.license = 'MIT'
 
   spec.required_ruby_version = '>= 2.3.0'

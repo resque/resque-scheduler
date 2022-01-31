@@ -150,6 +150,80 @@ context 'DelayedQueue' do
                  'job timestamps should have one entry now')
   end
 
+  test 'delay_or_enqueue_at enqueues a job when none match' do
+    timestamp = Time.now + 600 # 10 minutes from now
+    encoded_job = Resque.encode(
+      class: SomeIvarJob.to_s,
+      args: ['path'],
+      queue: Resque.queue_from_class(SomeIvarJob)
+    )
+
+    assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i,
+                 'delayed queue should be empty to start')
+    assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
+                 'job timestamps set should be empty to start')
+
+    Resque.delay_or_enqueue_at(timestamp, SomeIvarJob, 'path')
+
+    # Confirm the correct keys were added
+    assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i,
+                 'delayed queue should have one entry now')
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"),
+                 'job timestamps should have one entry now')
+    assert_equal(1, Resque.redis.zcard(:delayed_queue_schedule),
+                 'The delayed_queue_schedule should have 1 entry now')
+  end
+
+  test 'delay_or_enqueue_at updates the timestamp for a matching job' do
+    timestamp = Time.now + 600 # 10 minutes from now
+    encoded_job = Resque.encode(
+      class: SomeIvarJob.to_s,
+      args: ['path'],
+      queue: Resque.queue_from_class(SomeIvarJob)
+    )
+
+    Resque.enqueue_at(timestamp, SomeIvarJob, 'path')
+
+    assert_equal(1, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i,
+                 'delayed queue should have one entry now')
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"),
+                 'job timestamps should have one entry now')
+
+    new_timestamp = Time.now + 700
+    assert_equal(1,
+                 Resque.delay_or_enqueue_at(new_timestamp, SomeIvarJob, 'path'))
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"),
+                 'job timestamps should still have only 1 entry')
+
+    assert_equal(0, Resque.redis.llen("delayed:#{timestamp.to_i}").to_i,
+                 'delayed queue no longer has old entry')
+    assert_equal(1, Resque.redis.llen("delayed:#{new_timestamp.to_i}").to_i,
+                 'delayed queue should have new entry')
+  end
+
+  test 'delay_or_enqueue_at updates multiple matching jobs' do
+    encoded_job = Resque.encode(
+      class: SomeIvarJob.to_s,
+      args: ['path'],
+      queue: Resque.queue_from_class(SomeIvarJob)
+    )
+
+    Resque.enqueue_at(Time.now + 600, SomeIvarJob, 'path')
+    Resque.enqueue_at(Time.now + 660, SomeIvarJob, 'path')
+
+    assert_equal(2, Resque.redis.scard("timestamps:#{encoded_job}"),
+                 'job timestamps should have two entries now')
+
+    new_timestamp = Time.now + 1200
+    assert_equal(2,
+                 Resque.delay_or_enqueue_at(new_timestamp, SomeIvarJob, 'path'),
+                 'should have updated two jobs')
+    assert_equal(1, Resque.redis.scard("timestamps:#{encoded_job}"),
+                 'job timestamps should have one entry now')
+    assert_equal(2, Resque.redis.llen("delayed:#{new_timestamp.to_i}").to_i,
+                 'delayed queue should have two entries')
+  end
+
   test 'empty delayed_queue_peek returns empty array' do
     assert_equal([], Resque.delayed_queue_peek(0, 20))
   end

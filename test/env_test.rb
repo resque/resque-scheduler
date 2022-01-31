@@ -1,5 +1,6 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
+require_relative '../lib/resque/scheduler/env'
 
 context 'Env' do
   def new_env(options = {})
