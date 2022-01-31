@@ -63,6 +63,24 @@ module Resque
                               klass, *args)
       end
 
+      # Update the delayed timestamp of any matching delayed jobs or enqueue a
+      # new job if no matching jobs are found. Returns the number of delayed or
+      # enqueued jobs.
+      def delay_or_enqueue_at(timestamp, klass, *args)
+        count = remove_delayed(klass, *args)
+        count = 1 if count == 0
+
+        count.times do
+          enqueue_at(timestamp, klass, *args)
+        end
+      end
+
+      # Identical to +delay_or_enqueue_at+, except it takes
+      # number_of_seconds_from_now instead of a timestamp
+      def delay_or_enqueue_in(number_of_seconds_from_now, klass, *args)
+        delay_or_enqueue_at(Time.now + number_of_seconds_from_now, klass, *args)
+      end
+
       # Used internally to stuff the item into the schedule sorted list.
       # +timestamp+ can be either in seconds or a datetime object. The
       # insertion time complexity is O(log(n)). Returns true if it's
