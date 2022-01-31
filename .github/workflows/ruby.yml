@@ -33,8 +33,15 @@ jobs:
           - "master"
           - "~> 2.0.0"
           - "~> 1.27"
+        rufus-scheduler:
+          - "3.2"
+          - "3.3"
+          - "3.4"
+          - "3.5"
+          - "3.6"
     env:
       RESQUE: "${{ matrix.resque-version }}"
+      RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
       COVERAGE: 1
       JRUBY_OPTS: ""
       RUBYOPT: "-W0"
