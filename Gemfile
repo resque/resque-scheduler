@@ -8,7 +8,7 @@ else
   gem 'resque', resque_version
 end
 
-case rufus_scheduler_version = ENV.fetch('RUFUS_SCHEDULER', 'master')
+case rufus_scheduler_version = ENV.fetch('RUFUS_SCHEDULER', '3.6')
 when 'master'
   gem 'rufus-scheduler', git: 'https://github.com/jmettraux/rufus-scheduler'
 else
