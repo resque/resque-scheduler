@@ -295,6 +295,8 @@ end
 
 When the first event is created a job will be scheduled to send unsent notifications to the associated user. If another event is created within the 2 minute window, the timer will be reset to 2 minutes. This will continue as long as new events are created for the specific user before the 2 minute timer expires. Once the timer expires and the job is scheduled any new events that are created will schedule a new job and start the process over. By adjusting the window you can tweak the trade-off between sending notification emails quickly after an event happens and sending fewer emails.
 
+Read more in the [original PR](https://github.com/resque/resque-scheduler/pull/645)
+
 
 ### Scheduled Jobs (Recurring Jobs)
 
