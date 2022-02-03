@@ -45,8 +45,6 @@ jobs:
       RESQUE: "${{ matrix.resque-version }}"
       RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
       COVERAGE: 1
-      JRUBY_OPTS: ""
-      RUBYOPT: "-W0"
 
     steps:
       - uses: actions/checkout@v2
