@@ -41,6 +41,17 @@ jobs:
         exclude:
           - ruby-version: head
             rufus-scheduler: 3.2
+
+          - ruby-version: 2.3
+            resque-version: 1.27
+            rufus-scheduler: 3.4
+          - ruby-version: 2.3
+            resque-version: 1.27
+            rufus-scheduler: 3.5
+
+          - ruby-version: jruby-9.3.3.0
+            resque-version: master
+            rufus-scheduler: 3.6
     env:
       RESQUE: "${{ matrix.resque-version }}"
       RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
