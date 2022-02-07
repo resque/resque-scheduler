@@ -52,12 +52,24 @@ jobs:
             resque-version: 2.0.0
             rufus-scheduler: 3.5
 
+          - ruby-version: jruby-9.2.20.0
+            resque-version: 2.0.0
+            rufus-scheduler: 3.5
           - ruby-version: jruby-9.3.3.0
             resque-version: master
             rufus-scheduler: 3.5
           - ruby-version: jruby-9.3.3.0
+            resque-version: 2.0.0
+            rufus-scheduler: 3.5
+          - ruby-version: jruby-9.3.3.0
+            resque-version: 2.0.0
+            rufus-scheduler: 3.2
+          - ruby-version: jruby-9.3.3.0
             resque-version: master
             rufus-scheduler: 3.6
+          - ruby-version: jruby-9.3.3.0
+            resque-version: 1.27
+            rufus-scheduler: 3.2
     env:
       RESQUE: "${{ matrix.resque-version }}"
       RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
