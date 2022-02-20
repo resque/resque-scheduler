@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    continue-on-error: true
     runs-on: ubuntu-latest
     services:
       redis:
