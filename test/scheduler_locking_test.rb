@@ -30,6 +30,7 @@ context '#master_lock_key' do
 
     teardown do
       Resque.redis.del(@subject.master_lock.key)
+      ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = nil
     end
 
     test 'should have ENV prefix' do
@@ -67,6 +68,7 @@ context '#master_lock_key' do
       teardown do
         Resque.redis.namespace = 'resque'
         Resque.redis.del(@subject.master_lock.key)
+        ENV['RESQUE_SCHEDULER_MASTER_LOCK_PREFIX'] = nil
       end
 
       test 'should have ENV prefix' do

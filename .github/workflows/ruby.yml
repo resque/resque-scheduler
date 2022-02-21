@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    continue-on-error: true
     runs-on: ubuntu-latest
     services:
       redis:
@@ -27,17 +28,72 @@ jobs:
           - 3.1
           - head
           - jruby-9.1.17.0
-          - jruby-9.2.9.0
-          - jruby-9.2.19.0
+          - "jruby-9.2.20.0"
+          - jruby-9.3.3.0
         resque-version:
           - "master"
-          - "~> 2.0.0"
+          - "~> 2.2.0"
           - "~> 1.27"
+        rufus-scheduler:
+          - "3.2"
+          - "3.4"
+          - "3.5"
+          - "3.6"
+        exclude:
+          - ruby-version: head
+            rufus-scheduler: 3.2
+
+          - ruby-version: 2.3
+            resque-version: 1.27
+            rufus-scheduler: 3.4
+          - ruby-version: 2.3
+            resque-version: 1.27
+            rufus-scheduler: 3.5
+          - ruby-version: 2.5
+            resque-version: 2.2.0
+            rufus-scheduler: 3.5
+          - ruby-version: 2.5
+            resque-version: master
+            rufus-scheduler: 3.2
+
+          - ruby-version: jruby-9.1.17.0
+            resque-version: master
+            rufus-scheduler: 3.5
+          - ruby-version: jruby-9.1.17.0
+            resque-version: 2.2.0
+            rufus-scheduler: 3.2
+
+          - ruby-version: jruby-9.2.20.0
+            resque-version: 2.0.0
+            rufus-scheduler: 3.4
+          - ruby-version: jruby-9.2.20.0
+            resque-version: 2.0.0
+            rufus-scheduler: 3.5
+
+          - ruby-version: jruby-9.3.3.0
+            resque-version: 2.2.0
+            rufus-scheduler: 3.5
+
+          - ruby-version: jruby-9.3.3.0
+            resque-version: master
+            rufus-scheduler: 3.2
+          - ruby-version: jruby-9.3.3.0
+            resque-version: master
+            rufus-scheduler: 3.4
+          - ruby-version: jruby-9.3.3.0
+            resque-version: master
+            rufus-scheduler: 3.5
+          - ruby-version: jruby-9.3.3.0
+            resque-version: master
+            rufus-scheduler: 3.6
+
+          - ruby-version: jruby-9.3.3.0
+            resque-version: 1.27
+            rufus-scheduler: 3.2
     env:
       RESQUE: "${{ matrix.resque-version }}"
+      RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
       COVERAGE: 1
-      JRUBY_OPTS: ""
-      RUBYOPT: "-W0"
 
     steps:
       - uses: actions/checkout@v2

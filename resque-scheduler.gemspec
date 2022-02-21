@@ -34,7 +34,7 @@ Gem::Specification.new do |spec|
   spec.files = `git ls-files -z`.split("\0").reject do |f|
     f.match(%r{^(test|spec|features|examples|bin|tasks)/}) ||
       f.match(/^(Vagrantfile|Gemfile\.lock)/) ||
-      f.match(/^\.(rubocop|simplecov|travis|vagrant|gitignore)/)
+      f.match(/^\.(rubocop|simplecov|vagrant|gitignore)/)
   end
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
@@ -42,7 +42,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'json'
-  spec.add_development_dependency 'kramdown'
   spec.add_development_dependency 'minitest'
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'pry'
@@ -51,7 +50,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'test-unit'
   spec.add_development_dependency 'yard'
-  spec.add_development_dependency 'tzinfo-data'
   spec.add_development_dependency 'timecop'
 
   # We pin rubocop because new cops have a tendency to result in false-y
@@ -62,5 +60,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'redis', '>= 3.3'
   spec.add_runtime_dependency 'resque', '>= 1.27'
   # rufus-scheduler v3.7 causes a failure in test/multi_process_test.rb
-  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2', '< 3.7'
+  # rufus-scheduler v3.3 is missing a to_local method which fails tests
+  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2', '< 3.7', '!= 3.3'
 end

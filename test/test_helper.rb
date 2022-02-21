@@ -1,4 +1,3 @@
-# vim:fileencoding=utf-8
 require 'simplecov'
 
 require 'test/unit'
@@ -114,19 +113,6 @@ class FakePHPClass < SomeJob
   def self.to_s
     'Namespace\\For\\Job\\Class'
   end
-end
-
-%w(
-  APP_NAME
-  DYNAMIC_SCHEDULE
-  LOGFILE
-  LOGFORMAT
-  QUIET
-  RAILS_ENV
-  RESQUE_SCHEDULER_INTERVAL
-  VERBOSE
-).each do |envvar|
-  ENV[envvar] = nil
 end
 
 def nullify_logger

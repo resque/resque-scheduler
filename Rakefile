@@ -12,6 +12,7 @@ Rake::TestTask.new do |t|
     o << "--seed #{ENV['SEED']} " if ENV['SEED']
     o << '--verbose ' if ENV['VERBOSE']
   end
+  t.warning = false
 end
 
 YARD::Rake::YardocTask.new

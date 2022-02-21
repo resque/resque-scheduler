@@ -58,6 +58,7 @@ context 'Resque::Scheduler' do
     test 'uses $RAILS_ENV if present' do
       ENV['RAILS_ENV'] = 'baz'
       assert_equal('baz', Resque::Scheduler.env)
+      ENV['RAILS_ENV'] = nil
     end
   end
 
