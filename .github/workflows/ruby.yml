@@ -58,6 +58,9 @@ jobs:
 
           - ruby-version: jruby-9.1.17.0
             resque-version: master
+            rufus-scheduler: 3.4
+          - ruby-version: jruby-9.1.17.0
+            resque-version: master
             rufus-scheduler: 3.5
           - ruby-version: jruby-9.1.17.0
             resque-version: 2.2.0
