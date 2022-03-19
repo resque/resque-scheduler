@@ -93,6 +93,9 @@ jobs:
           - ruby-version: jruby-9.3.3.0
             resque-version: 1.27
             rufus-scheduler: 3.2
+          - ruby-version: jruby-9.3.3.0
+            resque-version: 1.27
+            rufus-scheduler: 3.5
     env:
       RESQUE: "${{ matrix.resque-version }}"
       RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
