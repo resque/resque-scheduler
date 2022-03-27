@@ -26,10 +26,6 @@ jobs:
           - 2.7
           - "3.0"
           - 3.1
-          - head
-          - jruby-9.1.17.0
-          - "jruby-9.2.20.0"
-          - jruby-9.3.3.0
         resque-version:
           - "master"
           - "~> 2.2.0"
@@ -55,47 +51,6 @@ jobs:
           - ruby-version: 2.5
             resque-version: master
             rufus-scheduler: 3.2
-
-          - ruby-version: jruby-9.1.17.0
-            resque-version: master
-            rufus-scheduler: 3.4
-          - ruby-version: jruby-9.1.17.0
-            resque-version: master
-            rufus-scheduler: 3.5
-          - ruby-version: jruby-9.1.17.0
-            resque-version: 2.2.0
-            rufus-scheduler: 3.2
-
-          - ruby-version: jruby-9.2.20.0
-            resque-version: 2.0.0
-            rufus-scheduler: 3.4
-          - ruby-version: jruby-9.2.20.0
-            resque-version: 2.0.0
-            rufus-scheduler: 3.5
-
-          - ruby-version: jruby-9.3.3.0
-            resque-version: 2.2.0
-            rufus-scheduler: 3.5
-
-          - ruby-version: jruby-9.3.3.0
-            resque-version: master
-            rufus-scheduler: 3.2
-          - ruby-version: jruby-9.3.3.0
-            resque-version: master
-            rufus-scheduler: 3.4
-          - ruby-version: jruby-9.3.3.0
-            resque-version: master
-            rufus-scheduler: 3.5
-          - ruby-version: jruby-9.3.3.0
-            resque-version: master
-            rufus-scheduler: 3.6
-
-          - ruby-version: jruby-9.3.3.0
-            resque-version: 1.27
-            rufus-scheduler: 3.2
-          - ruby-version: jruby-9.3.3.0
-            resque-version: 1.27
-            rufus-scheduler: 3.5
     env:
       RESQUE: "${{ matrix.resque-version }}"
       RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
