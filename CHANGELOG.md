@@ -2,7 +2,7 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
-## [Unreleased]
+## [4.6.0] - 2022-08-04
 ### Changed
 - Remove support for Ruby < 2.3
 - Configuration to use a set of truthy values to enable boolean settings instead of simply existence
