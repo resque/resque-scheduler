@@ -386,6 +386,38 @@ seconds past the minute).
 A big shout out to [rufus-scheduler](http://github.com/jmettraux/rufus-scheduler)
 for handling the heavy lifting of the actual scheduling engine.
 
+##### Queue with parameters
+
+It's possible to specify parameters, that must be given by the user when they manually queue the job. To enable this feature add `parameters` key to scheduled job definition.
+
+```yaml
+queue_documents_for_indexing:
+  cron: "0 0 * * *"
+  class: "QueueDocuments"
+  queue: high
+  args:
+    foo: "bar"
+    a: "b"
+  parameters:
+    foo:
+      description: "value of foo"
+      default: "baz"
+
+  description: "This job queues all content for indexing in solr"
+```
+
+One can use following options for each parameter:
+* description - tooltip to be shown next to the parameter input
+* default - prefilled value in the parameter input
+
+**NOTE**: When sheduling the job, parameters are merged into job args. Assuming the example above and default parametr value, the job will be run with the following args:
+
+```ruby
+{"foo"=>"baz", "a"=>"b"}
+```
+
+**NOTE**: If user leaves the parameter value empty, it'll be sent as empty string.
+
 #### Dynamic schedules
 
 Dynamic schedules are programmatically set on a running `resque-scheduler`.
