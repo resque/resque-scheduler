@@ -43,6 +43,7 @@ Resque Scheduler authors
 - Justin Weiss
 - Les Hill
 - Luke Rodgers
+- Maksymilian Chwałek
 - Manuel Meurer
 - Matt Aimonetti
 - Matt Simpson
