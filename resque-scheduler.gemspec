@@ -28,6 +28,7 @@ Gem::Specification.new do |spec|
   DESCRIPTION
   spec.homepage = 'https://github.com/resque/resque-scheduler'
   spec.license = 'MIT'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 
   spec.required_ruby_version = '>= 2.3.0'
 
