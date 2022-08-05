@@ -6,8 +6,11 @@
 ### Changed
 - Remove support for Ruby < 2.3
 - Configuration to use a set of truthy values to enable boolean settings instead of simply existence
-- Add `delay_or_enqueue_at` for delaying existing jobs or creating a new job
-- Unblock rufus-scheduler lock on lower than 3.7 by fixing scheduler shutdown
+- Add `delay_or_enqueue_at` for delaying existing jobs or creating a new job(#645)
+- Fix deprecated uses of Redis#pipelined
+- Fix reading configuration from environment for boolean values (#735)
+- Unblock rufus-scheduler lock on lower than 3.7 by fixing scheduler shutdown (#736)
+- Removed testing against jruby (resque doesn't test against jruby)
 
 ## [4.5.0] - 2021-09-25
 ### Added
