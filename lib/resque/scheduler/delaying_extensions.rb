@@ -90,7 +90,7 @@ module Resque
         redis.rpush("delayed:#{timestamp.to_i}", encode(item))
 
         # Store the timestamps at with this item occurs
-        redis.sadd("timestamps:#{encode(item)}", "delayed:#{timestamp.to_i}")
+        redis.sadd("timestamps:#{encode(item)}", ["delayed:#{timestamp.to_i}"])
 
         # Now, add this timestamp to the zsets.  The score and the value are
         # the same since we'll be querying by timestamp, and we don't have
@@ -140,7 +140,7 @@ module Resque
         key = "delayed:#{timestamp.to_i}"
 
         encoded_item = redis.lpop(key)
-        redis.srem("timestamps:#{encoded_item}", key)
+        redis.srem("timestamps:#{encoded_item}", [key])
         item = decode(encoded_item)
 
         # If the list is empty, remove it.
@@ -257,7 +257,7 @@ module Resque
         key = "delayed:#{timestamp.to_i}"
         encoded_job = encode(job_to_hash(klass, args))
 
-        redis.srem("timestamps:#{encoded_job}", key)
+        redis.srem("timestamps:#{encoded_job}", [key])
         count = redis.lrem(key, 0, encoded_job)
         clean_up_timestamp(key, timestamp)
 
@@ -333,7 +333,7 @@ module Resque
         replies = redis.pipelined do |pipeline|
           timestamps.each do |key|
             pipeline.lrem(key, 0, encoded_job)
-            pipeline.srem("timestamps:#{encoded_job}", key)
+            pipeline.srem("timestamps:#{encoded_job}", [key])
           end
         end
 

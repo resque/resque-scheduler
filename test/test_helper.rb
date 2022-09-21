@@ -11,6 +11,11 @@ $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
 require 'resque/scheduler/server'
 
+# Raise on Redis deprecations if we're using a modern enough version of the Resque gem
+if Redis.respond_to?(:'raise_deprecations=')
+  Redis.raise_deprecations = Gem.loaded_specs['resque'].version >= Gem::Version.create('2.4')
+end
+
 ##
 # test/spec/mini 3
 # original work: http://gist.github.com/25455
