@@ -12,5 +12,5 @@ Resque.redis = ARGV[0]
 redis = Resque.redis
 Array(redis.keys('delayed:*')).each do |key|
   jobs = redis.lrange(key, 0, -1)
-  jobs.each { |job| redis.sadd("timestamps:#{job}", key) }
+  jobs.each { |job| redis.sadd("timestamps:#{job}", [key]) }
 end

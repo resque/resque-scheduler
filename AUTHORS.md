@@ -29,6 +29,7 @@ Resque Scheduler authors
 - Henrik Nyh
 - Hormoz Kheradmand
 - Ian Davies
+- Irving Reid
 - James Le Cuirot
 - Jarkko Mönkkönen
 - Jimmy Chao

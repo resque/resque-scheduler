@@ -91,7 +91,7 @@ module Resque
           non_persistent_schedules[name] = decode(encode(config))
         end
 
-        redis.sadd(:schedules_changed, name)
+        redis.sadd(:schedules_changed, [name])
         reload_schedule! if reload
       end
 
@@ -105,7 +105,7 @@ module Resque
       def remove_schedule(name, reload = true)
         non_persistent_schedules.delete(name)
         redis.hdel(:persistent_schedules, name)
-        redis.sadd(:schedules_changed, name)
+        redis.sadd(:schedules_changed, [name])
 
         reload_schedule! if reload
       end
