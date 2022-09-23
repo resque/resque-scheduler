@@ -13,13 +13,13 @@
   </tr>
   <% delayed.each do |job| %>
       <tr>
-        <td>
+        <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
           <form action="<%= u "/delayed/queue_now" %>" method="post">
             <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
             <input type="submit" value="Queue now">
           </form>
         </td>
-        <td>
+        <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
           <form action="<%= u "/delayed/cancel_now" %>" method="post">
             <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
             <input type="hidden" name="klass" value="<%= job['class'] %>">
