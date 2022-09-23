@@ -16,6 +16,14 @@
   Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%= size %></b> timestamps
 </p>
 
+<% if size > 0 %>
+  <div style="padding-bottom: 10px">
+    <form method="POST" action="<%= u 'delayed/clear' %>" class='clear-delayed confirmSubmission'>
+      <input type='submit' name='' value='Clear Delayed Jobs' />
+    </form>
+  </div>
+<% end %>
+
 <table>
   <tr>
     <th></th>
@@ -52,12 +60,5 @@
     </tr>
   <% end %>
 </table>
-
-<% if size > 0 %>
-  <br>
-  <form method="POST" action="<%= u 'delayed/clear' %>" class='clear-delayed'>
-    <input type='submit' name='' value='Clear Delayed Jobs' />
-  </form>
-<% end %>
 
 <%= partial :next_more, :start => start, :size => size %>
