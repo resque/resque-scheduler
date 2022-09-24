@@ -39,7 +39,7 @@ module Resque
                                   end
 
         Process.daemon(true, !Resque::Scheduler.quiet)
-        Resque.redis._client.reconnect
+        Resque.redis.reconnect
       end
 
       def setup_pid_file
