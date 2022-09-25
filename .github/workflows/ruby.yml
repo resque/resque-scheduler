@@ -28,30 +28,42 @@ jobs:
           - 3.1
         resque-version:
           - "master"
-          - "~> 2.2.0"
+          - "~> 2.4.0"
           - "~> 1.27"
         rufus-scheduler:
           - "3.2"
           - "3.4"
           - "3.5"
           - "3.6"
+        redis-version:
+          - "~> 4.x"
+          - "~> 5.x"
         exclude:
           - ruby-version: head
             rufus-scheduler: 3.2
 
           - ruby-version: 2.3
-            resque-version: 1.27
+            resque-version: "~> 1.27"
             rufus-scheduler: 3.4
           - ruby-version: 2.3
-            resque-version: 1.27
+            resque-version: "~> 1.27"
             rufus-scheduler: 3.5
           - ruby-version: 2.5
-            resque-version: 2.2.0
+            resque-version: "~> 2.4.0"
             rufus-scheduler: 3.5
           - ruby-version: 2.5
             resque-version: master
             rufus-scheduler: 3.2
+
+          - ruby-version: 2.3
+            redis-version: "~> 5.x"
+          - ruby-version: 2.4
+            redis-version: "~> 5.x"
+
+          - resque-version: "~> 1.27"
+            redis-version: "~> 5.x"
     env:
+      REDIS_VERSION: "${{ matrix.redis-version }}"
       RESQUE: "${{ matrix.resque-version }}"
       RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
       COVERAGE: 1
