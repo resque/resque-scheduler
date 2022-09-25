@@ -184,7 +184,7 @@ context 'Resque::Scheduler' do
     last_enqueued_at = sleep_until(10) do
       Resque.get_last_enqueued_at(name)
     end
-    Resque.last_enqueued_at(name, nil)
+    Resque.last_enqueued_at(name, '')
     assert !last_enqueued_at.nil?
   end
 
@@ -203,7 +203,7 @@ context 'Resque::Scheduler' do
     end
 
     Resque::Scheduler.unstub(:enqueue)
-    Resque.last_enqueued_at(name, nil)
+    Resque.last_enqueued_at(name, '')
     assert last_enqueued_at.nil?
   end
 

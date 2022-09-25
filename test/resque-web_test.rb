@@ -344,7 +344,7 @@ context 'DELETE /schedule when dynamic' do
   end
 
   test 'redirects to schedule page' do
-    delete '/schedule'
+    delete '/schedule', job_name: 'job_with_params'
 
     status = last_response.status
     redirect_location = last_response.original_headers['Location']
