@@ -10,6 +10,7 @@ context 'scheduling jobs with arguments' do
       c.quiet = true
       c.poll_sleep_amount = nil
     end
+    Resque.data_store.redis.flushall
   end
 
   test 'enqueue_from_config puts stuff in resque without class loaded' do
