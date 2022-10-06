@@ -2,6 +2,12 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [4.7.0] - 2022-10-6
+### Fixed
+- Fix tests for redis-rb 5.0 (#757)
+- Use Resque::DataStore#reconnect for redis-rb 5.0 compat (#757)
+- Test suite runs `flushall` to prevent flakiness (#757)
+
 ## [4.6.0] - 2022-08-04
 ### Changed
 - Remove support for Ruby < 2.3
