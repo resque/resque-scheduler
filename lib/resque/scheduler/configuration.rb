@@ -44,7 +44,7 @@ module Resque
         @logfile ||= environment['LOGFILE']
       end
 
-      # Sets whether to log in 'text' or 'json'
+      # Sets whether to log in 'text', 'json' or 'logfmt'
       attr_writer :logformat
 
       def logformat

@@ -139,7 +139,7 @@ requiring `resque` and `resque/scheduler` (default empty).
 * `RESQUE_SCHEDULER_INTERVAL` - Interval in seconds for checking if a
 scheduled job must run (coerced with `Kernel#Float()`) (default `5`)
 * `LOGFILE` - Log file name (default empty, meaning `$stdout`)
-* `LOGFORMAT` - Log output format to use (either `'text'` or `'json'`,
+* `LOGFORMAT` - Log output format to use (either `'text'`, `'json'` or `'logfmt'`,
 default `'text'`)
 * `PIDFILE` - If non-empty, write process PID to file (default empty)
 * `QUIET` - Silence most output if non-empty (equivalent to a level of
@@ -663,7 +663,7 @@ are toggled by environment variables:
   - `QUIET` will stop logging anything. Completely silent.
   - `VERBOSE` opposite of 'QUIET'; will log even debug information
   - `LOGFILE` specifies the file to write logs to. (default standard output)
-  - `LOGFORMAT` specifies either "text" or "json" output format
+  - `LOGFORMAT` specifies either "text", "json" or "logfmt" output format
     (default "text")
 
 All of these variables are optional and will be given the following default

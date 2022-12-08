@@ -89,3 +89,4 @@ Resque Scheduler authors
 - sawanoboly
 - serek
 - iloveitaly
+- treacher
