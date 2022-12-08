@@ -139,4 +139,27 @@ context 'Resque::Scheduler' do
       assert $stdout.string =~ /: another thing/
     end
   end
+
+  context 'logger with logfmt formatter' do
+    setup do
+      nullify_logger
+      Resque::Scheduler.logformat = 'logfmt'
+      $stdout = StringIO.new
+    end
+
+    teardown do
+      $stdout = STDOUT
+    end
+
+    test 'logs with logfmt' do
+      Timecop.freeze do
+        Resque::Scheduler.log! 'another thing'
+
+        expected_output = "Timestamp=\"#{DateTime.now.iso8601}\" SeverityText=\"INFO\" " \
+                          "InstrumentationScope=\"resque-scheduler\" Body=\"another thing\"\n"
+
+        assert_equal $stdout.string, expected_output
+      end
+    end
+  end
 end
