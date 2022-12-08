@@ -47,7 +47,7 @@ module Resque
 
         def hostname
           local_hostname = Socket.gethostname
-          Addrinfo.getaddrinfo(local_hostname).first
+          Addrinfo.getaddrinfo(local_hostname, nil).first
         rescue
           local_hostname
         end
