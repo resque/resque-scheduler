@@ -150,6 +150,7 @@ context 'Resque::Scheduler' do
         Resque::Scheduler.log! 'another thing'
 
         expected_output = "resque-scheduler: [INFO] #{DateTime.now.iso8601}: another thing\n"
+
         assert_equal($stdout.string, expected_output)
       end
     end
@@ -170,8 +171,8 @@ context 'Resque::Scheduler' do
       Timecop.freeze do
         Resque::Scheduler.log! 'another thing'
 
-        expected_output = "Timestamp=\"#{DateTime.now.iso8601}\" SeverityText=\"INFO\" " \
-                          "InstrumentationScope=\"resque-scheduler\" Body=\"another thing\"\n"
+        expected_output = "timestamp=\"#{DateTime.now.iso8601}\" level=\"INFO\" " \
+                          "progname=\"resque-scheduler\" msg=\"another thing\"\n"
 
         assert_equal($stdout.string, expected_output)
       end
