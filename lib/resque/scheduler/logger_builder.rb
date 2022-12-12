@@ -71,10 +71,10 @@ module Resque
 
       def logfmt_formatter
         proc do |severity, datetime, progname, msg|
-          "Timestamp=\"#{datetime.iso8601}\" " \
-          "SeverityText=\"#{severity}\" " \
-          "InstrumentationScope=\"#{progname}\" " \
-          "Body=\"#{msg}\"\n"
+          "timestamp=\"#{datetime.iso8601}\" " \
+          "level=\"#{severity}\" " \
+          "progname=\"#{progname}\" " \
+          "msg=\"#{msg}\"\n"
         end
       end
     end
