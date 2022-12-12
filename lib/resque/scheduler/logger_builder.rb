@@ -32,6 +32,7 @@ module Resque
       # Returns an instance of MonoLogger
       def build
         logger = MonoLogger.new(@log_dev)
+        logger.progname = 'resque-scheduler'.freeze
         logger.level = level
         logger.formatter = send(:"#{@format}_formatter")
         logger
@@ -50,8 +51,8 @@ module Resque
       end
 
       def text_formatter
-        proc do |severity, datetime, _progname, msg|
-          "resque-scheduler: [#{severity}] #{datetime.iso8601}: #{msg}\n"
+        proc do |severity, datetime, progname, msg|
+          "#{progname}: [#{severity}] #{datetime.iso8601}: #{msg}\n"
         end
       end
 
@@ -59,7 +60,7 @@ module Resque
         proc do |severity, datetime, progname, msg|
           require 'json'
           JSON.dump(
-            name: 'resque-scheduler',
+            name: progname,
             progname: progname,
             level: severity,
             timestamp: datetime.iso8601,
@@ -69,10 +70,10 @@ module Resque
       end
 
       def logfmt_formatter
-        proc do |severity, datetime, _progname, msg|
+        proc do |severity, datetime, progname, msg|
           "Timestamp=\"#{datetime.iso8601}\" " \
           "SeverityText=\"#{severity}\" " \
-          'InstrumentationScope="resque-scheduler" ' \
+          "InstrumentationScope=\"#{progname}\" " \
           "Body=\"#{msg}\"\n"
         end
       end

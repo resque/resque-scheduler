@@ -118,8 +118,19 @@ context 'Resque::Scheduler' do
     end
 
     test 'logs with json' do
-      Resque::Scheduler.log! 'whatever'
-      assert $stdout.string =~ /"msg":"whatever"/
+      Timecop.freeze do
+        Resque::Scheduler.log! 'another thing'
+
+        expected_output = {
+          name: 'resque-scheduler',
+          progname: 'resque-scheduler',
+          level: 'INFO',
+          timestamp: DateTime.now.iso8601,
+          msg: 'another thing'
+        }.to_json + "\n"
+
+        assert_equal($stdout.string, expected_output)
+      end
     end
   end
 
@@ -135,8 +146,12 @@ context 'Resque::Scheduler' do
     end
 
     test 'logs with text' do
-      Resque::Scheduler.log! 'another thing'
-      assert $stdout.string =~ /: another thing/
+      Timecop.freeze do
+        Resque::Scheduler.log! 'another thing'
+
+        expected_output = "resque-scheduler: [INFO] #{DateTime.now.iso8601}: another thing\n"
+        assert_equal($stdout.string, expected_output)
+      end
     end
   end
 
@@ -158,7 +173,7 @@ context 'Resque::Scheduler' do
         expected_output = "Timestamp=\"#{DateTime.now.iso8601}\" SeverityText=\"INFO\" " \
                           "InstrumentationScope=\"resque-scheduler\" Body=\"another thing\"\n"
 
-        assert_equal $stdout.string, expected_output
+        assert_equal($stdout.string, expected_output)
       end
     end
   end
