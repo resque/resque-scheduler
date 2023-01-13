@@ -76,7 +76,6 @@ module Resque
             end
             poll_sleep
           end
-
         rescue Interrupt
           log 'Exiting'
         end
@@ -116,6 +115,7 @@ module Resque
         args = value
         if args.is_a?(::Array)
           return args.first if args.size > 2 || !args.last.is_a?(::Hash)
+
           # symbolize keys of hash for options
           args[2] = args[1].reduce({}) do |m, i|
             key, value = i
@@ -142,11 +142,12 @@ module Resque
         if configured_env.nil? || env_matches?(configured_env)
           log! "Scheduling #{name} "
           interval_defined = false
-          interval_types = %w(cron every)
+          interval_types = %w[cron every]
           interval_types.each do |interval_type|
             next unless !config[interval_type].nil? && !config[interval_type].empty?
+
             args = optionizate_interval_value(config[interval_type])
-            args = [args, nil, job: true] if args.is_a?(::String)
+            args = [args, nil, { job: true }] if args.is_a?(::String)
 
             job = rufus_scheduler.send(interval_type, *args) do
               enqueue_recurring(name, config)
@@ -206,21 +207,80 @@ module Resque
 
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
-        item = nil
+        count = 0
+        batch_size = delayed_requeue_batch_size
+        actual_batch_size = nil
+
+        log "Processing delayed items for timestamp #{timestamp}"
+
         loop do
           handle_shutdown do
             # Continually check that it is still the master
-            item = enqueue_next_item(timestamp) if am_master
+            if am_master
+              actual_batch_size = enqueue_items_in_batch_for_timestamp(timestamp,
+                                                                       batch_size)
+            end
           end
+
+          count += actual_batch_size
+          log "queued #{count} jobs"
+
           # continue processing until there are no more ready items in this
-          # timestamp
-          break if item.nil?
+          # timestamp. If we don't have a full batch, this is the last one
+          break if actual_batch_size < batch_size
         end
+
+        log "final queued #{count} jobs"
+      end
+
+      def timestamp_key(timestamp)
+        "delayed:#{timestamp.to_i}"
+      end
+
+      def enqueue_items_in_batch_for_timestamp(timestamp, batch_size)
+        timestamp_bucket_key = timestamp_key(timestamp)
+
+        encoded_jobs_to_requeue = Resque.redis.lrange(timestamp_bucket_key, 0, batch_size - 1)
+
+        # Watch is used to ensure that the timestamp bucket we are oeprating on
+        # is not altered by any other clients between the watch call and when we call exec (to execute the multi block).
+        # We should error catch on the redis.exec return value as that will indicate if the entire transaction was aborted or not.
+        # Though we should be safe as our ltrim is inside the multi block and therefore also would have been aborted. So nothing would have
+        # been queued, but also nothing lost from the bucket.
+        watch_result = Resque.redis.watch(timestamp_bucket_key) do
+          Resque.redis.multi do
+            encoded_jobs_to_requeue.each do |encoded_job|
+              Resque.redis.srem("timestamps:#{encoded_job}", timestamp_bucket_key)
+
+              decoded_job = Resque.decode(encoded_job)
+              enqueue(decoded_job)
+            end
+
+            Resque.redis.ltrim(timestamp_bucket_key, batch_size, -1)
+          end
+        end
+
+        success = !watch_result.nil?
+
+        if success && encoded_jobs_to_requeue.count < batch_size
+          Resque.send(:clean_up_timestamp, timestamp_bucket_key, timestamp)
+        end
+
+        unless success
+          # Our batched transaction failed in Redis due to the timestamp_bucket_key value
+          # being modified while we built our multi block. We return -1 to ensure we break
+          # out of the loop iterating on this timestamp so it can be re-processed via the
+          # loop in handle_delayed_items.
+          return -1
+        end
+
+        # will return 0 if none were left to batch
+        encoded_jobs_to_requeue.count
       end
 
       def enqueue(config)
         enqueue_from_config(config)
-      rescue => e
+      rescue StandardError => e
         Resque::Scheduler.failure_handler.on_enqueue_failure(config, e)
       end
 
@@ -312,6 +372,7 @@ module Resque
           loop do
             schedule_name = Resque.redis.spop(:schedules_changed)
             break unless schedule_name
+
             Resque.reload_schedule!
             if Resque.schedule.keys.include?(schedule_name)
               unschedule_job(schedule_name)
@@ -335,11 +396,9 @@ module Resque
       # Sleeps and returns true
       def poll_sleep
         handle_shutdown do
-          begin
-            poll_sleep_loop
-          ensure
-            @sleeping = false
-          end
+          poll_sleep_loop
+        ensure
+          @sleeping = false
         end
         true
       end
@@ -352,13 +411,13 @@ module Resque
             elapsed_sleep = (Time.now - start)
             remaining_sleep = poll_sleep_amount - elapsed_sleep
             @do_break = false
-            if remaining_sleep <= 0
-              @do_break = true
-            else
-              @do_break = handle_signals_with_operation do
-                sleep(remaining_sleep)
-              end
-            end
+            @do_break = if remaining_sleep <= 0
+                          true
+                        else
+                          handle_signals_with_operation do
+                            sleep(remaining_sleep)
+                          end
+                        end
             break if @do_break
           end
         else
@@ -387,6 +446,7 @@ module Resque
       # Sets the shutdown flag, clean schedules and exits if sleeping
       def shutdown
         return if @shutdown
+
         @shutdown = true
         log!('Shutting down')
         @th.raise Interrupt if @sleeping
