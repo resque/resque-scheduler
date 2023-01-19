@@ -1,5 +1,7 @@
 # vim:fileencoding=utf-8
-lib = File.expand_path('../lib', __FILE__)
+# frozen_string_literal: true
+
+lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'resque/scheduler/version'
 
@@ -13,13 +15,13 @@ Gem::Specification.new do |spec|
     Dan Buch
     Michael Bianco
   EOF
-  spec.email = %w(
+  spec.email = %w[
     bvandenbos@gmail.com
     sirup@sirupsen.com
     ryan@yaauie.com
     dan@meatballhat.com
     mike@mikebian.co
-  )
+  ]
   spec.summary = 'Light weight job scheduling on top of Resque'
   spec.description = <<-DESCRIPTION
     Light weight job scheduling on top of Resque.
@@ -39,7 +41,7 @@ Gem::Specification.new do |spec|
   end
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  spec.require_paths = %w(lib)
+  spec.require_paths = %w[lib]
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'json'
@@ -50,8 +52,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'test-unit'
-  spec.add_development_dependency 'yard'
   spec.add_development_dependency 'timecop'
+  spec.add_development_dependency 'yard'
 
   # We pin rubocop because new cops have a tendency to result in false-y
   # positives for new contributors, which is not a nice experience.
