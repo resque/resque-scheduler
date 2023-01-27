@@ -2,6 +2,9 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [4.8.0] - 2023-27-1
+- Replace deprecated Socket.gethostname with Addrinfo.getaddrinfo to fix deprecation warnings (#753)
+
 ## [4.7.0] - 2022-10-6
 ### Fixed
 - Fix tests for redis-rb 5.0 (#757)
