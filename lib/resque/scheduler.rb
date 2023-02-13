@@ -107,6 +107,11 @@ module Resque
         Resque.schedule.each do |name, config|
           load_schedule_job(name, config)
         end
+
+        Dir[auto_load.to_s].each do |file|
+          require File.absolute_path(file)
+        end
+
         Resque.redis.del(:schedules_changed) if am_master && dynamic
         procline 'Schedules Loaded'
       end

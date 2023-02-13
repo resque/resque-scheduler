@@ -8,6 +8,7 @@ module Resque
       app_name: 'APP_NAME',
       background: 'BACKGROUND',
       dynamic: 'DYNAMIC_SCHEDULE',
+      auto_load: 'AUTO_LOAD',
       env: 'RAILS_ENV',
       initializer_path: 'INITIALIZER_PATH',
       logfile: 'LOGFILE',
@@ -30,6 +31,10 @@ module Resque
           args: ['-n', '--app-name [APP_NAME]',
                  'Application name for procline'],
           callback: ->(options) { ->(n) { options[:app_name] = n } }
+        },
+        {
+          args: ['-A', '--auto-load [AUTO_LOAD]', 'Enable jobs auto load'],
+          callback: ->(options) { ->(a) { options[:auto_load] = a } }
         },
         {
           args: ['-B', '--background', 'Run in the background [BACKGROUND]'],

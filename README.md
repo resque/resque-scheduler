@@ -314,7 +314,7 @@ Resque.schedule = YAML.load_file('your_resque_schedule.yml')
 
 If a static schedule is not set `resque-scheduler` will issue a "Schedule empty!" warning on
 startup, but despite that warning setting a static schedule is totally optional. It is possible
-to use only dynamic schedules (see below).
+to use only dynamic schedules or auto load (see below).
 
 The schedule file is a list of Resque job classes with arguments and a
 schedule frequency (in crontab syntax).  The schedule is just a hash, but
@@ -475,6 +475,49 @@ config[:class] = 'SendEmail'
 config[:args] = 'POC email subject'
 config[:every] = '1d'
 Resque.set_schedule(name, config)
+```
+
+#### Auto load
+
+With auto load you specify a path from which jobs will be loaded and scheduled without the needs of static scheduling or dynamic scheduling.
+
+Auto load are not enabled by default. To be able to auto load set schedules, you must pass the following to resque-scheduler initialization (see Installation above for a more complete example):
+
+```ruby
+Resque::Scheduler.auto_load = 'path/to/*_job.rb'
+```
+
+Auto load enables a job to declare it's scheduling. In order to do that file must follow `snake_case` convention for filename and `CamelCase` for class name. It also must include `Resque::Scheduler::Job` and declares it's schedule:
+
+```ruby
+resque_schedule cron: '*/2 * * * *'
+```
+
+All options available:
+
+```ruby
+resque_schedule(
+  cron: '* */3 * * *', # use cron or every option, don't use both
+  every: '3d', # use every or cron option, don't use both
+  args: 'Custom arg',
+  description: 'Nice description'
+)
+```
+
+Job's example:
+
+```ruby
+# my_great_job.rb
+require 'resque/scheduler/job'
+
+class MyGreatJob
+  include Resque::Scheduler::Job
+
+  @queue = :default
+
+  resque_schedule cron: '*/2 * * * *', args: 'args', description: 'description'
+end
+
 ```
 
 #### Time zones

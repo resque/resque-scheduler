@@ -8,10 +8,12 @@ module Resque
       # Scheduler.  refer to:
       # https://github.com/resque/resque-scheduler/pull/273
 
+      CLASSIFY_DELIMETERS = %w(- _).freeze
+
       def self.constantize(camel_cased_word)
         camel_cased_word = camel_cased_word.to_s
 
-        if camel_cased_word.include?('-')
+        unless (camel_cased_word.chars & CLASSIFY_DELIMETERS).empty?
           camel_cased_word = classify(camel_cased_word)
         end
 
@@ -32,7 +34,12 @@ module Resque
       end
 
       def self.classify(dashed_word)
-        dashed_word.split('-').map(&:capitalize).join
+        CLASSIFY_DELIMETERS.each do |delimiter|
+          dashed_word = dashed_word.split(delimiter)
+                                   .map { |w| w[0].capitalize + w[1..-1] }
+                                   .join
+        end
+        dashed_word
       end
     end
   end
