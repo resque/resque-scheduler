@@ -15,13 +15,13 @@ Gem::Specification.new do |spec|
     Dan Buch
     Michael Bianco
   EOF
-  spec.email = %w[
+  spec.email = %w(
     bvandenbos@gmail.com
     sirup@sirupsen.com
     ryan@yaauie.com
     dan@meatballhat.com
     mike@mikebian.co
-  ]
+  )
   spec.summary = 'Light weight job scheduling on top of Resque'
   spec.description = <<-DESCRIPTION
     Light weight job scheduling on top of Resque.
@@ -41,7 +41,7 @@ Gem::Specification.new do |spec|
   end
   spec.bindir = 'exe'
   spec.executables = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  spec.require_paths = %w[lib]
+  spec.require_paths = %w(lib)
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'json'

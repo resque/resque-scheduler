@@ -142,7 +142,7 @@ module Resque
         if configured_env.nil? || env_matches?(configured_env)
           log! "Scheduling #{name} "
           interval_defined = false
-          interval_types = %w[cron every]
+          interval_types = %w(cron every)
           interval_types.each do |interval_type|
             next unless !config[interval_type].nil? && !config[interval_type].empty?
 
@@ -243,10 +243,11 @@ module Resque
         encoded_jobs_to_requeue = Resque.redis.lrange(timestamp_bucket_key, 0, batch_size - 1)
 
         # Watch is used to ensure that the timestamp bucket we are oeprating on
-        # is not altered by any other clients between the watch call and when we call exec (to execute the multi block).
-        # We should error catch on the redis.exec return value as that will indicate if the entire transaction was aborted or not.
-        # Though we should be safe as our ltrim is inside the multi block and therefore also would have been aborted. So nothing would have
-        # been queued, but also nothing lost from the bucket.
+        # is not altered by any other clients between the watch call and when we call exec
+        # (to execute the multi block). We should error catch on the redis.exec return value
+        # as that will indicate if the entiretransaction was aborted or not. Though we should be
+        # safe as our ltrim is inside the multi block and therefore also would have been
+        # aborted. So nothing would have been queued, but also nothing lost from the bucket.
         watch_result = Resque.redis.watch(timestamp_bucket_key) do
           Resque.redis.multi do
             encoded_jobs_to_requeue.each do |encoded_job|
@@ -395,8 +396,10 @@ module Resque
 
       # Sleeps and returns true
       def poll_sleep
-        handle_shutdown do
-          poll_sleep_loop
+        begin
+          handle_shutdown do
+            poll_sleep_loop
+          end
         ensure
           @sleeping = false
         end
