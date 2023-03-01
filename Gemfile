@@ -1,5 +1,4 @@
 # vim:fileencoding=utf-8
-
 source 'https://rubygems.org'
 
 case resque_version = ENV.fetch('RESQUE', 'master')

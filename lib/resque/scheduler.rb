@@ -76,6 +76,7 @@ module Resque
             end
             poll_sleep
           end
+
         rescue Interrupt
           log 'Exiting'
         end
