@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 # vim:fileencoding=utf-8
-# frozen_string_literal: true
 
 require 'resque-scheduler'
 Resque::Scheduler::Cli.run!

@@ -503,7 +503,6 @@ context 'DelayedQueue' do
 
   test "when Resque.inline = true, remove_delayed doesn't remove the job" \
        'and returns 0' do
-    old_val = Resque.inline
     begin
       Resque.inline = true
 
@@ -512,7 +511,7 @@ context 'DelayedQueue' do
 
       assert_equal(0, Resque.remove_delayed(SomeIvarJob))
     ensure
-      Resque.inline = old_val
+      Resque.inline = false
     end
   end
 
@@ -999,7 +998,6 @@ context 'DelayedQueue' do
 
   test 'when Resque.inline = true, remove_delayed_job_from_timestamp' \
        "doesn't remove any jobs and returns 0" do
-    old_val = Resque.inline
     begin
       Resque.inline = true
 
@@ -1008,7 +1006,7 @@ context 'DelayedQueue' do
 
       assert_equal(0, Resque.delayed_timestamp_size(timestamp))
     ensure
-      Resque.inline = old_val
+      Resque.inline = false
     end
   end
 
@@ -1080,7 +1078,6 @@ context 'DelayedQueue' do
   end
 
   test 'inlining jobs with Resque.inline config' do
-    old_val = Resque.inline
     begin
       Resque.inline = true
       Resque::Job.expects(:create).once.with(:ivar, SomeIvarJob, 'foo', 'bar')
@@ -1091,7 +1088,7 @@ context 'DelayedQueue' do
       assert_equal 0, Resque.count_all_scheduled_jobs
       assert !Resque.redis.exists?("delayed:#{timestamp.to_i}")
     ensure
-      Resque.inline = old_val
+      Resque.inline = false
     end
   end
 

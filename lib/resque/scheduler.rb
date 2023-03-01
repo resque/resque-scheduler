@@ -115,7 +115,6 @@ module Resque
         args = value
         if args.is_a?(::Array)
           return args.first if args.size > 2 || !args.last.is_a?(::Hash)
-
           # symbolize keys of hash for options
           args[2] = args[1].reduce({}) do |m, i|
             key, value = i
@@ -145,9 +144,8 @@ module Resque
           interval_types = %w(cron every)
           interval_types.each do |interval_type|
             next unless !config[interval_type].nil? && !config[interval_type].empty?
-
             args = optionizate_interval_value(config[interval_type])
-            args = [args, nil, { job: true }] if args.is_a?(::String)
+            args = [args, nil, job: true] if args.is_a?(::String)
 
             job = rufus_scheduler.send(interval_type, *args) do
               enqueue_recurring(name, config)
@@ -281,7 +279,7 @@ module Resque
 
       def enqueue(config)
         enqueue_from_config(config)
-      rescue StandardError => e
+      rescue => e
         Resque::Scheduler.failure_handler.on_enqueue_failure(config, e)
       end
 
@@ -373,7 +371,6 @@ module Resque
           loop do
             schedule_name = Resque.redis.spop(:schedules_changed)
             break unless schedule_name
-
             Resque.reload_schedule!
             if Resque.schedule.keys.include?(schedule_name)
               unschedule_job(schedule_name)
@@ -396,12 +393,12 @@ module Resque
 
       # Sleeps and returns true
       def poll_sleep
-        begin
-          handle_shutdown do
+        handle_shutdown do
+          begin
             poll_sleep_loop
+          ensure
+            @sleeping = false
           end
-        ensure
-          @sleeping = false
         end
         true
       end
@@ -414,13 +411,13 @@ module Resque
             elapsed_sleep = (Time.now - start)
             remaining_sleep = poll_sleep_amount - elapsed_sleep
             @do_break = false
-            @do_break = if remaining_sleep <= 0
-                          true
-                        else
-                          handle_signals_with_operation do
-                            sleep(remaining_sleep)
-                          end
-                        end
+            if remaining_sleep <= 0
+              @do_break = true
+            else
+              @do_break = handle_signals_with_operation do
+                sleep(remaining_sleep)
+              end
+            end
             break if @do_break
           end
         else
@@ -449,7 +446,6 @@ module Resque
       # Sets the shutdown flag, clean schedules and exits if sleeping
       def shutdown
         return if @shutdown
-
         @shutdown = true
         log!('Shutting down')
         @th.raise Interrupt if @sleeping
