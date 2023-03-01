@@ -11,6 +11,26 @@ $LOAD_PATH.unshift File.dirname(File.expand_path(__FILE__)) + '/../lib'
 require 'resque-scheduler'
 require 'resque/scheduler/server'
 
+# This helper was removed from the resque library
+# https://github.com/resque/resque/commit/d6830294f1f8321f77d9390dab996244b4609138
+require 'resque/server'
+module Resque
+  module TestHelper
+    class Test::Unit::TestCase
+      include Rack::Test::Methods
+      def app
+        Resque::Server.new
+      end
+
+      def self.should_respond_with_success
+        test 'should respond with success' do
+          assert last_response.ok?, last_response.errors
+        end
+      end
+    end
+  end
+end
+
 ##
 # test/spec/mini 3
 # original work: http://gist.github.com/25455
