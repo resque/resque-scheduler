@@ -42,6 +42,8 @@ jobs:
         exclude:
           - ruby-version: head
             rufus-scheduler: 3.2
+          - ruby-version: 3.2
+            rufus-scheduler: 3.2
 
           - ruby-version: 2.3
             resque-version: "~> 1.27"
