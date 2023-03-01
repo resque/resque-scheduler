@@ -16,7 +16,7 @@ require 'resque/scheduler/server'
 require 'resque/server'
 module Resque
   module TestHelper
-    class Test::Unit::TestCase
+    class Test::Unit::TestCase # rubocop:disable Style/ClassAndModuleChildren
       include Rack::Test::Methods
       def app
         Resque::Server.new
