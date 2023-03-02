@@ -246,8 +246,8 @@ module Resque
         # Watch is used to ensure that the timestamp bucket we are operating on
         # is not altered by any other clients between the watch call and when we call exec
         # (to execute the multi block). We should error catch on the redis.exec return value
-        # as that will indicate if the entire transaction was aborted or not. Though we should be
-        # safe as our ltrim is inside the multi block and therefore also would have been
+        # as that will indicate if the entire transaction was aborted or not. Though we should
+        # be safe as our ltrim is inside the multi block and therefore also would have been
         # aborted. So nothing would have been queued, but also nothing lost from the bucket.
         watch_result = Resque.redis.watch(timestamp_bucket_key) do
           Resque.redis.multi do
