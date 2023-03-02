@@ -67,7 +67,7 @@ module Resque
 
       def delayed_requeue_batch_size
         @delayed_requeue_batch_size ||= \
-          ENV['DELAYED_REQUEUE_BATCH_SIZE'].to_i if ENV['DELAYED_REQUEUE_BATCH_SIZE']
+          ENV['DELAYED_REQUEUE_BATCH_SIZE'].to_i if environment['DELAYED_REQUEUE_BATCH_SIZE']
         @delayed_requeue_batch_size ||= 100
       end
 
