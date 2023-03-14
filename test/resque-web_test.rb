@@ -1,7 +1,7 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
 
-require 'resque/server/test_helper'
+require_relative 'server/test_helper'
 
 context 'on GET to /schedule' do
   setup { get '/schedule' }

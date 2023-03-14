@@ -24,4 +24,6 @@ else
   gem 'redis', redis_version
 end
 
+gem 'sinatra', '> 2.0'
+
 gemspec
