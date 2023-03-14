@@ -297,6 +297,22 @@ module Resque
         redis.hget('delayed:last_enqueued_at', job_name)
       end
 
+      def clean_up_timestamp(key, timestamp)
+        # Use a watch here to ensure nobody adds jobs to this delayed
+        # queue while we're removing it.
+        redis.watch(key) do
+          if redis.llen(key).to_i == 0
+            # If the list is empty, remove it.
+            redis.multi do |transaction|
+              transaction.del(key)
+              transaction.zrem(:delayed_queue_schedule, timestamp.to_i)
+            end
+          else
+            redis.redis.unwatch
+          end
+        end
+      end
+
       private
 
       def job_to_hash(klass, args)
@@ -326,22 +342,6 @@ module Resque
 
         return 0 if replies.nil? || replies.empty?
         replies.each_slice(2).map(&:first).inject(:+)
-      end
-
-      def clean_up_timestamp(key, timestamp)
-        # Use a watch here to ensure nobody adds jobs to this delayed
-        # queue while we're removing it.
-        redis.watch(key) do
-          if redis.llen(key).to_i == 0
-            # If the list is empty, remove it.
-            redis.multi do |transaction|
-              transaction.del(key)
-              transaction.zrem(:delayed_queue_schedule, timestamp.to_i)
-            end
-          else
-            redis.redis.unwatch
-          end
-        end
       end
 
       def search_first_delayed_timestamp_in_range(start_at, stop_at)

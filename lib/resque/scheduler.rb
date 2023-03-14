@@ -206,16 +206,80 @@ module Resque
 
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
-        item = nil
+        count = 0
+        batch_size = delayed_requeue_batch_size
+        actual_batch_size = nil
+
+        log "Processing delayed items for timestamp #{timestamp}, in batches of #{batch_size}"
+
         loop do
           handle_shutdown do
             # Continually check that it is still the master
-            item = enqueue_next_item(timestamp) if am_master
+            if am_master
+              actual_batch_size = enqueue_items_in_batch_for_timestamp(timestamp,
+                                                                       batch_size)
+            end
           end
-          # continue processing until there are no more ready items in this
-          # timestamp
-          break if item.nil?
+
+          count += actual_batch_size
+          log "queued #{count} jobs" if actual_batch_size != -1
+
+          # continue processing until there are no more items in this
+          # timestamp. If we don't have a full batch, this is the last one.
+          # This also breaks us in the event of a redis transaction failure
+          # i.e. enqueue_items_in_batch_for_timestamp returned -1
+          break if actual_batch_size < batch_size
         end
+
+        log "finished queueing #{count} total jobs for timestamp #{timestamp}" if count != -1
+      end
+
+      def timestamp_key(timestamp)
+        "delayed:#{timestamp.to_i}"
+      end
+
+      def enqueue_items_in_batch_for_timestamp(timestamp, batch_size)
+        timestamp_bucket_key = timestamp_key(timestamp)
+
+        encoded_jobs_to_requeue = Resque.redis.lrange(timestamp_bucket_key, 0, batch_size - 1)
+
+        # Watch is used to ensure that the timestamp bucket we are operating on
+        # is not altered by any other clients between the watch call and when we call exec
+        # (to execute the multi block). We should error catch on the redis.exec return value
+        # as that will indicate if the entire transaction was aborted or not. Though we should
+        # be safe as our ltrim is inside the multi block and therefore also would have been
+        # aborted. So nothing would have been queued, but also nothing lost from the bucket.
+        watch_result = Resque.redis.watch(timestamp_bucket_key) do
+          Resque.redis.multi do
+            encoded_jobs_to_requeue.each do |encoded_job|
+              Resque.redis.srem("timestamps:#{encoded_job}", timestamp_bucket_key)
+
+              decoded_job = Resque.decode(encoded_job)
+              enqueue(decoded_job)
+            end
+
+            Resque.redis.ltrim(timestamp_bucket_key, batch_size, -1)
+          end
+        end
+
+        # Did the multi block successfully remove from this timestamp and enqueue the jobs?
+        success = !watch_result.nil?
+
+        # If this was the last batch in this timestamp bucket, clean up
+        if success && encoded_jobs_to_requeue.count < batch_size
+          Resque.clean_up_timestamp(timestamp_bucket_key, timestamp)
+        end
+
+        unless success
+          # Our batched transaction failed in Redis due to the timestamp_bucket_key value
+          # being modified while we built our multi block. We return -1 to ensure we break
+          # out of the loop iterating on this timestamp so it can be re-processed via the
+          # loop in handle_delayed_items.
+          return -1
+        end
+
+        # will return 0 if none were left to batch
+        encoded_jobs_to_requeue.count
       end
 
       def enqueue(config)
