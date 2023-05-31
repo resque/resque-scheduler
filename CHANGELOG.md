@@ -2,6 +2,16 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [4.9.0] - 2023-05-31
+### Changed
+- Adding batching to re-queuing for timestamp by @brennen-stripe in #767
+- Use non-deprecated form of Redis.sadd/srem by @irvingreid in #752
+- Prompt for confirmation on 'Clear Delayed Jobs' by @mishina2228 in #754
+- Address some deprecation warnings in the test suite and with srem/lrem pipelined usage by @PatrickTulskie in #770
+
+### Fixed
+- Update CI matrix and fix tests by @mishina2228 in #766
+
 ## [4.8.0] - 2023-27-1
 - Replace deprecated Socket.gethostname with Addrinfo.getaddrinfo to fix deprecation warnings (#753)
 
