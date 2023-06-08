@@ -13,7 +13,14 @@ require 'resque/scheduler/server'
 
 # Raise on Redis deprecations if we're using a modern enough version of the Resque gem
 if Redis.respond_to?(:'raise_deprecations=')
-  Redis.raise_deprecations = Gem.loaded_specs['resque'].version >= Gem::Version.create('2.4')
+  Redis.raise_deprecations = Gem.loaded_specs['resque'].version >= Gem::Version.create('2.4') &&
+    Gem.loaded_specs['redis'].version >= Gem::Version.create('5.0')
+end
+
+if RUBY_VERSION >= '2.7.0'
+  Mocha.configure do |c|
+    c.strict_keyword_argument_matching = true
+  end
 end
 
 ##

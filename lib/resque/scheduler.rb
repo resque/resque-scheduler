@@ -250,15 +250,15 @@ module Resque
         # be safe as our ltrim is inside the multi block and therefore also would have been
         # aborted. So nothing would have been queued, but also nothing lost from the bucket.
         watch_result = Resque.redis.watch(timestamp_bucket_key) do
-          Resque.redis.multi do
+          Resque.redis.multi do |pipeline|
             encoded_jobs_to_requeue.each do |encoded_job|
-              Resque.redis.srem("timestamps:#{encoded_job}", timestamp_bucket_key)
+              pipeline.srem("timestamps:#{encoded_job}", timestamp_bucket_key)
 
               decoded_job = Resque.decode(encoded_job)
               enqueue(decoded_job)
             end
 
-            Resque.redis.ltrim(timestamp_bucket_key, batch_size, -1)
+            pipeline.ltrim(timestamp_bucket_key, batch_size, -1)
           end
         end
 
