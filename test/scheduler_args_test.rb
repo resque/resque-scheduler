@@ -195,7 +195,8 @@ context 'scheduling jobs with arguments' do
       args:
         key: value
     YAML
-    SomeIvarJob.expects(:perform).once.with({ 'key' => 'value' })
+    simple_hash = { 'key' => 'value' }
+    SomeIvarJob.expects(:perform).once.with(simple_hash)
     Resque.reserve('ivar').perform
   end
 
@@ -207,8 +208,8 @@ context 'scheduling jobs with arguments' do
         first_key:
           second_key: value
     YAML
-    SomeIvarJob.expects(:perform).once
-               .with({ 'first_key' => { 'second_key' => 'value' } })
+    nested_hash = { 'first_key' => { 'second_key' => 'value' } }
+    SomeIvarJob.expects(:perform).once.with(nested_hash)
     Resque.reserve('ivar').perform
   end
 

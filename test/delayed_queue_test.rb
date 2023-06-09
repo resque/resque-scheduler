@@ -320,8 +320,12 @@ context 'DelayedQueue' do
 
   test 'calls klass#scheduled when enqueuing jobs if it exists' do
     t = Time.now - 60
-    FakeCustomJobClassEnqueueAt.expects(:scheduled)
-                               .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, { foo: 'bar' })
+    data_hash = { foo: 'bar' }
+    FakeCustomJobClassEnqueueAt.expects(:scheduled).once.with(
+      :test,
+      FakeCustomJobClassEnqueueAt.to_s,
+      data_hash
+    )
     Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
   end
 
@@ -331,8 +335,12 @@ context 'DelayedQueue' do
     begin
       Resque.inline = true
       t = Time.now - 60
-      FakeCustomJobClassEnqueueAt.expects(:scheduled)
-                                 .once.with(:test, FakeCustomJobClassEnqueueAt.to_s, { foo: 'bar' })
+      data_hash = { foo: 'bar' }
+      FakeCustomJobClassEnqueueAt.expects(:scheduled).once.with(
+        :test,
+        FakeCustomJobClassEnqueueAt.to_s,
+        data_hash
+      )
       Resque.enqueue_at(t, FakeCustomJobClassEnqueueAt, foo: 'bar')
     ensure
       Resque.inline = old_val
