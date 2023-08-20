@@ -2,6 +2,13 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [4.10.0] - 2023-08-20
+### Added
+* Add logfmt option for logging output (#763)
+
+### Fixed
+* Rubocop Fixes (#771)
+
 ## [4.9.0] - 2023-05-31
 ### Changed
 - Adding batching to re-queuing for timestamp by @brennen-stripe in #767
