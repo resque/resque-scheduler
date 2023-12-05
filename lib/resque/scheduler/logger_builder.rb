@@ -59,13 +59,14 @@ module Resque
       def json_formatter
         proc do |severity, datetime, progname, msg|
           require 'json'
-          JSON.dump(
+          log_data = {
             name: progname,
             progname: progname,
             level: severity,
             timestamp: datetime.iso8601,
             msg: msg
-          ) + "\n"
+          }
+          JSON.dump(log_data) + "\n"
         end
       end
 
