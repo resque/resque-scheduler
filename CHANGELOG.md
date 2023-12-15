@@ -2,6 +2,10 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [4.10.2] - 2023-12-15
+### Fixed
+* Finish fixing CVE-2022-44303, XSS in delayed_schedules by @PatrickTulskie in #783
+
 ## [4.10.1] - 2023-12-15
 ### Fixed
 * Fix json dump crasher with JSON 2.7.0+ by @PatrickTulskie in #781
