@@ -2,6 +2,11 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [4.10.1] - 2023-12-15
+### Fixed
+* Fix json dump crasher with JSON 2.7.0+ by @PatrickTulskie in #781
+* Fix for #761, reflected XSS in delayed_schedules.erb by @PatrickTulskie in #780
+
 ## [4.10.0] - 2023-08-20
 ### Added
 * Add logfmt option for logging output (#763)
