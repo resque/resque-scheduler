@@ -19,6 +19,12 @@ context 'Configuration' do
     end
   end
 
+  test 'setting lock_timeout from environment' do
+    configuration.environment = { 'LOCK_TIMEOUT' => '47' }
+
+    assert_equal 47, configuration.lock_timeout
+  end
+
   test 'env set from Rails.env' do
     Rails.expects(:env).returns('development')
 
