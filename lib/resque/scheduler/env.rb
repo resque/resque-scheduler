@@ -54,6 +54,7 @@ module Resque
         at_exit { cleanup_pid_file }
       end
 
+      # rubocop:disable Metrics/AbcSize
       def setup_scheduler_configuration
         Resque::Scheduler.configure do |c|
           c.app_name = options[:app_name] if options.key?(:app_name)
@@ -66,6 +67,8 @@ module Resque
 
           c.logformat = options[:logformat] if options.key?(:logformat)
 
+          c.lock_timeout = options[:lock_timeout] if options.key?(:lock_timeout)
+
           if (psleep = options[:poll_sleep_amount]) && !psleep.nil?
             c.poll_sleep_amount = Float(psleep)
           end
@@ -73,6 +76,7 @@ module Resque
           c.verbose = !!options[:verbose] if options.key?(:verbose)
         end
       end
+      # rubocop:enable Metrics/AbcSize
 
       def cleanup_pid_file
         return unless pidfile_path

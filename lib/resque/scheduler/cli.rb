@@ -15,7 +15,8 @@ module Resque
       quiet: 'QUIET',
       pidfile: 'PIDFILE',
       poll_sleep_amount: 'RESQUE_SCHEDULER_INTERVAL',
-      verbose: 'VERBOSE'
+      verbose: 'VERBOSE',
+      lock_timeout: 'LOCK_TIMEOUT'
     }.freeze
 
     class Cli
