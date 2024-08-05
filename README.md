@@ -28,7 +28,7 @@ Resque.enqueue_at(5.days.from_now, SomeJob, argument) # runs a job at a specific
 
 This `README` covers what most people need to know.  If you're looking
 for details on individual methods, you might want to try the
-[rdoc](http://rdoc.info/github/resque/resque-scheduler/master/frames).
+[rubydoc](http://rubydoc.info/github/resque/resque-scheduler/master/frames).
 
 ### Installation
 
