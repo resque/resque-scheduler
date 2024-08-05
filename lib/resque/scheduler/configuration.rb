@@ -80,6 +80,13 @@ module Resque
           Float(environment.fetch('RESQUE_SCHEDULER_INTERVAL', '5'))
       end
 
+      # Sets timeout for Resque::Scheduler::Lock::Base
+      attr_writer :lock_timeout
+
+      def lock_timeout
+        @lock_timeout ||= environment.fetch('LOCK_TIMEOUT', 60 * 3).to_i
+      end
+
       private
 
       # Copied from https://github.com/rails/rails/blob/main/activemodel/lib/active_model/type/boolean.rb#L17

@@ -11,7 +11,7 @@ module Resque
           @key = key
 
           # 3 minute default timeout
-          @timeout = options[:timeout] || 60 * 3
+          @timeout = options[:timeout] || Resque::Scheduler.lock_timeout
         end
 
         # Attempts to acquire the lock. Returns true if successfully acquired.
