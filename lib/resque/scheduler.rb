@@ -204,25 +204,36 @@ module Resque
         item
       end
 
+      def batch_delayed_items?
+        !disable_delayed_requeue_batches && delayed_requeue_batch_size > 1
+      end
+
       # Enqueues all delayed jobs for a timestamp
       def enqueue_delayed_items_for_timestamp(timestamp)
         count = 0
-        batch_size = delayed_requeue_batch_size
-        actual_batch_size = nil
+        batch_size = batch_delayed_items? ? delayed_requeue_batch_size : 1
 
-        log "Processing delayed items for timestamp #{timestamp}, in batches of #{batch_size}"
+        message = "Processing delayed items for timestamp #{timestamp}"
+        message += ", in batches of #{batch_size}" if batch_delayed_items?
+        log message
 
         loop do
+          actual_batch_size = 0
+
           handle_shutdown do
             # Continually check that it is still the master
             if am_master
-              actual_batch_size = enqueue_items_in_batch_for_timestamp(timestamp,
-                                                                       batch_size)
+              if batch_delayed_items?
+                actual_batch_size = enqueue_items_in_batch_for_timestamp(timestamp, batch_size)
+                log "queued batch of #{actual_batch_size} jobs" if actual_batch_size != -1
+              else
+                item = enqueue_next_item(timestamp)
+                actual_batch_size = item.nil? ? 0 : 1
+              end
             end
           end
 
           count += actual_batch_size
-          log "queued #{count} jobs" if actual_batch_size != -1
 
           # continue processing until there are no more items in this
           # timestamp. If we don't have a full batch, this is the last one.
@@ -231,7 +242,7 @@ module Resque
           break if actual_batch_size < batch_size
         end
 
-        log "finished queueing #{count} total jobs for timestamp #{timestamp}" if count != -1
+        log "finished queueing #{count} total jobs for timestamp #{timestamp}"
       end
 
       def timestamp_key(timestamp)
