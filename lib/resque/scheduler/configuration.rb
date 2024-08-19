@@ -65,10 +65,23 @@ module Resque
         @app_name ||= environment['APP_NAME']
       end
 
+      # Batch size for requeueing delayed jobs.  If <= 1, this disables batching.
+      # Defaults to 100.
+      attr_writer :delayed_requeue_batch_size
+
       def delayed_requeue_batch_size
         @delayed_requeue_batch_size ||= \
-          ENV['DELAYED_REQUEUE_BATCH_SIZE'].to_i if environment['DELAYED_REQUEUE_BATCH_SIZE']
-        @delayed_requeue_batch_size ||= 100
+          Integer(environment.fetch('DELAYED_REQUEUE_BATCH_SIZE', '100'))
+      end
+
+      attr_writer :disable_delayed_requeue_batches
+
+      def disable_delayed_requeue_batches
+        if @disable_delayed_requeue_batches.nil?
+          to_bool(environment['DISABLE_DELAYED_REQUEUE_BATCHES'])
+        else
+          @disable_delayed_requeue_batches
+        end
       end
 
       # Amount of time in seconds to sleep between polls of the delayed
