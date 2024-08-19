@@ -88,7 +88,7 @@ context 'Resque::Scheduler' do
 
       @pid = Process.pid
       Thread.new do
-        sleep(0.1)
+        sleep(0.3)
         Process.kill(:TERM, @pid)
       end
 
@@ -104,7 +104,7 @@ context 'Resque::Scheduler' do
 
       @pid = Process.pid
       Thread.new do
-        sleep(0.1)
+        sleep(0.3)
         Process.kill(:TERM, @pid)
       end
 

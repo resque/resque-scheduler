@@ -16,7 +16,9 @@ module Resque
       pidfile: 'PIDFILE',
       poll_sleep_amount: 'RESQUE_SCHEDULER_INTERVAL',
       verbose: 'VERBOSE',
-      lock_timeout: 'LOCK_TIMEOUT'
+      lock_timeout: 'LOCK_TIMEOUT',
+      delayed_requeue_batch_size: 'DELAYED_REQUEUE_BATCH_SIZE',
+      disable_delayed_requeue_batches: 'DISABLE_DELAYED_REQUEUE_BATCHES'
     }.freeze
 
     class Cli
@@ -74,6 +76,24 @@ module Resque
         {
           args: ['-v', '--verbose', 'Run with verbose output [VERBOSE]'],
           callback: ->(options) { ->(v) { options[:verbose] = v } }
+        },
+        {
+          args: ['--lock-timeout [LOCK_TIMEOUT]', 'Lock timeout'],
+          callback: ->(options) { ->(t) { options[:lock_timeout] = t } }
+        },
+        {
+          args: [
+            '--delayed-requeue-batch-size [DELAYED_REQUEUE_BATCH_SIZE]',
+            'Delayed requeue batch size'
+          ],
+          callback: ->(options) { ->(d) { options[:delayed_requeue_batch_size] = d } }
+        },
+        {
+          args: [
+            '--disable-delayed-requeue-batches [DISABLE_DELAYED_REQUEUE_BATCHES]',
+            'Disable delayed requeue batches'
+          ],
+          callback: ->(options) { ->(d) { options[:disable_delayed_requeue_batches] = d } }
         }
       ].freeze
 
