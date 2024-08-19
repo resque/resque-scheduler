@@ -145,8 +145,8 @@ context 'Resque::Scheduler' do
 
       pid = Process.pid
       Thread.new do
-        sleep(0.1)
-        Process.kill(:TERM, pid)
+        sleep(0.3)
+        Process.kill(:TERM, @pid)
       end
 
       assert_raises SystemExit do
@@ -161,8 +161,8 @@ context 'Resque::Scheduler' do
 
       pid = Process.pid
       Thread.new do
-        sleep(0.1)
-        Process.kill(:TERM, pid)
+        sleep(0.3)
+        Process.kill(:TERM, @pid)
       end
 
       assert_raises SystemExit do

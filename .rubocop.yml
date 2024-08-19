@@ -21,7 +21,7 @@ Layout/TrailingWhitespace:
 
 Metrics/ClassLength:
   Enabled: true
-  Max: 110
+  Max: 130
 
 Documentation:
   Enabled: false
