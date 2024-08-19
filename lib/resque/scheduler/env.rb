@@ -74,6 +74,14 @@ module Resque
           end
 
           c.verbose = !!options[:verbose] if options.key?(:verbose)
+
+          if options.key?(:delayed_requeue_batch_size)
+            c.delayed_requeue_batch_size = Integer(options[:delayed_requeue_batch_size])
+          end
+
+          if options.key?(:disable_delayed_requeue_batches)
+            c.disable_delayed_requeue_batches = !!options[:disable_delayed_requeue_batches]
+          end
         end
       end
       # rubocop:enable Metrics/AbcSize
