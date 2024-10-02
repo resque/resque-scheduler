@@ -6,6 +6,10 @@ require 'json'
 module ResqueScheduler
   module Server
     def self.included(base)
+      unless defined?(::ResqueScheduler::Server::VIEW_PATH)
+        VIEW_PATH = File.join(File.dirname(__FILE__), 'server', 'views')
+      end
+
       base.class_eval do
         helpers do
           def format_time(t)
@@ -85,6 +89,10 @@ module ResqueScheduler
             else
               config['class']
             end
+          end
+
+          def scheduler_view filename, options = {}, locals = {}
+            erb(File.read(File.join(VIEW_PATH, "#{filename}.erb")), options, locals)
           end
         end
 
