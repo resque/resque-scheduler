@@ -86,8 +86,8 @@ module Resque
         if rufus_scheduler
           log! "Scheduling Info\tLast Run"
           scheduler_jobs = rufus_scheduler.jobs
-          scheduler_jobs.each do |_k, v|
-            log! "#{v.t}\t#{v.last}\t"
+          scheduler_jobs.each do |job|
+            log! "#{job.opts}\t#{job.last_time}\t"
           end
         end
       end
