@@ -1,5 +1,6 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
+require 'ostruct'
 
 context 'Resque::Scheduler' do
   setup do
