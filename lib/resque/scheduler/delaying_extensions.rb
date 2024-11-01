@@ -1,5 +1,4 @@
 # vim:fileencoding=utf-8
-require 'resque'
 require_relative 'plugin'
 require_relative '../scheduler'
 
