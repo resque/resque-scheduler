@@ -1,18 +1,22 @@
-inherit_from: .rubocop_todo.yml
-
 AllCops:
+  SuggestExtensions: false
+  TargetRubyVersion: 3.0
+  NewCops: enable
   Include:
   - Gemfile
   - '**/Rakefile'
   - resque-scheduler.gemspec
   - bin/resque-scheduler
 
-Documentation:
-  Enabled: false
-
-Style/DoubleNegation:
-  Enabled: false
-Metrics/PerceivedComplexity:
+Gemspec/DevelopmentDependencies:
   Enabled: false
 Metrics/ClassLength:
   Max: 110
+Metrics/PerceivedComplexity:
+  Enabled: false
+Naming/HeredocDelimiterNaming:
+  Enabled: false
+Style/DoubleNegation:
+  Enabled: false
+Style/FrozenStringLiteralComment:
+  Enabled: false

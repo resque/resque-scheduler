@@ -17,3 +17,4 @@ nbproject
 .env.*
 /nul
 vendor/
+.vscode

@@ -40,6 +40,7 @@ Resque Scheduler authors
 - Jonathan Hyman
 - Jonathan Owens
 - Jordan Gardner
+- Justin Hart
 - Joshua Szmajda
 - Justin Weiss
 - Les Hill

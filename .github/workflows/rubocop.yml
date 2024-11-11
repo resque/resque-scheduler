@@ -6,22 +6,26 @@ on:
   pull_request:
     branches: [master]
 
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
 jobs:
   rubocop:
     name: Rubocop
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        ruby: [
-            2.7
-        ]
+        ruby-version:
+          - "3.3"
 
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: ${{ matrix.ruby }}
+          ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
       - name: Ruby linter
         run: bundle exec rubocop
