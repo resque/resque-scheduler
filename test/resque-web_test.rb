@@ -307,7 +307,7 @@ context 'on POST to /delayed/cancel_now' do
   test 'redirects to overview' do
     post '/delayed/cancel_now'
     assert last_response.status == 302
-    assert last_response.header['Location'].include? '/delayed'
+    assert last_response.headers['Location'].include? '/delayed'
   end
 end
 
@@ -316,7 +316,7 @@ context 'on POST to /delayed/clear' do
 
   test 'redirects to delayed' do
     assert last_response.status == 302
-    assert last_response.header['Location'].include? '/delayed'
+    assert last_response.headers['Location'].include? '/delayed'
   end
 end
 
