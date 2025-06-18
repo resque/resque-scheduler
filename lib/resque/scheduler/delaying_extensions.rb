@@ -22,24 +22,22 @@ module Resque
       # timestamp has passed. It respects Resque.inline option, by
       # creating the job right away instead of adding to the queue.
       def enqueue_at_with_queue(queue, timestamp, klass, *args)
-        return false unless plugin.run_before_schedule_hooks(klass, *args)
-
-        if Resque.inline? || timestamp.to_i <= Time.now.to_i
-          # Just create the job and let resque perform it right away with
-          # inline.  If the class is a custom job class, call self#scheduled
-          # on it. This allows you to do things like
-          # Resque.enqueue_at(timestamp, CustomJobClass, :opt1 => val1).
-          # Otherwise, pass off to Resque.
-          if klass.respond_to?(:scheduled)
-            klass.scheduled(queue, klass.to_s, *args)
+        plugin.process_schedule_hooks(klass, *args) do
+          if Resque.inline? || timestamp.to_i <= Time.now.to_i
+            # Just create the job and let resque perform it right away with
+            # inline.  If the class is a custom job class, call self#scheduled
+            # on it. This allows you to do things like
+            # Resque.enqueue_at(timestamp, CustomJobClass, :opt1 => val1).
+            # Otherwise, pass off to Resque.
+            if klass.respond_to?(:scheduled)
+              klass.scheduled(queue, klass.to_s, *args)
+            else
+              Resque.enqueue_to(queue, klass, *args)
+            end
           else
-            Resque.enqueue_to(queue, klass, *args)
+            delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
           end
-        else
-          delayed_push(timestamp, job_to_hash_with_queue(queue, klass, args))
         end
-
-        plugin.run_after_schedule_hooks(klass, *args)
       end
 
       # Identical to enqueue_at but takes number_of_seconds_from_now

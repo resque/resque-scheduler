@@ -3,6 +3,15 @@
 module Resque
   module Scheduler
     module Plugin
+      def self.process_schedule_hooks(klass, *args)
+        # the documentation states that if any before_schedule hook returns
+        # false, the process should not be enqueued
+        return unless run_before_schedule_hooks(klass, *args)
+
+        yield
+        run_after_schedule_hooks(klass, *args)
+      end
+
       def self.hooks(job, pattern)
         job.methods.grep(/^#{pattern}/).sort
       end
