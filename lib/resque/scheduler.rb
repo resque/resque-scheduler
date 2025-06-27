@@ -86,8 +86,8 @@ module Resque
         if rufus_scheduler
           log! "Scheduling Info\tLast Run"
           scheduler_jobs = rufus_scheduler.jobs
-          scheduler_jobs.each do |_k, v|
-            log! "#{v.t}\t#{v.last}\t"
+          scheduler_jobs.each do |job|
+            log! "#{job.opts}\t#{job.last_time}\t"
           end
         end
       end
@@ -342,17 +342,16 @@ module Resque
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another.
           if Class === klass
-            Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(
-              klass, *params
-            )
-
-            # If the class is a custom job class, call self#scheduled on it.
-            # This allows you to do things like Resque.enqueue_at(timestamp,
-            # CustomJobClass). Otherwise, pass off to Resque.
-            if klass.respond_to?(:scheduled)
-              klass.scheduled(queue, klass_name, *params)
-            else
-              Resque.enqueue_to(queue, klass, *params)
+            Resque::Scheduler::Plugin.process_schedule_hooks(klass, *params) do
+              Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
+              # If the class is a custom job class, call self#scheduled on it.
+              # This allows you to do things like Resque.enqueue_at(timestamp,
+              # CustomJobClass). Otherwise, pass off to Resque.
+              if klass.respond_to?(:scheduled)
+                klass.scheduled(queue, klass_name, *params)
+              else
+                Resque.enqueue_to(queue, klass, *params)
+              end
             end
           else
             # This will not run the before_hooks in rescue, but will at least

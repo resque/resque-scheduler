@@ -2,6 +2,22 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [4.10.3] - 2024-12-30
+### Added
+* Expose timeout for lock via environment variable configuration by @pmm4654 in #786
+* Add Ruby 3.3 to the CI matrix by @santiagorodriguez96 in #797
+
+### Fixed
+* Fix schedule hooks when enqueuing configured job by @codealchemy in #792
+* Fix undefined `header` method CI failures by @codealchemy in #793
+
+### Documentation
+* Fix typo by @dijonkitchen in #789
+* Fix links to generated docs by @dijonkitchen in #790
+
+### Security
+* Bump github/codeql-action from 2 to 3 by @dependabot in #785
+
 ## [4.10.2] - 2023-12-15
 ### Fixed
 * Finish fixing CVE-2022-44303, XSS in delayed_schedules by @PatrickTulskie in #783
