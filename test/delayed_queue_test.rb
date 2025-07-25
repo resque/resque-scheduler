@@ -1,6 +1,14 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
 
+def assert_resque_key_exists?(key)
+  if Gem::Requirement.create('< 4').satisfied_by?(Gem::Version.create(Redis::VERSION))
+    assert(!Resque.redis.exists(key))
+  else
+    assert(!Resque.redis.exists?(key))
+  end
+end
+
 context 'DelayedQueue' do
   setup do
     Resque::Scheduler.quiet = true
@@ -41,7 +49,7 @@ context 'DelayedQueue' do
                  'Should have the same arguments that we queued')
 
     # And now confirm the keys are gone
-    assert(!Resque.redis.exists?("delayed:#{timestamp.to_i}"))
+    assert_resque_key_exists?("delayed:#{timestamp.to_i}")
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule),
                  'delayed queue should be empty')
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
@@ -84,7 +92,7 @@ context 'DelayedQueue' do
                  'Should have the queue that we asked for')
 
     # And now confirm the keys are gone
-    assert(!Resque.redis.exists?("delayed:#{timestamp.to_i}"))
+    assert_resque_key_exists?("delayed:#{timestamp.to_i}")
     assert_equal(0, Resque.redis.zcard(:delayed_queue_schedule),
                  'delayed queue should be empty')
     assert_equal(0, Resque.redis.scard("timestamps:#{encoded_job}"),
@@ -383,7 +391,7 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.delayed_timestamp_peek(t, 0, 3).length)
   end
 
-  context "non-batch delayed item queue" do
+  context 'non-batch delayed item queue' do
     batch_disabled = Resque::Scheduler.disable_delayed_requeue_batches
     batch_size = Resque::Scheduler.delayed_requeue_batch_size
     setup do
@@ -413,11 +421,9 @@ context 'DelayedQueue' do
       # assert that the active queue is now 90
       assert_equal(90, Resque.size(Resque.queue_from_class(SomeIvarJob)))
     end
-
-    # TODO clean up timestamp tests?
   end
 
-  context "batch delayed item queue" do
+  context 'batch delayed item queue' do
     batch_disabled = Resque::Scheduler.disable_delayed_requeue_batches
     batch_size = Resque::Scheduler.delayed_requeue_batch_size
     setup do
@@ -491,7 +497,6 @@ context 'DelayedQueue' do
 
       Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
     end
-
   end
 
   test 'enqueue_delayed_items_for_timestamp creates jobs ' \
@@ -1108,7 +1113,7 @@ context 'DelayedQueue' do
     assert_equal(
       1, Resque.remove_delayed_job_from_timestamp(t, SomeIvarJob, 'foo')
     )
-    assert !Resque.redis.exists?("delayed:#{t.to_i}")
+    assert_resque_key_exists?("delayed:#{t.to_i}")
     assert Resque.delayed_queue_peek(0, 100).empty?
   end
 
@@ -1149,7 +1154,7 @@ context 'DelayedQueue' do
       Resque.enqueue_at(timestamp, SomeIvarJob, 'foo', 'bar')
 
       assert_equal 0, Resque.count_all_scheduled_jobs
-      assert !Resque.redis.exists?("delayed:#{timestamp.to_i}")
+      assert_resque_key_exists?("delayed:#{timestamp.to_i}")
     ensure
       Resque.inline = false
     end

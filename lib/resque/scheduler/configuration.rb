@@ -76,7 +76,8 @@ module Resque
       attr_writer :disable_delayed_requeue_batches
 
       def disable_delayed_requeue_batches
-        @enable_delayed_requeue_batches ||= to_bool(environment['DISABLE_DELAYED_REQUEUE_BATCH'])
+        @enable_delayed_requeue_batches ||= \
+          to_bool(environment['DISABLE_DELAYED_REQUEUE_BATCH'])
       end
 
       # Amount of time in seconds to sleep between polls of the delayed

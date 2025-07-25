@@ -38,6 +38,7 @@ jobs:
           - "3.5"
           - "3.6"
         redis-version:
+          - "~> 3.x"
           - "~> 4.x"
           - "~> 5.x"
         exclude:
