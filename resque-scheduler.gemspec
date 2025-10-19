@@ -47,6 +47,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'json'
   spec.add_development_dependency 'minitest'
   spec.add_development_dependency 'mocha'
+  spec.add_development_dependency 'ostruct'
   spec.add_development_dependency 'pry'
   spec.add_development_dependency 'rack', '< 3'
   spec.add_development_dependency 'rack-test'
@@ -60,6 +61,7 @@ Gem::Specification.new do |spec|
   # positives for new contributors, which is not a nice experience.
   spec.add_development_dependency 'rubocop', '~> 0.40.0'
 
+  spec.add_runtime_dependency 'logger'
   spec.add_runtime_dependency 'mono_logger', '~> 1.0'
   spec.add_runtime_dependency 'redis', '>= 3.3'
   spec.add_runtime_dependency 'resque', '>= 1.27'
