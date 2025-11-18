@@ -76,7 +76,7 @@ module Resque
       attr_writer :disable_delayed_requeue_batches
 
       def disable_delayed_requeue_batches
-        @enable_delayed_requeue_batches ||= \
+        @disable_delayed_requeue_batches ||= \
           to_bool(environment['DISABLE_DELAYED_REQUEUE_BATCH'])
       end
 
