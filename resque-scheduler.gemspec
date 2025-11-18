@@ -13,6 +13,7 @@ Gem::Specification.new do |spec|
     Dan Buch
     Michael Bianco
     Patrick Tulskie
+    Justin Hart
   EOF
   spec.email = %w(
     bvandenbos@gmail.com
@@ -21,6 +22,7 @@ Gem::Specification.new do |spec|
     dan@meatballhat.com
     mike@mikebian.co
     patricktulskie@gmail.com
+    jhart@onyxraven.com
   )
   spec.summary = 'Light weight job scheduling on top of Resque'
   spec.description = <<-DESCRIPTION

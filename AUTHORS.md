@@ -90,3 +90,4 @@ Resque Scheduler authors
 - serek
 - iloveitaly
 - treacher
+- Justin Hart
