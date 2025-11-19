@@ -391,114 +391,6 @@ context 'DelayedQueue' do
     assert_equal(1, Resque.delayed_timestamp_peek(t, 0, 3).length)
   end
 
-  context 'non-batch delayed item queue' do
-    batch_disabled = Resque::Scheduler.disable_delayed_requeue_batches
-    batch_size = Resque::Scheduler.delayed_requeue_batch_size
-    setup do
-      Resque::Scheduler.quiet = true
-      Resque.data_store.redis.flushall
-      Resque::Scheduler.disable_delayed_requeue_batches = true
-      Resque::Scheduler.delayed_requeue_batch_size = 1
-    end
-
-    teardown do
-      Resque::Scheduler.disable_delayed_requeue_batches = batch_disabled
-      Resque::Scheduler.delayed_requeue_batch_size = batch_size
-    end
-
-    test 'enqueue_delayed_items_for_timestamp enqueues jobs for the timestamp' do
-      t = Time.now + 60
-
-      Resque::Scheduler.expects(:enqueue_items_in_batch_for_timestamp).never
-
-      # create 90 jobs
-      90.times { Resque.enqueue_at(t, SomeIvarJob) }
-      assert_equal(90, Resque.delayed_timestamp_size(t))
-
-      Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
-      assert_equal(0, Resque.delayed_timestamp_size(t))
-
-      # assert that the active queue is now 90
-      assert_equal(90, Resque.size(Resque.queue_from_class(SomeIvarJob)))
-    end
-  end
-
-  context 'batch delayed item queue' do
-    batch_disabled = Resque::Scheduler.disable_delayed_requeue_batches
-    batch_size = Resque::Scheduler.delayed_requeue_batch_size
-    setup do
-      Resque::Scheduler.quiet = true
-      Resque.data_store.redis.flushall
-      Resque::Scheduler.disable_delayed_requeue_batches = false
-      Resque::Scheduler.delayed_requeue_batch_size = 100
-    end
-
-    teardown do
-      Resque::Scheduler.disable_delayed_requeue_batches = batch_disabled
-      Resque::Scheduler.delayed_requeue_batch_size = batch_size
-    end
-
-    test 'enqueue_delayed_items_for_timestamp enqueues jobs in 2 batches' do
-      t = Time.now + 60
-
-      Resque::Scheduler.expects(:enqueue_next_item).never
-
-      # create 120 jobs
-      120.times { Resque.enqueue_at(t, SomeIvarJob) }
-      assert_equal(120, Resque.delayed_timestamp_size(t))
-
-      Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
-      assert_equal(0, Resque.delayed_timestamp_size(t))
-
-      # assert that the active queue is now 120
-      assert_equal(120, Resque.size(Resque.queue_from_class(SomeIvarJob)))
-    end
-
-    test 'enqueue_delayed_items_for_timestamp enqueues jobs in one batch for the timestamp' do
-      t = Time.now + 60
-
-      Resque::Scheduler.expects(:enqueue_next_item).never
-
-      # create 90 jobs
-      90.times { Resque.enqueue_at(t, SomeIvarJob) }
-      assert_equal(90, Resque.delayed_timestamp_size(t))
-
-      Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
-      assert_equal(0, Resque.delayed_timestamp_size(t))
-
-      # assert that the active queue is now 90
-      assert_equal(90, Resque.size(Resque.queue_from_class(SomeIvarJob)))
-    end
-
-    # test to make sure the timestamp is cleaned up
-
-    test 'enqueue_delayed_items_for_timestamp handles a watch failure' do
-      t = Time.now + 60
-
-      # create 100 jobs
-      100.times { Resque.enqueue_at(t, SomeIvarJob) }
-      assert_equal(100, Resque.delayed_timestamp_size(t))
-
-      Resque.redis.stubs(:watch).returns(nil)
-
-      Resque.expects(:clean_up_timestamp).never
-
-      Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
-    end
-
-    test 'enqueue_delayed_items_for_timestamp cleans up a timestamp' do
-      t = Time.now + 60
-
-      # create 100 jobs
-      100.times { Resque.enqueue_at(t, SomeIvarJob) }
-      assert_equal(100, Resque.delayed_timestamp_size(t))
-
-      Resque.expects(:clean_up_timestamp).once
-
-      Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
-    end
-  end
-
   test 'enqueue_delayed_items_for_timestamp creates jobs ' \
        'and empties the delayed queue' do
     t = Time.now + 60
@@ -1168,5 +1060,115 @@ context 'DelayedQueue' do
     assert !Resque.delayed?(SomeIvarJob, id: 2)
     assert Resque.delayed?(SomeIvarJob)
     assert !Resque.delayed?(SomeJob)
+  end
+end
+
+context 'DelayedQueue non-batch delayed item queue' do
+  batch_disabled = Resque::Scheduler.disable_delayed_requeue_batches
+  batch_size = Resque::Scheduler.delayed_requeue_batch_size
+  setup do
+    Resque::Scheduler.quiet = true
+    Resque.data_store.redis.flushall
+    Resque::Scheduler.disable_delayed_requeue_batches = true
+    Resque::Scheduler.delayed_requeue_batch_size = 1
+  end
+
+  teardown do
+    Resque::Scheduler.disable_delayed_requeue_batches = batch_disabled
+    Resque::Scheduler.delayed_requeue_batch_size = batch_size
+  end
+
+  test 'enqueue_delayed_items_for_timestamp enqueues jobs for the timestamp' do
+    t = Time.now + 60
+
+    # create 90 jobs at t
+    90.times { Resque.enqueue_at(t, SomeIvarJob) }
+    assert_equal(90, Resque.delayed_timestamp_size(t))
+    assert_equal(0, Resque.size(Resque.queue_from_class(SomeIvarJob)))
+
+    Resque::Scheduler.expects(:enqueue_items_in_batch_for_timestamp).never
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
+
+    # assert that the active queue is now 90
+    assert_equal(0, Resque.delayed_timestamp_size(t))
+    assert_equal(90, Resque.size(Resque.queue_from_class(SomeIvarJob)))
+  end
+end
+
+context 'DelayedQueue batch delayed item queue' do
+  batch_disabled = Resque::Scheduler.disable_delayed_requeue_batches
+  batch_size = Resque::Scheduler.delayed_requeue_batch_size
+  setup do
+    Resque::Scheduler.quiet = true
+    Resque.data_store.redis.flushall
+    Resque::Scheduler.disable_delayed_requeue_batches = false
+    Resque::Scheduler.delayed_requeue_batch_size = 100
+  end
+
+  teardown do
+    Resque::Scheduler.disable_delayed_requeue_batches = batch_disabled
+    Resque::Scheduler.delayed_requeue_batch_size = batch_size
+  end
+
+  test 'enqueue_delayed_items_for_timestamp enqueues jobs in 2 batches' do
+    t = Time.now + 60
+
+    # create 120 jobs
+    120.times { Resque.enqueue_at(t, SomeIvarJob) }
+    assert_equal(120, Resque.delayed_timestamp_size(t))
+    assert_equal(0, Resque.size(Resque.queue_from_class(SomeIvarJob)))
+
+    Resque::Scheduler.expects(:enqueue_next_item).never
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
+
+    # assert that the active queue is now 120
+    assert_equal(0, Resque.delayed_timestamp_size(t))
+    assert_equal(120, Resque.size(Resque.queue_from_class(SomeIvarJob)))
+  end
+
+  test 'enqueue_delayed_items_for_timestamp enqueues jobs in one batch for the timestamp' do
+    t = Time.now + 60
+
+    # create 90 jobs
+    90.times { Resque.enqueue_at(t, SomeIvarJob) }
+    assert_equal(90, Resque.delayed_timestamp_size(t))
+    assert_equal(0, Resque.size(Resque.queue_from_class(SomeIvarJob)))
+
+    Resque::Scheduler.expects(:enqueue_next_item).never
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
+
+    # assert that the active queue is now 90
+    assert_equal(0, Resque.delayed_timestamp_size(t))
+    assert_equal(90, Resque.size(Resque.queue_from_class(SomeIvarJob)))
+  end
+
+  # test to make sure the timestamp is cleaned up
+  test 'enqueue_delayed_items_for_timestamp handles a watch failure' do
+    t = Time.now + 60
+
+    # create 100 jobs
+    100.times { Resque.enqueue_at(t, SomeIvarJob) }
+    assert_equal(100, Resque.delayed_timestamp_size(t))
+
+    Resque.redis.stubs(:watch).returns(nil)
+
+    Resque.expects(:clean_up_timestamp).never
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
+  end
+
+  test 'enqueue_delayed_items_for_timestamp cleans up a timestamp' do
+    t = Time.now + 60
+
+    # create 100 jobs
+    100.times { Resque.enqueue_at(t, SomeIvarJob) }
+    assert_equal(100, Resque.delayed_timestamp_size(t))
+
+    Resque.expects(:clean_up_timestamp).once
+
+    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
   end
 end
