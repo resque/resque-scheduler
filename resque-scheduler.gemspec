@@ -49,7 +49,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'ostruct'
   spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'rack', '< 3'
+  spec.add_development_dependency 'rack', '< 4'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'simplecov'
