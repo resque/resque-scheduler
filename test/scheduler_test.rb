@@ -29,7 +29,7 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.enqueue_from_config(config)
   end
 
-  test 'enqueue runs hooks' do
+  test 'enqueue_from_config runs before_delayed_enqueue and resque hooks but not schedule hooks' do
     Resque::Scheduler.env = 'production'
     config = {
       'cron' => '* * * * *',
@@ -40,11 +40,14 @@ context 'Resque::Scheduler' do
     Resque::Job.expects(:create).with(
       SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
     )
-    SomeJobWithResqueHooks.expects(:before_schedule).with('/tmp')
+    # Schedule hooks are NOT called from enqueue_from_config (only from enqueue_recurring)
+    SomeJobWithResqueHooks.expects(:before_schedule).never
+    SomeJobWithResqueHooks.expects(:after_schedule).never
+    # before_delayed_enqueue IS called
     SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example).with('/tmp')
+    # Resque hooks are still called
     SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp')
     SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp')
-    SomeJobWithResqueHooks.expects(:after_schedule).with('/tmp')
 
     Resque::Scheduler.enqueue_from_config(config)
   end
