@@ -296,16 +296,7 @@ module Resque
 
       # Enqueues a job based on a config hash
       def enqueue_from_config(job_config)
-        args = job_config['args'] || job_config[:args]
-
-        klass_name = job_config['class'] || job_config[:class]
-        begin
-          klass = Resque::Scheduler::Util.constantize(klass_name)
-        rescue NameError
-          klass = klass_name
-        end
-
-        params = args.is_a?(Hash) ? [args] : Array(args)
+        klass, klass_name, params = extract_klass_and_params(job_config)
         queue = job_config['queue'] ||
                 job_config[:queue] ||
                 Resque.queue_from_class(klass)
@@ -331,16 +322,14 @@ module Resque
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another.
           if Class === klass
-            Resque::Scheduler::Plugin.process_schedule_hooks(klass, *params) do
-              Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
-              # If the class is a custom job class, call self#scheduled on it.
-              # This allows you to do things like Resque.enqueue_at(timestamp,
-              # CustomJobClass). Otherwise, pass off to Resque.
-              if klass.respond_to?(:scheduled)
-                klass.scheduled(queue, klass_name, *params)
-              else
-                Resque.enqueue_to(queue, klass, *params)
-              end
+            Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
+            # If the class is a custom job class, call self#scheduled on it.
+            # This allows you to do things like Resque.enqueue_at(timestamp,
+            # CustomJobClass). Otherwise, pass off to Resque.
+            if klass.respond_to?(:scheduled)
+              klass.scheduled(queue, klass_name, *params)
+            else
+              Resque.enqueue_to(queue, klass, *params)
             end
           else
             # This will not run the before_hooks in rescue, but will at least
@@ -490,11 +479,36 @@ module Resque
       private
 
       def enqueue_recurring(name, config)
-        if am_master
-          log! "queueing #{config['class']} (#{name})"
+        return unless am_master
+
+        log! "queueing #{config['class']} (#{name})"
+
+        klass, _klass_name, params = extract_klass_and_params(config)
+
+        # Run schedule hooks for cron/recurring jobs
+        if Class === klass
+          Resque::Scheduler::Plugin.process_schedule_hooks(klass, *params) do
+            enqueue(config)
+          end
+        else
           enqueue(config)
-          Resque.last_enqueued_at(name, Time.now.to_s)
         end
+
+        Resque.last_enqueued_at(name, Time.now.to_s)
+      end
+
+      def extract_klass_and_params(config)
+        klass_name = config['class'] || config[:class]
+        klass = begin
+          Resque::Scheduler::Util.constantize(klass_name)
+        rescue NameError
+          klass_name
+        end
+
+        args = config['args'] || config[:args]
+        params = args.is_a?(Hash) ? [args] : Array(args)
+
+        [klass, klass_name, params]
       end
 
       def app_str
