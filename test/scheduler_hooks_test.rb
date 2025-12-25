@@ -36,7 +36,6 @@ context 'scheduling jobs with hooks' do
 
   test 'before_schedule hook that does not return false should be enqueued' do
     enqueue_time = Time.now + 1
-    # Use string 'foo' since JSON serialization converts symbols to strings
     SomeRealClass.expects(:before_schedule_example).with('foo')
     SomeRealClass.expects(:after_schedule_example).with('foo')
     Resque.enqueue_at(enqueue_time.to_i, SomeRealClass, 'foo')
@@ -46,7 +45,6 @@ context 'scheduling jobs with hooks' do
 
   test 'before_schedule hook that returns false should not be enqueued' do
     enqueue_time = Time.now + 1
-    # Use string 'foo' since JSON serialization converts symbols to strings
     SomeRealClass.expects(:before_schedule_example).with('foo').returns(false)
     SomeRealClass.expects(:after_schedule_example).never
     Resque.enqueue_at(enqueue_time.to_i, SomeRealClass, 'foo')
