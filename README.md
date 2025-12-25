@@ -502,12 +502,13 @@ A future version of resque-scheduler may do this for you.
 Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
 (>= 1.19.1), your jobs can specify one or more of the following hooks:
 
-* `before_schedule`: Called with the job args before a job is placed on
-  the delayed queue. If the hook returns `false`, the job will not be placed on
-  the queue.
-* `after_schedule`: Called with the job args after a job is placed on the
-  delayed queue. Any exception raised propagates up to the code with queued the
-  job.
+* `before_schedule`: Called with the job args before a job is scheduled. This
+  includes delayed jobs (when placed on the delayed queue via `enqueue_at`/`enqueue_in`)
+  and recurring cron jobs (each time the job is enqueued).
+  If the hook returns `false`, the job will not be enqueued.
+* `after_schedule`: Called with the job args after a job is scheduled (same
+  scenarios as `before_schedule`). Any exception raised propagates up to the
+  calling code.
 * `before_delayed_enqueue`: Called with the job args after the job has been
   removed from the delayed queue, but not yet put on a normal queue. It is
   called before `before_enqueue`-hooks, and on the same job instance as the
