@@ -12,7 +12,7 @@ context 'scheduling jobs with hooks' do
     }
   end
 
-  # helper to inspected the queue
+  # helper to inspect the queue
   def enqueued
     Resque.redis.lrange("queue:#{SomeRealClass.queue}", 0, -1).map(&JSON.method(:parse))
   end
@@ -50,6 +50,86 @@ context 'scheduling jobs with hooks' do
     Resque.enqueue_at(enqueue_time.to_i, SomeRealClass, :foo)
     assert_equal(0, Resque.delayed_timestamp_size(enqueue_time.to_i),
                  'job should not be enqueued')
+  end
+
+  test 'schedule hooks are not called when timestamp is in the past' do
+    SomeRealClass.expects(:before_schedule_example).never
+    SomeRealClass.expects(:after_schedule_example).never
+
+    past_time = Time.now - 3600
+    Resque.enqueue_at(past_time, SomeRealClass, :foo)
+
+    assert_equal(0, Resque.count_all_scheduled_jobs,
+                 'job should not be in delayed queue')
+    assert_equal(1, Resque.redis.llen("queue:#{SomeRealClass.queue}"),
+                 'job should be in work queue')
+  end
+
+  test 'schedule hooks are not called when timestamp equals now' do
+    Timecop.freeze do
+      SomeRealClass.expects(:before_schedule_example).never
+      SomeRealClass.expects(:after_schedule_example).never
+
+      Resque.enqueue_at(Time.now, SomeRealClass, :foo)
+
+      assert_equal(0, Resque.count_all_scheduled_jobs,
+                   'job should not be in delayed queue')
+      assert_equal(1, Resque.redis.llen("queue:#{SomeRealClass.queue}"),
+                   'job should be in work queue')
+    end
+  end
+
+  test 'schedule hooks are called when timestamp is in the future' do
+    future_time = Time.now + 3600
+    SomeRealClass.expects(:before_schedule_example).with(:foo)
+    SomeRealClass.expects(:after_schedule_example).with(:foo)
+
+    Resque.enqueue_at(future_time, SomeRealClass, :foo)
+
+    assert_equal(1, Resque.count_all_scheduled_jobs,
+                 'job should be in delayed queue')
+    assert_equal(0, Resque.redis.llen("queue:#{SomeRealClass.queue}"),
+                 'job should not be in work queue')
+  end
+
+  test 'resque enqueue hooks are called when timestamp is in the past' do
+    SomeJobWithResqueHooks.expects(:before_enqueue_example).with(:foo)
+    SomeJobWithResqueHooks.expects(:after_enqueue_example).with(:foo)
+
+    past_time = Time.now - 3600
+    Resque.enqueue_at(past_time, SomeJobWithResqueHooks, :foo)
+
+    assert_equal(0, Resque.count_all_scheduled_jobs,
+                 'job should not be in delayed queue')
+    assert_equal(1, Resque.redis.llen("queue:#{SomeJobWithResqueHooks.queue}"),
+                 'job should be in work queue')
+  end
+
+  test 'resque enqueue hooks are called when timestamp equals now' do
+    Timecop.freeze do
+      SomeJobWithResqueHooks.expects(:before_enqueue_example).with(:foo)
+      SomeJobWithResqueHooks.expects(:after_enqueue_example).with(:foo)
+
+      Resque.enqueue_at(Time.now, SomeJobWithResqueHooks, :foo)
+
+      assert_equal(0, Resque.count_all_scheduled_jobs,
+                   'job should not be in delayed queue')
+      assert_equal(1, Resque.redis.llen("queue:#{SomeJobWithResqueHooks.queue}"),
+                   'job should be in work queue')
+    end
+  end
+
+  test 'resque enqueue hooks are not called when timestamp is in the future' do
+    SomeJobWithResqueHooks.expects(:before_enqueue_example).never
+    SomeJobWithResqueHooks.expects(:after_enqueue_example).never
+
+    future_time = Time.now + 3600
+    Resque.enqueue_at(future_time, SomeJobWithResqueHooks, :foo)
+
+    assert_equal(1, Resque.count_all_scheduled_jobs,
+                 'job should be in delayed queue')
+    assert_equal(0, Resque.redis.llen("queue:#{SomeJobWithResqueHooks.queue}"),
+                 'job should not be in work queue')
   end
 
   test 'default failure hooks are called when enqueueing a job fails' do
