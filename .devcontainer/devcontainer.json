@@ -1,0 +1,41 @@
+{
+  "name": "Resque Scheduler Dev Container",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/resque-scheduler",
+  
+  // Features to add to the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rebornix.ruby"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  
+  // Use 'forwardPorts' to make a list of ports inside the container available locally
+  "forwardPorts": [6379],
+  
+  // Use 'postCreateCommand' to run commands after the container is created
+  "postCreateCommand": "bundle install",
+  
+  // Set environment variables for the test matrix
+  "containerEnv": {
+    "REDIS_VERSION": "latest",
+    "RESQUE": "master",
+    "RUFUS_SCHEDULER": "3.6",
+    "RACK_VERSION": "3",
+    "COVERAGE": "1"
+  },
+  
+  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
+  "remoteUser": "vscode"
+}

@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+    working_dir: /workspaces/resque-scheduler
+    command: sleep infinity
+    environment:
+      REDIS_VERSION: "latest"
+      RESQUE: "master"
+      RUFUS_SCHEDULER: "3.6"
+      RACK_VERSION: "3"
+      COVERAGE: "1"
+      REDIS_URL: "redis://redis:6379"
+    depends_on:
+      - redis
+    # Runs app on the same network as the redis container, allows "forwardPorts" in devcontainer.json function
+    network_mode: service:redis
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
