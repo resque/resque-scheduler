@@ -24,10 +24,10 @@ context 'Resque::Scheduler' do
   test 'sending TERM to scheduler breaks out of poll_sleep' do
     Resque::Scheduler.expects(:release_master_lock)
 
-    @pid = Process.pid
+    pid = Process.pid
     Thread.new do
       sleep(0.05)
-      Process.kill(:TERM, @pid)
+      Process.kill(:TERM, pid)
     end
 
     assert_raises SystemExit do
@@ -41,10 +41,10 @@ context 'Resque::Scheduler' do
   test 'can start successfully' do
     Resque::Scheduler.poll_sleep_amount = nil
 
-    @pid = Process.pid
+    pid = Process.pid
     Thread.new do
       sleep(0.15)
-      Process.kill(:TERM, @pid)
+      Process.kill(:TERM, pid)
     end
 
     assert_raises SystemExit do
@@ -56,10 +56,10 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.poll_sleep_amount = 0
     Resque::Scheduler.expects(:release_master_lock)
 
-    @pid = Process.pid
+    pid = Process.pid
     Thread.new do
       sleep(0.05)
-      Process.kill(:TERM, @pid)
+      Process.kill(:TERM, pid)
     end
 
     assert_raises SystemExit do
@@ -86,10 +86,10 @@ context 'Resque::Scheduler' do
     test 'logs scheduler master' do
       Resque::Scheduler.expects(:master?).returns(true)
 
-      @pid = Process.pid
+      pid = Process.pid
       Thread.new do
         sleep(0.1)
-        Process.kill(:TERM, @pid)
+        Process.kill(:TERM, pid)
       end
 
       assert_raises SystemExit do
@@ -102,10 +102,10 @@ context 'Resque::Scheduler' do
     test 'logs scheduler child' do
       Resque::Scheduler.expects(:master?).returns(false)
 
-      @pid = Process.pid
+      pid = Process.pid
       Thread.new do
         sleep(0.1)
-        Process.kill(:TERM, @pid)
+        Process.kill(:TERM, pid)
       end
 
       assert_raises SystemExit do
