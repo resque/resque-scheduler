@@ -19,62 +19,29 @@ jobs:
       fail-fast: false
       matrix:
         ruby-version:
-          - 2.3
-          - 2.4
-          - 2.5
-          - 2.6
-          - 2.7
           - "3.0"
           - 3.1
           - 3.2
           - 3.3
           - 3.4
+          - head
         resque-version:
           - "master"
-          - "~> 2.4.0"
-          - "~> 1.27"
         rufus-scheduler:
-          - "3.2"
           - "3.4"
           - "3.5"
           - "3.6"
         redis-version:
-          - "~> 4.x"
-          - "~> 5.x"
-        exclude:
-          - ruby-version: head
-            rufus-scheduler: 3.2
-          - ruby-version: 3.2
-            rufus-scheduler: 3.2
-          - ruby-version: 3.3
-            rufus-scheduler: 3.2
-          - ruby-version: 3.4
-            rufus-scheduler: 3.2
-
-          - ruby-version: 2.3
-            resque-version: "~> 1.27"
-            rufus-scheduler: 3.4
-          - ruby-version: 2.3
-            resque-version: "~> 1.27"
-            rufus-scheduler: 3.5
-          - ruby-version: 2.5
-            resque-version: "~> 2.4.0"
-            rufus-scheduler: 3.5
-          - ruby-version: 2.5
-            resque-version: master
-            rufus-scheduler: 3.2
-
-          - ruby-version: 2.3
-            redis-version: "~> 5.x"
-          - ruby-version: 2.4
-            redis-version: "~> 5.x"
-
-          - resque-version: "~> 1.27"
-            redis-version: "~> 5.x"
+          - "4.8"
+          - "latest"
+        rack-version:
+          - 2
+          - 3
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
       RESQUE: "${{ matrix.resque-version }}"
       RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
+      RACK_VERSION: "${{ matrix.rack-version }}"
       COVERAGE: 1
 
     steps:
