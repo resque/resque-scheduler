@@ -64,6 +64,7 @@ Style/FileName:
 Style/GuardClause:
   Exclude:
     - 'lib/resque/scheduler/lock/basic.rb'
+    - 'lib/resque/scheduler.rb'
 
 # Offense count: 1
 Style/IfInsideElse:

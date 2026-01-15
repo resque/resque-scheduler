@@ -1,18 +1,33 @@
 inherit_from: .rubocop_todo.yml
 
 AllCops:
-  Include:
-  - Gemfile
-  - '**/Rakefile'
-  - resque-scheduler.gemspec
-  - bin/resque-scheduler
+  TargetRubyVersion: 3.0
+  # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
+  # to ignore them, so only the ones explicitly set in this file are enabled.
+  DisabledByDefault: true
+  Exclude:
+    - 'log/**/*'
+    - 'vendor/**/*'
+    - 'examples/**/*'
+
+Layout/IndentationStyle:
+  Enabled: true
+
+Layout/TrailingEmptyLines:
+  Enabled: true
+
+Layout/TrailingWhitespace:
+  Enabled: true
+
+Metrics/ClassLength:
+  Enabled: true
+  Max: 110
 
 Documentation:
   Enabled: false
 
 Style/DoubleNegation:
   Enabled: false
+
 Metrics/PerceivedComplexity:
   Enabled: false
-Metrics/ClassLength:
-  Max: 110
