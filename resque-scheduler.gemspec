@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.license = 'MIT'
   spec.metadata['rubygems_mfa_required'] = 'true'
 
-  spec.required_ruby_version = '>= 2.3.0'
+  spec.required_ruby_version = '>= 3.0.0'
 
   spec.files = `git ls-files -z`.split("\0").reject do |f|
     f.match(%r{^(test|spec|features|examples|bin|tasks)/}) ||
@@ -49,7 +49,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'mocha'
   spec.add_development_dependency 'ostruct'
   spec.add_development_dependency 'pry'
-  spec.add_development_dependency 'rack', '< 3'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'simplecov'
@@ -61,10 +60,11 @@ Gem::Specification.new do |spec|
   # positives for new contributors, which is not a nice experience.
   spec.add_development_dependency 'rubocop', '~> 0.40.0'
 
+  spec.add_runtime_dependency 'base64', '~> 0.1'
   spec.add_runtime_dependency 'logger'
   spec.add_runtime_dependency 'mono_logger', '~> 1.0'
-  spec.add_runtime_dependency 'redis', '>= 3.3'
-  spec.add_runtime_dependency 'resque', '>= 1.27'
+  spec.add_runtime_dependency 'redis', '>= 4.0'
+  spec.add_runtime_dependency 'resque', '>= 3.0'
   # rufus-scheduler v3.7 causes a failure in test/multi_process_test.rb
   # rufus-scheduler v3.3 is missing a to_local method which fails tests
   spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2', '!= 3.3'
