@@ -119,7 +119,9 @@ context 'on GET to /delayed/jobs/:klass' do
   test('is 200') { assert last_response.ok? }
 
   test 'see the scheduled job' do
-    assert last_response.body.include?(@t.to_s)
+    formatted_time = @t.strftime('%Y-%m-%d %H:%M:%S %z')
+    assert last_response.body.include?(formatted_time),
+           "Expected response to include timestamp #{formatted_time}"
   end
 
   context 'with a namespaced class' do
@@ -142,7 +144,9 @@ context 'on GET to /delayed/jobs/:klass' do
     test('is 200') { assert last_response.ok? }
 
     test 'see the scheduled job' do
-      assert last_response.body.include?(@t.to_s)
+      formatted_time = @t.strftime('%Y-%m-%d %H:%M:%S %z')
+      assert last_response.body.include?(formatted_time),
+             "Expected response to include timestamp #{formatted_time}"
     end
   end
 end
@@ -187,7 +191,7 @@ context 'POST /schedule/requeue' do
 
     post '/schedule/requeue', 'job_name' => job_name
     follow_redirect!
-    assert_equal 'http://example.org/overview', last_request.url
+    assert_equal 'http://localhost/overview', last_request.url
     assert last_response.ok?
   end
 
@@ -237,7 +241,7 @@ context 'POST /schedule/requeue_with_params' do
          'log_level' => log_level
 
     follow_redirect!
-    assert_equal 'http://example.org/overview', last_request.url
+    assert_equal 'http://localhost/overview', last_request.url
 
     assert last_response.ok?, last_response.errors
   end

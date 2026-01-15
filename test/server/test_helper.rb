@@ -5,8 +5,13 @@ module Resque
   module TestHelper
     class Test::Unit::TestCase # rubocop:disable Style/ClassAndModuleChildren
       include Rack::Test::Methods
+
       def app
         Resque::Server.new
+      end
+
+      def default_host
+        'localhost'
       end
 
       def self.should_respond_with_success
