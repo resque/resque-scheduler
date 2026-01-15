@@ -2,6 +2,36 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [5.0.0] - 2026-01-15
+### Breaking Changes
+* Ruby requirement: `>= 2.3.0` → `>= 3.0.0`
+* Resque dependency: `>= 1.27` → `>= 3.0`
+* Redis dependency: `>= 3.3` → `>= 4.0`
+* Removed `rack < 3` constraint
+
+### Added
+* Add Ruby 3.4 to the CI matrix by @and9000 in #804
+* Added `base64 ~> 0.1` runtime dependency (Ruby 3.4+ compatibility) by @PatrickTulskie in #809
+* Added `irb` dev dependency (Ruby 4+ compatibility) by @PatrickTulskie in #809
+* Added Rack 2/3 matrix testing by @PatrickTulskie in #809
+
+### Changed
+* Prepare for resque 3.0 compatibility by @PatrickTulskie in #809
+  * CI now tests Ruby 3.0-3.4 + head only (removed Ruby 2.x)
+  * Simplified to test against resque master only
+  * Modernized `.rubocop.yml` to `DisabledByDefault: true` approach
+  * Set `TargetRubyVersion: 3.0`
+  * Updated rubocop: `~> 0.40.0` → `~> 0.80`
+* Use `JSON.parse` instead of `JSON.load` (security improvement) by @PatrickTulskie in #809
+* Use `URI.decode_www_form_component` instead of `CGI.unescape` by @PatrickTulskie in #809
+* Consistent time formatting in views by @PatrickTulskie in #809
+
+### Fixed
+* Fix `Resque::Scheduler.print_schedule` by @codealchemy in #794
+* Remove circular require for resque from resque-scheduler by @zzak in #795
+* Fixed test compatibility with Rack 3 by @PatrickTulskie in #809
+* Fixed race condition in scheduler task tests by @PatrickTulskie in #809
+
 ## [4.10.3] - 2024-12-30
 ### Added
 * Expose timeout for lock via environment variable configuration by @pmm4654 in #786
