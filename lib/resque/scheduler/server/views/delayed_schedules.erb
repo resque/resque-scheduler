@@ -8,7 +8,7 @@
 <% @timestamps.each do |t| %>
 <tr>
   <td>
-    <%= Time.at(t) %>
+    <%= format_time(Time.at(t)) %>
   </td>
 </tr>
 <% end %>
