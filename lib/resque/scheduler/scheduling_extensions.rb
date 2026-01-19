@@ -85,7 +85,7 @@ module Resque
       def set_schedule(name, config, reload = true)
         persist = config.delete(:persist) || config.delete('persist')
 
-        if persist
+        if persist.nil? || persist
           redis.hset(:persistent_schedules, name, encode(config))
         else
           non_persistent_schedules[name] = decode(encode(config))
