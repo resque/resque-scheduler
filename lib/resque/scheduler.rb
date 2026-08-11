@@ -49,6 +49,7 @@ module Resque
         $stderr.sync = true
 
         was_master = nil
+        schedule_loaded = false
 
         begin
           @th = Thread.current
@@ -61,8 +62,14 @@ module Resque
               if am_master != was_master
                 procline am_master ? 'Master scheduler' : 'Child scheduler'
 
-                # Load schedule because changed
-                reload_schedule!
+                # The first pass always loads the schedule - load_schedule!
+                # reads am_master, so it cannot run before the check above.
+                # After that, only a dynamic schedule can have changed while
+                # we were not master.
+                if dynamic || !schedule_loaded
+                  reload_schedule!
+                  schedule_loaded = true
+                end
               end
 
               if am_master
