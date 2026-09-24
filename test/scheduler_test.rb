@@ -120,6 +120,36 @@ context 'Resque::Scheduler' do
     assert Resque::Scheduler.scheduled_jobs.keys.include?('some_ivar_job')
   end
 
+  test 'load_schedule_job skips an invalid cron with options' do
+    Resque::Scheduler.expects(:log_error).with(
+      regexp_matches(/Invalid cron schedule for bad_job:/)
+    )
+
+    Resque::Scheduler.load_schedule_job(
+      'bad_job',
+      'cron' => ['not a cron', { 'allow_overlapping' => 'true' }],
+      'class' => 'SomeIvarJob'
+    )
+
+    assert_empty Resque::Scheduler.rufus_scheduler.jobs
+    assert_empty Resque::Scheduler.scheduled_jobs
+  end
+
+  test 'load_schedule continues after an invalid cron' do
+    Resque.schedule = {
+      'bad_job' => { 'cron' => 'not a cron', 'class' => 'SomeIvarJob' },
+      'good_job' => { 'cron' => '* * * * *', 'class' => 'SomeIvarJob' }
+    }
+    Resque::Scheduler.expects(:log_error).with(
+      regexp_matches(/Invalid cron schedule for bad_job:/)
+    )
+
+    Resque::Scheduler.load_schedule!
+
+    assert_equal ['good_job'], Resque::Scheduler.scheduled_jobs.keys
+    assert_equal 1, Resque::Scheduler.rufus_scheduler.jobs.size
+  end
+
   test 'load_schedule_job with every with options' do
     Resque::Scheduler.load_schedule_job(
       'some_ivar_job',
