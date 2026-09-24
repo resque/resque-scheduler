@@ -2,6 +2,10 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [Unreleased]
+### Added
+* Add a Railtie that loads the rake tasks and web UI tabs automatically in Rails apps by @josh-m-sharpe in #694
+
 ## [5.0.0] - 2026-01-15
 ### Breaking Changes
 * Ruby requirement: `>= 2.3.0` → `>= 3.0.0`
