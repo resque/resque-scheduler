@@ -155,8 +155,13 @@ module Resque
             args = optionizate_interval_value(config[interval_type])
             args = [args, nil, job: true] if args.is_a?(::String)
 
-            job = rufus_scheduler.send(interval_type, *args) do
-              enqueue_recurring(name, config)
+            begin
+              job = rufus_scheduler.send(interval_type, *args) do
+                enqueue_recurring(name, config)
+              end
+            rescue ArgumentError => e
+              log_error "Invalid #{interval_type} schedule for #{name}: #{e.message} - skipping"
+              return
             end
             @scheduled_jobs[name] = job
             interval_defined = true
