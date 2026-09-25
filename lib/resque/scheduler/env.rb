@@ -67,13 +67,21 @@ module Resque
 
           c.logformat = options[:logformat] if options.key?(:logformat)
 
-          c.lock_timeout = options[:lock_timeout] if options.key?(:lock_timeout)
+          c.lock_timeout = options[:lock_timeout].to_i if options.key?(:lock_timeout)
 
           if (psleep = options[:poll_sleep_amount]) && !psleep.nil?
             c.poll_sleep_amount = Float(psleep)
           end
 
           c.verbose = !!options[:verbose] if options.key?(:verbose)
+
+          if options.key?(:delayed_requeue_batch_size)
+            c.delayed_requeue_batch_size = options[:delayed_requeue_batch_size].to_i
+          end
+
+          if options.key?(:disable_delayed_requeue_batches)
+            c.disable_delayed_requeue_batches = !!options[:disable_delayed_requeue_batches]
+          end
         end
       end
       # rubocop:enable Metrics/AbcSize

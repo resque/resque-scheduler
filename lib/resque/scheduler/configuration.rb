@@ -65,10 +65,19 @@ module Resque
         @app_name ||= environment['APP_NAME']
       end
 
+      attr_writer :delayed_requeue_batch_size
+
       def delayed_requeue_batch_size
         @delayed_requeue_batch_size ||= \
           ENV['DELAYED_REQUEUE_BATCH_SIZE'].to_i if environment['DELAYED_REQUEUE_BATCH_SIZE']
         @delayed_requeue_batch_size ||= 100
+      end
+
+      attr_writer :disable_delayed_requeue_batches
+
+      def disable_delayed_requeue_batches
+        @disable_delayed_requeue_batches ||= \
+          to_bool(environment['DISABLE_DELAYED_REQUEUE_BATCH'])
       end
 
       # Amount of time in seconds to sleep between polls of the delayed
