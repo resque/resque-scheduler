@@ -2,6 +2,23 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [5.0.1] - 2026-10-11
+### Changed
+* Pipeline `count_all_scheduled_jobs` for significantly faster execution by @top-sigrid in #822
+* Avoid unnecessary reloads in static mode by @ekmartin in #823
+
+### Fixed
+* Skip invalid schedules without interrupting scheduler loading by @taf2 in #543
+* Encode a delayed job once so its timestamps key can be cleaned up by @kamaljoshi in #827 (originally #599)
+* Log to the logfile when backgrounded by @meatballhat in #828 (originally #568)
+* Require redis before using its error classes by @neuromanskie in #829
+* Fix flaky test by using strings instead of symbols for JSON-serialized args by @top-sigrid in #813
+
+### Security
+* Escape job class and queue names in the scheduler web UI by @PatrickTulskie in #830
+* Escape schedule names and parameters on the requeue params page by @PatrickTulskie in #831
+* Escape the scheduler environment and master lock holder on the schedule page by @PatrickTulskie in #832
+
 ## [5.0.0] - 2026-01-15
 ### Breaking Changes
 * Ruby requirement: `>= 2.3.0` → `>= 3.0.0`
