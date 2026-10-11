@@ -32,7 +32,7 @@
 * Fixed test compatibility with Rack 3 by @PatrickTulskie in #809
 * Fixed race condition in scheduler task tests by @PatrickTulskie in #809
 
-## [4.10.3] - 2024-12-30
+## [4.11.0] - 2024-12-30
 ### Added
 * Expose timeout for lock via environment variable configuration by @pmm4654 in #786
 * Add Ruby 3.3 to the CI matrix by @santiagorodriguez96 in #797
