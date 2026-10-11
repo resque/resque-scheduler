@@ -319,6 +319,34 @@ context 'on POST to /delayed/search' do
   end
 end
 
+context 'with markup in a job class and queue name' do
+  setup do
+    @payload = %q{"><svg onload=alert(1)>}
+    @timestamp = Time.now.to_i + 3600
+    Resque.enqueue_at_with_queue(@payload, @timestamp, @payload, 'arg')
+    Resque.push(@payload, 'class' => @payload, 'args' => [])
+  end
+
+  teardown do
+    Resque.reset_delayed_queue
+    Resque.remove_queue(@payload)
+  end
+
+  test 'search results escape them' do
+    post '/delayed/search', 'search' => 'svg'
+
+    assert !last_response.body.include?(@payload)
+    assert last_response.body.include?(Rack::Utils.escape_html(@payload))
+  end
+
+  test 'the delayed timestamp page escapes them' do
+    get "/delayed/#{@timestamp}"
+
+    assert !last_response.body.include?(@payload)
+    assert last_response.body.include?(Rack::Utils.escape_html(@payload))
+  end
+end
+
 context 'on POST to /delayed/cancel_now' do
   setup do
     Resque.reset_delayed_queue

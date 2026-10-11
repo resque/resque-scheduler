@@ -22,13 +22,13 @@
         <td style="padding-top: 12px; padding-bottom: 2px; width: 10px">
           <form action="<%= u "/delayed/cancel_now" %>" method="post">
             <input type="hidden" name="timestamp" value="<%= job['timestamp'].to_i %>">
-            <input type="hidden" name="klass" value="<%= job['class'] %>">
+            <input type="hidden" name="klass" value="<%= h job['class'] %>">
             <input type="hidden" name="args" value="<%= h(Resque.encode job['args']) %>">
             <input type="submit" value="Cancel Job">
           </form>
         </td>
         <td class='args'><%= format_time(Time.at(job['timestamp'])) %></td>
-        <td class='class'><%= job['class'] %></td>
+        <td class='class'><%= h job['class'] %></td>
         <td class='args'><%= h job['args'].inspect %></td>
       </tr>
   <% end %>
@@ -44,8 +44,8 @@
   </tr>
   <% queued.each do |job| %>
   <tr>
-    <td class='class'><%= job['queue'] %></td>
-    <td class='class'><%= job['class'] %></td>
+    <td class='class'><%= h job['queue'] %></td>
+    <td class='class'><%= h job['class'] %></td>
     <td class='args'><%= h job['args'].inspect %></td>
   </tr>
   <% end %>
@@ -61,8 +61,8 @@
   </tr>
   <% working.each do |job| %>
   <tr>
-    <td class='class'><%= job['queue'] %></td>
-    <td class='class'><%= job['class'] %></td>
+    <td class='class'><%= h job['queue'] %></td>
+    <td class='class'><%= h job['class'] %></td>
     <td class='args'><%= h job['args'].inspect %></td>
   </tr>
   <% end %>
