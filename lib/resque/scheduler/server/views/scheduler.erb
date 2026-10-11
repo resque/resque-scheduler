@@ -4,8 +4,8 @@
   The list below contains all scheduled jobs.  Click &quot;Queue now&quot; to queue
   a job immediately.
   <br/> Server local time: <%= Time.now %>
-  <br/> Server Environment: <%= Resque::Scheduler.env %>
-  <br/> Current master: <%= Resque.redis.get(Resque::Scheduler.master_lock.key) %>
+  <br/> Server Environment: <%= h Resque::Scheduler.env %>
+  <br/> Current master: <%= h Resque.redis.get(Resque::Scheduler.master_lock.key) %>
 </p>
 <p class='intro'>
   The highlighted jobs are skipped for current environment.

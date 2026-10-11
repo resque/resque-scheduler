@@ -74,6 +74,24 @@ context 'on GET to /schedule with scheduled jobs' do
   end
 end
 
+context 'on GET to /schedule with markup in the environment and master lock' do
+  setup do
+    @payload = %q{"><svg onload=alert(1)>}
+    Resque.schedule = {}
+    Resque::Scheduler.stubs(:env).returns(@payload)
+    Resque.redis.set(Resque::Scheduler.master_lock.key, @payload)
+  end
+
+  teardown { Resque.redis.del(Resque::Scheduler.master_lock.key) }
+
+  test 'escapes them' do
+    get '/schedule'
+
+    assert !last_response.body.include?(@payload)
+    assert last_response.body.include?(Rack::Utils.escape_html(@payload))
+  end
+end
+
 context 'on GET to /delayed' do
   [
     {
