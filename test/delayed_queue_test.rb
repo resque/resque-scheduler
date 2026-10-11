@@ -91,6 +91,18 @@ context 'DelayedQueue' do
                  'job timestamps set should be empty')
   end
 
+  test 'enqueue_at leaves no timestamps behind for args that encode differently each time' do
+    timestamp = Time.now + 1
+    encodings = 0
+    arg = Object.new
+    arg.define_singleton_method(:to_json) { |*| (encodings += 1).to_json }
+
+    Resque.enqueue_at(timestamp, SomeIvarJob, arg)
+    Resque.next_item_for_timestamp(timestamp.to_i)
+
+    assert_equal([], Resque.redis.keys('timestamps:*'))
+  end
+
   test "a job in the future doesn't come out" do
     timestamp = Time.now + 600
     encoded_job = Resque.encode(
