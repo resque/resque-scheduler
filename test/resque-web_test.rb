@@ -238,6 +238,30 @@ context 'POST /schedule/requeue' do
   end
 end
 
+context 'POST /schedule/requeue with markup in the job name and parameters' do
+  setup do
+    @payload = %q{"><svg onload=alert(1)>}
+    Resque.schedule = {
+      @payload => {
+        'every' => '1h',
+        'class' => 'SomeIvarJob',
+        'parameters' => {
+          @payload => { 'description' => @payload, 'default' => @payload }
+        }
+      }
+    }
+  end
+
+  teardown { Resque.schedule = {} }
+
+  test 'escapes them' do
+    post '/schedule/requeue', 'job_name' => @payload
+
+    assert !last_response.body.include?(@payload)
+    assert last_response.body.include?(Rack::Utils.escape_html(@payload))
+  end
+end
+
 context 'POST /schedule/requeue_with_params' do
   setup do
     Resque.schedule = Test::RESQUE_SCHEDULE
