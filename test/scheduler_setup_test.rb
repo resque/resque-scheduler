@@ -12,6 +12,12 @@ context 'Resque::Scheduler' do
 
   teardown { restore_devnull_logfile }
 
+  test 'can be required before resque' do
+    lib = File.expand_path('../lib', __dir__)
+    script = "require 'resque-scheduler'; require 'resque'"
+    assert(system(RbConfig.ruby, "-I#{lib}", '-e', script))
+  end
+
   test 'set custom logger' do
     custom_logger = MonoLogger.new(devnull_logfile)
     Resque::Scheduler.logger = custom_logger
