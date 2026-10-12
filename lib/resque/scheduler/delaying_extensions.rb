@@ -10,6 +10,10 @@ module Resque
       # for queueing.  Until timestamp is in the past, the job will
       # sit in the schedule list.
       def enqueue_at(timestamp, klass, *args)
+        if Resque::Scheduler::Util.active_job_class?(klass)
+          return enqueue_at_with_queue(nil, timestamp, klass, *args)
+        end
+
         validate(klass)
         enqueue_at_with_queue(
           queue_from_class(klass), timestamp, klass, *args
@@ -21,6 +25,11 @@ module Resque
       # timestamp has passed. It respects Resque.inline option, by
       # creating the job right away instead of adding to the queue.
       def enqueue_at_with_queue(queue, timestamp, klass, *args)
+        if Resque::Scheduler::Util.active_job_class?(klass)
+          return klass.set(**{ wait_until: timestamp, queue: queue }.compact)
+                      .perform_later(*args)
+        end
+
         if Resque.inline? || timestamp.to_i <= Time.now.to_i
           # Just create the job and let resque perform it right away with
           # inline.  If the class is a custom job class, call self#scheduled

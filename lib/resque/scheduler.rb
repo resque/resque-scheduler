@@ -320,9 +320,13 @@ module Resque
         end
 
         params = args.is_a?(Hash) ? [args] : Array(args)
-        queue = job_config['queue'] ||
-                job_config[:queue] ||
-                Resque.queue_from_class(klass)
+        queue = job_config['queue'] || job_config[:queue]
+
+        if Resque::Scheduler::Util.active_job_class?(klass)
+          return klass.set(**{ queue: queue }.compact).perform_later(*params)
+        end
+
+        queue ||= Resque.queue_from_class(klass)
         # Support custom job classes like those that inherit from
         # Resque::JobWithStatus (resque-status)
         job_klass = job_config['custom_job_class']
