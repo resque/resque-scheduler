@@ -66,7 +66,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'mono_logger', '~> 1.0'
   spec.add_runtime_dependency 'redis', '>= 4.0'
   spec.add_runtime_dependency 'resque', '>= 3.0'
-  # rufus-scheduler v3.7 causes a failure in test/multi_process_test.rb
-  # rufus-scheduler v3.3 is missing a to_local method which fails tests
-  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.2', '!= 3.3'
+  spec.add_runtime_dependency 'rufus-scheduler', '~> 3.9'
 end

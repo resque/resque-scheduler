@@ -26,10 +26,6 @@ jobs:
           - head
         resque-version:
           - "master"
-        rufus-scheduler:
-          - "3.4"
-          - "3.5"
-          - "3.6"
         redis-version:
           - "4.8"
           - "latest"
@@ -39,7 +35,6 @@ jobs:
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
       RESQUE: "${{ matrix.resque-version }}"
-      RUFUS_SCHEDULER: "${{ matrix.rufus-scheduler }}"
       RACK_VERSION: "${{ matrix.rack-version }}"
       COVERAGE: 1
 
