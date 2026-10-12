@@ -457,6 +457,8 @@ config[:persist] = true
 Resque.set_schedule(name, config)
 ```
 
+`every` also accepts a number of seconds, so `config[:every] = 1.hour` works too.
+
 Schedules can later be removed by passing their name to the `remove_schedule` method:
 
 ```ruby
