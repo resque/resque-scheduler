@@ -211,7 +211,9 @@ Active Job must be using the `:resque` adapter. The job's `queue_as` applies
 unless a queue is given.
 
 Since the stored class is the adapter's `JobWrapper`, `delayed?`,
-`remove_delayed` and `find_delayed_selection` won't match Active Job classes.
+`remove_delayed` and `find_delayed_selection` won't match Active Job classes,
+and [hooks](#hooks) defined on them aren't called. Use Active Job's callbacks
+instead.
 
 The delayed queue is stored in redis and is persisted in the same way the
 standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
