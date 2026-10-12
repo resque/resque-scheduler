@@ -99,11 +99,8 @@ module Resque
         end
 
         def delayed_search
-          @jobs = if params[:search_args]=='checked'
-            find_jobs_with_expr(params[:search])
-          else
-            find_job(params[:search])
-          end
+          field = params[:search_args] == 'checked' ? 'args' : 'class'
+          @jobs = find_job(params[:search], field)
           erb scheduler_template('search')
         end
 
@@ -157,26 +154,21 @@ module Resque
           )
         end
 
-        def find_jobs_with_expr(search_expr)
-          results = working_jobs_for_expr(search_expr)
-          results + delayed_jobs_for_search_expr(search_expr)
-        end
+        def find_job(term, field = 'class')
+          term = term.downcase
+          matches = ->(job) { job[field].to_s.downcase.include?(term) }
+          results = working_jobs_matching(matches)
 
-        def find_job(worker)
-          worker = worker.downcase
-          results = working_jobs_for_worker(worker)
-
-          dels = delayed_jobs_for_worker(worker)
+          dels = delayed_jobs_for_worker(term)
           results += dels.select do |j|
-            j['class'].downcase.include?(worker) &&
-              j.merge!('where_at' => 'delayed')
+            matches.call(j) && j.merge!('where_at' => 'delayed')
           end
 
           Resque.queues.each do |queue|
             queued = Resque.peek(queue, 0, Resque.size(queue))
             queued = [queued] unless queued.is_a?(Array)
             results += queued.select do |j|
-              j['class'].downcase.include?(worker) &&
+              matches.call(j) &&
                 j.merge!('queue' => queue, 'where_at' => 'queued')
             end
           end
@@ -237,12 +229,11 @@ module Resque
 
         private
 
-        def working_jobs_for_worker(worker)
+        def working_jobs_matching(matches)
           [].tap do |results|
             working = [*Resque.working]
             work = working.select do |w|
-              w.job && w.job['payload'] &&
-                w.job['payload']['class'].downcase.include?(worker)
+              w.job && w.job['payload'] && matches.call(w.job['payload'])
             end
             work.each do |w|
               results += [
@@ -250,33 +241,6 @@ module Resque
                   'queue' => w.job['queue'], 'where_at' => 'working'
                 )
               ]
-            end
-          end
-        end
-
-        def working_jobs_for_expr(expr)
-          [].tap do |results|
-            working = [*Resque.working]
-            work = working.select do |w|
-              w.job && w.job['payload'].inspect.match(/#{expr}/)
-            end
-            work.each do |w|
-              results += [
-                w.job['payload'].merge(
-                  'queue' => w.job['queue'], 'where_at' => 'working'
-                )
-              ]
-            end
-          end
-        end
-
-        def delayed_jobs_for_search_expr(expr)
-          schedule_size = Resque.delayed_queue_schedule_size
-          [].tap do |dels|
-            Resque.delayed_queue_peek(0, schedule_size).map do |d|
-              Resque.delayed_timestamp_peek(d, 0, Resque.delayed_timestamp_size(d)).select do |j|
-                dels << j.merge!('timestamp' => d, 'where_at' => 'delayed') if j.inspect.match(/#{expr}/i)
-              end
             end
           end
         end

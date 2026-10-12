@@ -313,6 +313,17 @@ context 'on POST to /delayed/search' do
     assert last_response.body.include?('SomeQuickJob')
   end
 
+  test 'should find jobs by args when searching args' do
+    post '/delayed/search', 'search' => 'STRING', 'search_args' => 'checked'
+    assert last_response.body.include?('SomeIvarJob')
+    assert !last_response.body.include?('SomeQuickJob')
+  end
+
+  test 'should not match args when searching class names' do
+    post '/delayed/search', 'search' => 'string'
+    assert !last_response.body.include?('SomeIvarJob')
+  end
+
   test 'should escape XSS attempt' do
     post '/delayed/search', 'search' => '"><script>alert(document.cookie);</script>"'
     assert !last_response.body.include?('<script>alert(document.cookie);</script>')

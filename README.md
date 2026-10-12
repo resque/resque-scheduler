@@ -610,6 +610,9 @@ The Delayed tab:
 
 ![The Delayed Tab](http://img.skitch.com/20100111-ne4fcqtc5emkcuwc5qtais2kwx.jpg)
 
+The Delayed tab's search matches job class names, or job arguments when
+"Search Args?" is checked.
+
 #### How do I get the schedule tabs to show up???
 
 To get these to show up you need to pass a file to `resque-web` to tell it to
