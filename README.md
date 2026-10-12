@@ -752,6 +752,7 @@ This table explains the version requirements for rufus-scheduler
 
 | resque-scheduler | rufus-scheduler |
 |:-----------------|----------------:|
+| `>= 5.1`         | `~> 3.9`        |
 | `~> 4.0`         | `~> 3.0`        |
 | `< 4.0`          | `~> 2.0`        |
 
