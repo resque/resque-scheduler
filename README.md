@@ -202,6 +202,17 @@ Resque.enqueue_at_with_queue(
 )
 ```
 
+#### Active Job
+
+`ActiveJob::Base` subclasses can be passed to `enqueue_at`, `enqueue_in` and
+their `_with_queue` variants, and used as the `class` of a scheduled job. They
+are handed to `perform_later` (with `set(wait_until:)` for delayed jobs), so
+Active Job must be using the `:resque` adapter. The job's `queue_as` applies
+unless a queue is given.
+
+Since the stored class is the adapter's `JobWrapper`, `delayed?`,
+`remove_delayed` and `find_delayed_selection` won't match Active Job classes.
+
 The delayed queue is stored in redis and is persisted in the same way the
 standard resque jobs are persisted (redis writing to disk). Delayed jobs differ
 from scheduled jobs in that if your scheduler process is down or workers are

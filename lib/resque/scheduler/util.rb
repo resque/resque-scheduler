@@ -34,6 +34,11 @@ module Resque
       def self.classify(dashed_word)
         dashed_word.split('-').map(&:capitalize).join
       end
+
+      def self.active_job_class?(klass)
+        defined?(::ActiveJob::Base) && klass.is_a?(Class) &&
+          klass < ::ActiveJob::Base
+      end
     end
   end
 end

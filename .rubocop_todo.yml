@@ -28,7 +28,7 @@ Metrics/ClassLength:
 
 # Offense count: 3
 Metrics/CyclomaticComplexity:
-  Max: 12
+  Max: 13
 
 # Offense count: 6
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes.
@@ -39,12 +39,12 @@ Layout/LineLength:
 # Offense count: 20
 # Configuration parameters: CountComments.
 Metrics/MethodLength:
-  Max: 34
+  Max: 36
 
 # Offense count: 2
 # Configuration parameters: CountComments.
 Metrics/ModuleLength:
-  Max: 373
+  Max: 375
 
 # Offense count: 1
 Style/CaseEquality:
