@@ -42,7 +42,8 @@ context 'Active Job' do
       'class' => 'SomeActiveJob', 'queue' => 'other'
     )
 
-    assert_equal ['path'], Resque.pop('active')['args'].first['arguments']
     assert_equal 1, Resque.size('other')
+    SomeActiveJob.any_instance.expects(:perform).with('path')
+    Resque.reserve('active').perform
   end
 end
