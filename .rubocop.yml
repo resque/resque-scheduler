@@ -1,7 +1,6 @@
 inherit_from: .rubocop_todo.yml
 
 AllCops:
-  TargetRubyVersion: 3.0
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -23,7 +22,7 @@ Metrics/ClassLength:
   Enabled: true
   Max: 110
 
-Documentation:
+Style/Documentation:
   Enabled: false
 
 Style/DoubleNegation:

@@ -21,6 +21,11 @@ Lint/UselessAccessModifier:
 Metrics/AbcSize:
   Max: 36
 
+# Offense count: 1
+Metrics/ClassLength:
+  Exclude:
+    - 'lib/resque/scheduler.rb'
+
 # Offense count: 3
 Metrics/CyclomaticComplexity:
   Max: 12
@@ -28,7 +33,7 @@ Metrics/CyclomaticComplexity:
 # Offense count: 6
 # Configuration parameters: AllowHeredoc, AllowURI, URISchemes.
 # URISchemes: http, https
-Metrics/LineLength:
+Layout/LineLength:
   Max: 96
 
 # Offense count: 20
@@ -53,7 +58,7 @@ Style/EachWithObject:
 
 # Offense count: 3
 # Configuration parameters: ExpectMatchingDefinition, Regex, IgnoreExecutableScripts.
-Style/FileName:
+Naming/FileName:
   Exclude:
     - 'examples/config/initializers/resque-web.rb'
     - 'lib/resque-scheduler.rb'
