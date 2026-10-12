@@ -9,6 +9,22 @@ context 'on GET to /schedule' do
   test('is 200') { assert last_response.ok? }
 end
 
+context 'on GET to /schedule with a numeric every' do
+  setup do
+    Resque.schedule = {
+      'some_ivar_job' => {
+        'every' => [30, { 'first_in' => 120 }],
+        'class' => 'SomeIvarJob'
+      }
+    }
+    get '/schedule'
+  end
+
+  test 'shows the interval in seconds' do
+    assert last_response.body.include?('every: 30s (first in 120s)')
+  end
+end
+
 context 'on GET to /schedule with scheduled jobs' do
   setup do
     Resque::Scheduler.env = 'production'
