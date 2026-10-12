@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
   spec.license = 'MIT'
   spec.metadata['rubygems_mfa_required'] = 'true'
 
-  spec.required_ruby_version = '>= 3.0.0'
+  spec.required_ruby_version = '>= 3.2.0'
 
   spec.files = `git ls-files -z`.split("\0").reject do |f|
     f.match(%r{^(test|spec|features|examples|bin|tasks)/}) ||
