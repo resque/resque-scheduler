@@ -28,6 +28,7 @@ jobs:
           - "master"
         redis-version:
           - "4.8"
+          - "5.4"
           - "latest"
         rack-version:
           - 2
