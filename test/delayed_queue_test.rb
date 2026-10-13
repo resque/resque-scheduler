@@ -8,7 +8,7 @@ context 'DelayedQueue' do
   end
 
   test 'enqueue_at adds correct list and zset' do
-    timestamp = Time.now + 1
+    timestamp = Time.now + 60
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
@@ -49,7 +49,7 @@ context 'DelayedQueue' do
   end
 
   test 'enqueue_at with queue adds correct list and zset and queue' do
-    timestamp = Time.now + 1
+    timestamp = Time.now + 60
     encoded_job = Resque.encode(
       class: SomeIvarJob.to_s,
       args: ['path'],
@@ -92,7 +92,7 @@ context 'DelayedQueue' do
   end
 
   test 'enqueue_at leaves no timestamps behind for args that encode differently each time' do
-    timestamp = Time.now + 1
+    timestamp = Time.now + 60
     encodings = 0
     arg = Object.new
     arg.define_singleton_method(:to_json) { |*| (encodings += 1).to_json }
@@ -1117,8 +1117,8 @@ context 'DelayedQueue' do
   end
 
   test 'delayed?' do
-    Resque.enqueue_at Time.now + 1, SomeIvarJob
-    Resque.enqueue_at Time.now + 1, SomeIvarJob, id: 1
+    Resque.enqueue_at Time.now + 60, SomeIvarJob
+    Resque.enqueue_at Time.now + 60, SomeIvarJob, id: 1
 
     assert Resque.delayed?(SomeIvarJob, id: 1)
     assert !Resque.delayed?(SomeIvarJob, id: 2)
