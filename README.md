@@ -545,13 +545,6 @@ Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
   Resque::Scheduler.failure_handler = ExceptionHandlerClass
   ```
 
-From 4.11.0 on, `before_schedule` and `after_schedule` also ran when a schedule
-entry was enqueued and a second time when a delayed job became due. They now
-only run when a job is placed on the delayed queue. If you used them to control
-jobs from the schedule, move that code to `before_recurring` and
-`after_recurring`. Older versions never call the new hooks, so you can add them
-before you upgrade.
-
 #### Support for resque-status (and other custom jobs)
 
 Some Resque extensions like
