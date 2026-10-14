@@ -29,24 +29,66 @@ context 'Resque::Scheduler' do
     Resque::Scheduler.enqueue_from_config(config)
   end
 
-  test 'enqueue runs hooks' do
-    Resque::Scheduler.env = 'production'
-    config = {
-      'cron' => '* * * * *',
-      'class' => 'SomeJobWithResqueHooks',
-      'args' => '/tmp'
-    }
+  context 'enqueue_from_config hooks' do
+    def config
+      {
+        'cron' => '* * * * *',
+        'class' => 'SomeJobWithResqueHooks',
+        'args' => '/tmp'
+      }
+    end
 
-    Resque::Job.expects(:create).with(
-      SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
-    )
-    SomeJobWithResqueHooks.expects(:before_schedule).with('/tmp')
-    SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example).with('/tmp')
-    SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp')
-    SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp')
-    SomeJobWithResqueHooks.expects(:after_schedule).with('/tmp')
+    test 'runs only Resque hooks by default' do
+      Resque::Job.expects(:create).with(
+        SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
+      )
+      SomeJobWithResqueHooks.expects(:before_schedule).never
+      SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example).never
+      SomeJobWithResqueHooks.expects(:before_recurring_example).never
+      SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp')
+      SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp')
+      SomeJobWithResqueHooks.expects(:after_recurring_example).never
+      SomeJobWithResqueHooks.expects(:after_schedule).never
 
-    Resque::Scheduler.enqueue_from_config(config)
+      Resque::Scheduler.enqueue_from_config(config)
+    end
+
+    test 'runs before_delayed_enqueue before Resque hooks for delayed jobs' do
+      hooks = sequence('hooks')
+      SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example)
+                            .with('/tmp').in_sequence(hooks)
+      SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp').in_sequence(hooks)
+      Resque::Job.expects(:create).with(
+        SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
+      ).in_sequence(hooks)
+      SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp').in_sequence(hooks)
+      SomeJobWithResqueHooks.expects(:before_recurring_example).never
+      SomeJobWithResqueHooks.expects(:after_recurring_example).never
+
+      Resque::Scheduler.enqueue_from_config(config, :delayed)
+    end
+
+    test 'wraps Resque hooks in recurring hooks for schedule entries' do
+      hooks = sequence('hooks')
+      SomeJobWithResqueHooks.expects(:before_recurring_example).with('/tmp').in_sequence(hooks)
+      SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp').in_sequence(hooks)
+      Resque::Job.expects(:create).with(
+        SomeJobWithResqueHooks.queue, SomeJobWithResqueHooks, '/tmp'
+      ).in_sequence(hooks)
+      SomeJobWithResqueHooks.expects(:after_enqueue_example).with('/tmp').in_sequence(hooks)
+      SomeJobWithResqueHooks.expects(:after_recurring_example).with('/tmp').in_sequence(hooks)
+      SomeJobWithResqueHooks.expects(:before_delayed_enqueue_example).never
+
+      Resque::Scheduler.enqueue_from_config(config, :recurring)
+    end
+
+    test 'rejects unknown hooks' do
+      Resque::Job.expects(:create).never
+
+      assert_raises(ArgumentError) do
+        Resque::Scheduler.enqueue_from_config(config, :schedule)
+      end
+    end
   end
 
   test 'enqueue_from_config respects queue params' do
