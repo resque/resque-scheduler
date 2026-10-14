@@ -187,14 +187,14 @@ module Resque
       def enqueue_delayed(klass, *args)
         hash = job_to_hash(klass, args)
         remove_delayed(klass, *args).times do
-          Resque::Scheduler.enqueue_from_config(hash)
+          Resque::Scheduler.enqueue_from_config(hash, :delayed)
         end
       end
 
       def enqueue_delayed_with_queue(klass, queue, *args)
         hash = job_to_hash_with_queue(queue, klass, args)
         remove_delayed_in_queue(klass, queue, *args).times do
-          Resque::Scheduler.enqueue_from_config(hash)
+          Resque::Scheduler.enqueue_from_config(hash, :delayed)
         end
       end
 

@@ -12,6 +12,27 @@ module Resque
         run_after_schedule_hooks(klass, *args)
       end
 
+      def self.process_recurring_hooks(klass, *args)
+        return unless run_before_recurring_hooks(klass, *args)
+
+        yield
+        run_after_recurring_hooks(klass, *args)
+      end
+
+      def self.process_enqueue_hooks(hooks, klass, *args, &block)
+        case hooks
+        when :delayed
+          run_before_delayed_enqueue_hooks(klass, *args)
+          yield
+        when :recurring
+          process_recurring_hooks(klass, *args, &block)
+        when nil
+          yield
+        else
+          raise ArgumentError, "unknown hooks: #{hooks.inspect}"
+        end
+      end
+
       def self.hooks(job, pattern)
         job.methods.grep(/^#{pattern}/).sort
       end
@@ -34,6 +55,14 @@ module Resque
 
       def self.run_after_schedule_hooks(klass, *args)
         run_hooks(klass, 'after_schedule', *args)
+      end
+
+      def self.run_before_recurring_hooks(klass, *args)
+        run_hooks(klass, 'before_recurring', *args)
+      end
+
+      def self.run_after_recurring_hooks(klass, *args)
+        run_hooks(klass, 'after_recurring', *args)
       end
     end
   end
