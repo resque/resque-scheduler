@@ -89,6 +89,16 @@ context 'Resque::Scheduler' do
         Resque::Scheduler.enqueue_from_config(config, :schedule)
       end
     end
+
+    test 'rejects unknown hooks for a class that cannot be resolved' do
+      Resque::Job.expects(:create).never
+
+      assert_raises(ArgumentError) do
+        Resque::Scheduler.enqueue_from_config(
+          { 'class' => 'NoSuchJobClass', 'queue' => 'some_queue' }, :schedule
+        )
+      end
+    end
   end
 
   test 'enqueue_from_config respects queue params' do

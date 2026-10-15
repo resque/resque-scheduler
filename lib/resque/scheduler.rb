@@ -316,6 +316,7 @@ module Resque
       # that left the delayed queue or :recurring for a schedule entry to run
       # the matching hooks.
       def enqueue_from_config(job_config, hooks = nil)
+        Resque::Scheduler::Plugin.validate_enqueue_hooks(hooks)
         args = job_config['args'] || job_config[:args]
 
         klass_name = job_config['class'] || job_config[:class]
