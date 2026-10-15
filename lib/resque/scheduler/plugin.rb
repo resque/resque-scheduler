@@ -15,8 +15,9 @@ module Resque
       def self.process_recurring_hooks(klass, *args)
         return unless run_before_recurring_hooks(klass, *args)
 
-        yield
-        run_after_recurring_hooks(klass, *args)
+        enqueued = yield
+        run_after_recurring_hooks(klass, *args) if enqueued
+        enqueued
       end
 
       def self.process_enqueue_hooks(hooks, klass, *args, &block)

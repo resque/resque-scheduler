@@ -286,6 +286,16 @@ context 'recurring job hooks' do
     assert_equal [], enqueued
   end
 
+  test 'after_recurring hooks are not called when a before_enqueue hook rejects the job' do
+    SomeJobWithResqueHooks.expects(:before_enqueue_example).with('/tmp').returns(false)
+    SomeJobWithResqueHooks.expects(:after_enqueue_example).never
+    SomeJobWithResqueHooks.expects(:after_recurring_example).never
+
+    enqueue_recurring(config.merge('class' => 'SomeJobWithResqueHooks'))
+
+    assert_equal [], enqueued
+  end
+
   test 'schedule and delayed hooks are not called' do
     SomeRealClass.expects(:before_schedule_example).never
     SomeRealClass.expects(:after_schedule_example).never
