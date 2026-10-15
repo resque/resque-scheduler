@@ -3,6 +3,8 @@
 module Resque
   module Scheduler
     module Plugin
+      ENQUEUE_HOOKS = %i[delayed recurring].freeze
+
       def self.process_schedule_hooks(klass, *args)
         # the documentation states that if any before_schedule hook returns
         # false, the process should not be enqueued
@@ -20,6 +22,12 @@ module Resque
         enqueued
       end
 
+      def self.validate_enqueue_hooks(hooks)
+        return if hooks.nil? || ENQUEUE_HOOKS.include?(hooks)
+
+        raise ArgumentError, "unknown hooks: #{hooks.inspect}"
+      end
+
       def self.process_enqueue_hooks(hooks, klass, *args, &block)
         case hooks
         when :delayed
@@ -27,10 +35,8 @@ module Resque
           yield
         when :recurring
           process_recurring_hooks(klass, *args, &block)
-        when nil
-          yield
         else
-          raise ArgumentError, "unknown hooks: #{hooks.inspect}"
+          yield
         end
       end
 
