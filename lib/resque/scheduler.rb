@@ -212,7 +212,7 @@ module Resque
 
         if item
           log "queuing #{item['class']} [delayed]"
-          enqueue(item)
+          enqueue(item, :delayed)
         end
 
         item
@@ -269,7 +269,7 @@ module Resque
               pipeline.srem("timestamps:#{encoded_job}", timestamp_bucket_key)
 
               decoded_job = Resque.decode(encoded_job)
-              enqueue(decoded_job)
+              enqueue(decoded_job, :delayed)
             end
 
             pipeline.ltrim(timestamp_bucket_key, batch_size, -1)
@@ -296,8 +296,12 @@ module Resque
         encoded_jobs_to_requeue.count
       end
 
-      def enqueue(config)
-        enqueue_from_config(config)
+      # Enqueues a job like enqueue_from_config, but hands errors to the failure
+      # handler instead of raising them. Pass :delayed as hooks for a job that
+      # left the delayed queue or :recurring for a schedule entry to run the
+      # matching hooks.
+      def enqueue(config, hooks = nil)
+        enqueue_from_config(config, hooks)
       rescue => e
         Resque::Scheduler.failure_handler.on_enqueue_failure(config, e)
       end
@@ -308,8 +312,11 @@ module Resque
         exit if @shutdown
       end
 
-      # Enqueues a job based on a config hash
-      def enqueue_from_config(job_config)
+      # Enqueues a job based on a config hash. Pass :delayed as hooks for a job
+      # that left the delayed queue or :recurring for a schedule entry to run
+      # the matching hooks.
+      def enqueue_from_config(job_config, hooks = nil)
+        Resque::Scheduler::Plugin.validate_enqueue_hooks(hooks)
         args = job_config['args'] || job_config[:args]
 
         klass_name = job_config['class'] || job_config[:class]
@@ -349,8 +356,7 @@ module Resque
           # for non-existent classes (for example: running scheduler in
           # one app that schedules for another.
           if Class === klass
-            Resque::Scheduler::Plugin.process_schedule_hooks(klass, *params) do
-              Resque::Scheduler::Plugin.run_before_delayed_enqueue_hooks(klass, *params)
+            Resque::Scheduler::Plugin.process_enqueue_hooks(hooks, klass, *params) do
               # If the class is a custom job class, call self#scheduled on it.
               # This allows you to do things like Resque.enqueue_at(timestamp,
               # CustomJobClass). Otherwise, pass off to Resque.
@@ -510,7 +516,7 @@ module Resque
       def enqueue_recurring(name, config)
         if am_master
           log! "queueing #{config['class']} (#{name})"
-          enqueue(config)
+          enqueue(config, :recurring)
           Resque.last_enqueued_at(name, Time.now.to_s)
         end
       end

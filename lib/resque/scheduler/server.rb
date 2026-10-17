@@ -48,7 +48,7 @@ module Resque
           if @parameters
             erb scheduler_template('requeue-params')
           else
-            Resque::Scheduler.enqueue_from_config(config)
+            Resque::Scheduler.enqueue_from_config(config, :recurring)
             redirect u('/overview')
           end
         end
@@ -68,7 +68,7 @@ module Resque
 
           # Insert the args hash into config and queue the resque job
           config = config.merge('args' => config_args)
-          Resque::Scheduler.enqueue_from_config(config)
+          Resque::Scheduler.enqueue_from_config(config, :recurring)
           redirect u('/overview')
         end
 

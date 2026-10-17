@@ -221,7 +221,7 @@ context 'POST /schedule/requeue' do
     # Regular jobs without params should redirect to /overview
     job_name = 'job_without_params'
     Resque::Scheduler.stubs(:enqueue_from_config)
-                     .once.with(Resque.schedule[job_name])
+                     .once.with(Resque.schedule[job_name], :recurring)
 
     post '/schedule/requeue', 'job_name' => job_name
     follow_redirect!
@@ -292,7 +292,7 @@ context 'POST /schedule/requeue_with_params' do
     args = job_config['args'].merge('log_level' => log_level)
     job_config = job_config.merge('args' => args)
 
-    Resque::Scheduler.stubs(:enqueue_from_config).once.with(job_config)
+    Resque::Scheduler.stubs(:enqueue_from_config).once.with(job_config, :recurring)
 
     post '/schedule/requeue_with_params',
          'job_name' => job_name,

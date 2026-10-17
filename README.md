@@ -524,13 +524,18 @@ Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
   the delayed queue. If the hook returns `false`, the job will not be placed on
   the queue.
 * `after_schedule`: Called with the job args after a job is placed on the
-  delayed queue. Any exception raised propagates up to the code with queued the
+  delayed queue. Any exception raised propagates up to the code that queued the
   job.
 * `before_delayed_enqueue`: Called with the job args after the job has been
-  removed from the delayed queue, but not yet put on a normal queue. It is
+  removed from the delayed queue, but not yet put on its work queue. It is
   called before `before_enqueue`-hooks, and on the same job instance as the
   `before_enqueue`-hooks will be invoked on. Return values are ignored.
-* `on_enqueue_failure`: Called with the job args and the exception that was raised
+* `before_recurring`: Called with the job args before a job from the schedule
+  (`cron`, `every` or "Queue now" in resque-web) is put on its work queue. If
+  the hook returns `false`, the job will not be enqueued.
+* `after_recurring`: Called with the job args after a job from the schedule has
+  been put on its work queue, after the `after_enqueue`-hooks.
+* `on_enqueue_failure`: Called with the job config and the exception that was raised
   while enqueueing a job to resque or external application fails.  Return
   values are ignored. For example:
 
