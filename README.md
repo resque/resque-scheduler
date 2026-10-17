@@ -537,9 +537,7 @@ Similar to the `before_enqueue`- and `after_enqueue`-hooks provided in Resque
   been put on its work queue, after the `after_enqueue`-hooks.
 * `on_enqueue_failure`: Called with the job config and the exception that was raised
   while enqueueing a job to resque or external application fails.  Return
-  values are ignored. Exceptions raised by `before_delayed_enqueue`,
-  `before_recurring` and `after_recurring` end up here when the scheduler
-  enqueues the job. For example:
+  values are ignored. For example:
 
   ```ruby
   Resque::Scheduler.failure_handler = ExceptionHandlerClass
