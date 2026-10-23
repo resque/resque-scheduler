@@ -141,7 +141,7 @@ context 'Resque::Scheduler' do
     end
 
     test 'logs scheduler master' do
-      Resque::Scheduler.expects(:master?).returns(true)
+      Resque::Scheduler.expects(:master?).at_least_once.returns(true)
 
       pid = Process.pid
       Thread.new do
@@ -157,7 +157,7 @@ context 'Resque::Scheduler' do
     end
 
     test 'logs scheduler child' do
-      Resque::Scheduler.expects(:master?).returns(false)
+      Resque::Scheduler.expects(:master?).at_least_once.returns(false)
 
       pid = Process.pid
       Thread.new do
