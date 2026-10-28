@@ -2,6 +2,30 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [5.1.0] - 2026-10-28
+### Breaking Changes
+* Ruby requirement: `>= 3.0.0` → `>= 3.2.0` by @neuromanskie in #837
+* rufus-scheduler dependency: `~> 3.2, != 3.3` → `~> 3.9` by @neuromanskie in #837
+* Schedule entries (`cron`/`every`) no longer run `before_schedule`, `after_schedule` or `before_delayed_enqueue`. Move that code to `before_recurring`/`after_recurring` by @top-sigrid in #844
+
+### Added
+* `before_recurring` and `after_recurring` hooks for jobs enqueued from the schedule by @top-sigrid in #844
+* `DISABLE_DELAYED_REQUEUE_BATCHES` to opt out of batched delayed job enqueues by @onyxraven in #796
+* Search delayed jobs by args in the web UI by @bmo in #839 (originally #714)
+* Allow a number of seconds for `every` by @carsonreinke in #838 (originally #607)
+* Railtie to load resque-scheduler automatically in Rails apps by @josh-m-sharpe in #694
+* Add Ruby 4.0 and redis-rb 5.4 to the CI matrix by @neuromanskie in #837
+
+### Changed
+* Upgrade RuboCop to 1.91 and run it as a CI job by @neuromanskie in #837
+
+### Fixed
+* Delayed jobs no longer run `before_schedule`/`after_schedule` a second time when they become due by @top-sigrid in #844
+* Skip schedule hooks when `enqueue_at` is given a timestamp that is not in the future by @top-sigrid in #817
+* Schedule Active Job classes through `perform_later` by @neuromanskie and @josh-m-sharpe in #842 (originally #696)
+* Schedule delayed test jobs far enough out to not race the clock by @neuromanskie in #843
+* Fail CI when tests fail by @neuromanskie in #837
+
 ## [5.0.1] - 2026-10-11
 ### Changed
 * Pipeline `count_all_scheduled_jobs` for significantly faster execution by @top-sigrid in #822
