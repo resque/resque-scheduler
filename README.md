@@ -135,7 +135,7 @@ environment variables:
 * `BACKGROUND` - [Run in the background](#running-in-the-background) if
 non-empty (via `Process.daemon`, if supported) (default `false`)
 * `DELAYED_REQUEUE_BATCH_SIZE` - Set the delayed job batch size if enabled (default `100`). If `<= 1`, this disables batching.
-* `DISABLE_DELAYED_REQUEUE_BATCHES` - Disable batched delayed job queuing (default `false`) - [See section below on consequences](#batched-delayed-job-and-resque-enqueue-hooks)
+* `DISABLE_DELAYED_REQUEUE_BATCHES` - Disable batched delayed job queuing (default `false`)
 * `DYNAMIC_SCHEDULE` - Enables [dynamic scheduling](#dynamic-schedules)
 if non-empty (default `false`)
 * `RAILS_ENV` - Environment to use in procline (`$0`) (default empty)
@@ -783,35 +783,6 @@ This table explains the version requirements for rufus-scheduler
 | `>= 5.1`         | `~> 3.9`        |
 | `~> 4.0`         | `~> 3.0`        |
 | `< 4.0`          | `~> 2.0`        |
-
-##### Batched delayed job and resque enqueue hooks
-
-Batching delayed job queuing can speed up when per-second job counts grows,
-avoiding situations that may cause delayed enqueues to fall behind. This
-batching wraps enqueues in a `multi` pipeline, making far fewer roundtrips to
-the server.
-
-However, in `redis` gem `>= 4.0`, any operations to Redis within the `multi`
-block must use the multi handle so that the actions are captured. Resque's hooks
-do not currently have a way to pass this around, and so compatibility with other
-Resque plugins or hooks which access Redis at enqueue time is impacted with
-batch mode (A main class of plugins this affects are single runner locks which
-use redis for their locking mechanism). In these cases, you should consider
-disabling the batching by setting the `DISABLE_DELAYED_REQUEUE_BATCHES`
-environment variable to `true`.
-
-Detecting when this occurs can be tricky, you must watch for logs
-emitted by your `resque-scheduler` process such as:
-
-```text
-Redis::CommandError: ERR
-MULTI calls can not be nested
-NoMethodError: undefined method nil? for <Redis::Future
-NoMethodError: undefined method `to_i' for <Redis::Future
-```
-
-If you're in this situation, you will also see delayed jobs to not be enqueued
-(they will get dropped). Disabling batching is the workaround.
 
 ### Contributing
 
