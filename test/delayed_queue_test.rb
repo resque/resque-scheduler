@@ -1185,12 +1185,14 @@ context 'DelayedQueue batch delayed item queue' do
     hook_results = []
     JobWithEnqueueHook.hook = lambda do |*|
       hook_results << Resque.redis.incr('hook_calls')
+      Resque.redis.multi { |transaction| transaction.incr('hook_multis') }
       Resque.delayed_push(t, class: 'SomeIvarJob', args: []) if hook_results.one?
     end
 
     Resque::Scheduler.handle_delayed_items(t)
 
     assert_equal([1, 2, 3], hook_results)
+    assert_equal('3', Resque.redis.get('hook_multis'))
     assert_equal(3, Resque.size(:hooked))
     assert_equal(1, Resque.size(:ivar))
     assert_equal(0, Resque.delayed_queue_schedule_size)
