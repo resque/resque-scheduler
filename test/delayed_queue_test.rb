@@ -307,6 +307,7 @@ context 'DelayedQueue' do
   end
 
   test 'handle_delayed_items with no items' do
+    Resque::Scheduler.expects(:am_master).never
     Resque::Scheduler.expects(:enqueue).never
     Resque::Scheduler.handle_delayed_items
   end
@@ -316,7 +317,7 @@ context 'DelayedQueue' do
     Resque.enqueue_at(t, SomeIvarJob)
     Resque::Scheduler.stubs(:am_master).returns(false)
 
-    Resque.expects(:next_delayed_timestamp).never
+    Resque.expects(:next_delayed_timestamp).once.returns(t.to_i)
     Resque::Scheduler.handle_delayed_items(t)
 
     assert_equal(1, Resque.delayed_timestamp_size(t))
