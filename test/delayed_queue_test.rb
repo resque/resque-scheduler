@@ -1116,6 +1116,19 @@ context 'DelayedQueue non-batch delayed item queue' do
   end
 end
 
+class JobWithEnqueueHook
+  @queue = :hooked
+
+  class << self
+    attr_accessor :hook
+  end
+
+  def self.before_enqueue_hook(*args)
+    hook.call(*args)
+    true
+  end
+end
+
 context 'DelayedQueue batch delayed item queue' do
   batch_disabled = Resque::Scheduler.disable_delayed_requeue_batches
   batch_size = Resque::Scheduler.delayed_requeue_batch_size
@@ -1165,19 +1178,22 @@ context 'DelayedQueue batch delayed item queue' do
     assert_equal(90, Resque.size(Resque.queue_from_class(SomeIvarJob)))
   end
 
-  # test to make sure the timestamp is cleaned up
-  test 'enqueue_delayed_items_for_timestamp handles a watch failure' do
+  test 'enqueue hooks can use redis and touch the timestamp without duplicating the batch' do
     t = Time.now + 60
+    3.times { |i| Resque.enqueue_at(t, JobWithEnqueueHook, i) }
 
-    # create 100 jobs
-    100.times { Resque.enqueue_at(t, SomeIvarJob) }
-    assert_equal(100, Resque.delayed_timestamp_size(t))
+    hook_results = []
+    JobWithEnqueueHook.hook = lambda do |*|
+      hook_results << Resque.redis.incr('hook_calls')
+      Resque.delayed_push(t, class: 'SomeIvarJob', args: []) if hook_results.one?
+    end
 
-    Resque.redis.stubs(:watch).returns(nil)
+    Resque::Scheduler.handle_delayed_items(t)
 
-    Resque.expects(:clean_up_timestamp).never
-
-    Resque::Scheduler.enqueue_delayed_items_for_timestamp(t)
+    assert_equal([1, 2, 3], hook_results)
+    assert_equal(3, Resque.size(:hooked))
+    assert_equal(1, Resque.size(:ivar))
+    assert_equal(0, Resque.delayed_queue_schedule_size)
   end
 
   test 'enqueue_delayed_items_for_timestamp cleans up a timestamp' do
