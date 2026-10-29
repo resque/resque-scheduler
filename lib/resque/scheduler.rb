@@ -264,26 +264,32 @@ module Resque
       def enqueue_items_in_batch_for_timestamp(timestamp, batch_size)
         timestamp_bucket_key = timestamp_key(timestamp)
 
-        encoded_jobs_to_requeue, = Resque.redis.multi do |transaction|
-          transaction.lrange(timestamp_bucket_key, 0, batch_size - 1)
-          transaction.ltrim(timestamp_bucket_key, batch_size, -1)
-        end
+        encoded_jobs = take_delayed_batch(timestamp_bucket_key, batch_size) until encoded_jobs
 
-        Resque.redis.pipelined do |pipeline|
-          encoded_jobs_to_requeue.each do |encoded_job|
-            pipeline.srem("timestamps:#{encoded_job}", [timestamp_bucket_key])
-          end
-        end
-
-        encoded_jobs_to_requeue.each do |encoded_job|
+        encoded_jobs.each do |encoded_job|
           enqueue(Resque.decode(encoded_job), :delayed)
         end
 
-        if encoded_jobs_to_requeue.count < batch_size
+        if encoded_jobs.count < batch_size
           Resque.clean_up_timestamp(timestamp_bucket_key, timestamp)
         end
 
-        encoded_jobs_to_requeue.count
+        encoded_jobs.count
+      end
+
+      # Returns nil if the timestamp bucket changed before the batch was taken.
+      def take_delayed_batch(timestamp_bucket_key, batch_size)
+        Resque.redis.watch(timestamp_bucket_key) do
+          encoded_jobs = Resque.redis.lrange(timestamp_bucket_key, 0, batch_size - 1)
+          taken = Resque.redis.multi do |transaction|
+            encoded_jobs.each do |encoded_job|
+              transaction.srem("timestamps:#{encoded_job}", [timestamp_bucket_key])
+            end
+            transaction.ltrim(timestamp_bucket_key, batch_size, -1)
+          end
+
+          encoded_jobs if taken
+        end
       end
 
       # Enqueues a job like enqueue_from_config, but hands errors to the failure
