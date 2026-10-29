@@ -264,7 +264,7 @@ module Resque
       def enqueue_items_in_batch_for_timestamp(timestamp, batch_size)
         timestamp_bucket_key = timestamp_key(timestamp)
 
-        encoded_jobs = take_delayed_batch(timestamp_bucket_key, batch_size) until encoded_jobs
+        return 0 unless (encoded_jobs = take_delayed_batch(timestamp_bucket_key, batch_size))
 
         encoded_jobs.each do |encoded_job|
           enqueue(Resque.decode(encoded_job), :delayed)
