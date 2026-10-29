@@ -197,6 +197,8 @@ module Resque
       # Handles queueing delayed items
       # at_time - Time to start scheduling items (default: now).
       def handle_delayed_items(at_time = nil)
+        return unless am_master
+
         timestamp = Resque.next_delayed_timestamp(at_time)
         if timestamp
           procline 'Processing Delayed Items'
@@ -235,7 +237,6 @@ module Resque
           actual_batch_size = 0
 
           handle_shutdown do
-            # Continually check that it is still the master
             if am_master
               if batch_delayed_items?
                 actual_batch_size = enqueue_items_in_batch_for_timestamp(timestamp, batch_size)

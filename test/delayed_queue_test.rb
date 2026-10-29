@@ -311,6 +311,17 @@ context 'DelayedQueue' do
     Resque::Scheduler.handle_delayed_items
   end
 
+  test 'handle_delayed_items does nothing when not master' do
+    t = Time.now + 60
+    Resque.enqueue_at(t, SomeIvarJob)
+    Resque::Scheduler.stubs(:am_master).returns(false)
+
+    Resque.expects(:next_delayed_timestamp).never
+    Resque::Scheduler.handle_delayed_items(t)
+
+    assert_equal(1, Resque.delayed_timestamp_size(t))
+  end
+
   test 'handle_delayed_item with items' do
     t = Time.now - 60 # in the past
 
