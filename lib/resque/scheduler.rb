@@ -197,10 +197,8 @@ module Resque
       # Handles queueing delayed items
       # at_time - Time to start scheduling items (default: now).
       def handle_delayed_items(at_time = nil)
-        return unless am_master
-
         timestamp = Resque.next_delayed_timestamp(at_time)
-        if timestamp
+        if timestamp && am_master
           procline 'Processing Delayed Items'
           until timestamp.nil?
             enqueue_delayed_items_for_timestamp(timestamp)
