@@ -74,7 +74,9 @@ module Resque
           Integer(environment.fetch('DELAYED_REQUEUE_BATCH_SIZE', '100'))
       end
 
-      attr_writer :disable_delayed_requeue_batches
+      def disable_delayed_requeue_batches=(value)
+        @disable_delayed_requeue_batches = value.nil? ? nil : to_bool(value)
+      end
 
       def disable_delayed_requeue_batches
         if @disable_delayed_requeue_batches.nil?

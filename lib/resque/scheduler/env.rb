@@ -80,7 +80,7 @@ module Resque
           end
 
           if options.key?(:disable_delayed_requeue_batches)
-            c.disable_delayed_requeue_batches = !!options[:disable_delayed_requeue_batches]
+            c.disable_delayed_requeue_batches = options[:disable_delayed_requeue_batches]
           end
         end
       end
