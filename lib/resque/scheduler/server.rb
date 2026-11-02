@@ -230,18 +230,9 @@ module Resque
         private
 
         def working_jobs_matching(matches)
-          [].tap do |results|
-            working = [*Resque.working]
-            work = working.select do |w|
-              w.job && w.job['payload'] && matches.call(w.job['payload'])
-            end
-            work.each do |w|
-              results += [
-                w.job['payload'].merge(
-                  'queue' => w.job['queue'], 'where_at' => 'working'
-                )
-              ]
-            end
+          jobs = [*Resque.working].map(&:job)
+          jobs.select { |j| j['payload'] && matches.call(j['payload']) }.map do |j|
+            j['payload'].merge('queue' => j['queue'], 'where_at' => 'working')
           end
         end
 

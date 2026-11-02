@@ -329,6 +329,18 @@ context 'on POST to /delayed/search' do
     assert last_response.body.include?('SomeQuickJob')
   end
 
+  test 'should find matching working job' do
+    worker = Resque::Worker.new(:busy)
+    worker.register_worker
+    worker.working_on(Resque::Job.new('busy', 'class' => 'SomeBusyJob', 'args' => []))
+
+    post '/delayed/search', 'search' => 'busy'
+    working = last_response.body[/<h1>Working jobs<\/h1>.*/m]
+    assert working.include?('SomeBusyJob')
+  ensure
+    worker.unregister_worker
+  end
+
   test 'should find jobs by args when searching args' do
     post '/delayed/search', 'search' => 'STRING', 'search_args' => 'checked'
     assert last_response.body.include?('SomeIvarJob')
