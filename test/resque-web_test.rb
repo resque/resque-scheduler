@@ -338,6 +338,7 @@ context 'on POST to /delayed/search' do
     working = last_response.body[/<h1>Working jobs<\/h1>.*/m]
     assert working.include?('SomeBusyJob')
   ensure
+    worker.done_working
     worker.unregister_worker
   end
 
