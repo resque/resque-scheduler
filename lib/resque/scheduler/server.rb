@@ -151,7 +151,9 @@ module Resque
         def queue_from_class_name(class_name)
           Resque.queue_from_class(
             Resque::Scheduler::Util.constantize(class_name)
-          )
+          ) || nil
+        rescue NameError
+          nil
         end
 
         def find_job(term, field = 'class')
