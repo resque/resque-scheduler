@@ -229,6 +229,23 @@ context 'Cli' do
     Resque::Scheduler::Cli.run!([], {})
   end
 
+  [
+    [[], { 'DISABLE_DELAYED_REQUEUE_BATCHES' => 'false' }, nil, false],
+    [[], { 'DISABLE_DELAYED_REQUEUE_BATCHES' => 'true' }, nil, true],
+    [['--disable-delayed-requeue-batches'], {}, nil, true],
+    [[], {}, true, true]
+  ].each do |argv, env, preset, expected|
+    test "sets disable_delayed_requeue_batches=#{expected} from #{argv} #{env}" do
+      Resque::Scheduler.disable_delayed_requeue_batches = preset
+      cli = Resque::Scheduler::Cli.new(argv, env)
+      cli.parse_options
+      cli.setup_env
+      assert_equal(expected, Resque::Scheduler.disable_delayed_requeue_batches)
+    ensure
+      Resque::Scheduler.disable_delayed_requeue_batches = nil
+    end
+  end
+
   test 'does not create keys for unspecified environment variables' do
     cli = new_cli([], 'DYNAMIC_SCHEDULE' => 'true')
     assert_equal({ dynamic: 'true' }, cli.send(:options))

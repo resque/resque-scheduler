@@ -36,6 +36,14 @@ context 'Env' do
     assert_equal(false, Resque::Scheduler.dynamic)
   end
 
+  test 'keeps an explicit false disable_delayed_requeue_batches' do
+    Resque::Scheduler.disable_delayed_requeue_batches = true
+    new_env(disable_delayed_requeue_batches: false).setup
+    assert_equal(false, Resque::Scheduler.disable_delayed_requeue_batches)
+  ensure
+    Resque::Scheduler.disable_delayed_requeue_batches = nil
+  end
+
   test 'keep set environment if no option given' do
     Resque::Scheduler.configure { |c| c.env = 'development' }
     env = new_env
