@@ -25,6 +25,22 @@ context 'on GET to /schedule with a numeric every' do
   end
 end
 
+context 'on GET to /schedule without an explicit queue' do
+  setup do
+    Resque.schedule = {
+      'some_ivar_job' => { 'every' => ['1m'], 'class' => 'SomeIvarJob' },
+      'unloaded_job' => { 'every' => ['1m'], 'class' => 'NotLoadedJob' }
+    }
+    get '/schedule'
+  end
+
+  test 'shows the queue from the class and tolerates unloaded classes' do
+    assert last_response.ok?
+    assert last_response.body.include?('<td>ivar</td>')
+    assert last_response.body.include?('NotLoadedJob')
+  end
+end
+
 context 'on GET to /schedule with scheduled jobs' do
   setup do
     Resque::Scheduler.env = 'production'
