@@ -1,5 +1,6 @@
 # vim:fileencoding=utf-8
 require_relative 'test_helper'
+require 'open3'
 
 context 'Resque::Scheduler' do
   setup do
@@ -16,6 +17,23 @@ context 'Resque::Scheduler' do
     lib = File.expand_path('../lib', __dir__)
     script = "require 'resque-scheduler'; require 'resque'"
     assert(system(RbConfig.ruby, "-I#{lib}", '-e', script))
+  end
+
+  test 'loads the web UI in a Rails app without warnings' do
+    lib = File.expand_path('../lib', __dir__)
+    script = <<~RUBY
+      require 'rails'
+      class App < Rails::Application
+        config.eager_load = false
+        config.logger = Logger.new(nil)
+        initializer('app.scheduler') { require 'resque-scheduler' }
+      end
+      App.initialize!
+      exit Resque::Server.tabs.include?('Schedule')
+    RUBY
+    output, status = Open3.capture2e(RbConfig.ruby, '-w', "-I#{lib}", '-e', script)
+    refute_match(/circular require/, output)
+    assert(status.success?, output)
   end
 
   test 'set custom logger' do
