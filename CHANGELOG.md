@@ -2,6 +2,12 @@
 
 **ATTN**: This project uses [semantic versioning](http://semver.org/).
 
+## [5.1.1] - 2026-11-02
+### Fixed
+* Enqueue batched delayed jobs outside the Redis transaction so a conflicted batch is no longer enqueued twice and enqueue hooks can use Redis by @neuromanskie in #850
+* Skip due delayed items when not master instead of spinning on them by @neuromanskie in #852
+* Load the web UI after Rails initialization to avoid a circular require warning by @neuromanskie in #854
+
 ## [5.1.0] - 2026-10-28
 ### Breaking Changes
 * Ruby requirement: `>= 3.0.0` → `>= 3.2.0` by @neuromanskie in #837
